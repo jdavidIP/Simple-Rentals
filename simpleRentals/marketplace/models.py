@@ -30,3 +30,45 @@ class MarketplaceUser(AbstractUser):
     receive_sms_notifications = models.BooleanField(default=False)
     facebook_link = models.URLField(null=True, blank=True)
     instagram_link = models.URLField(null=True, blank=True)
+
+class Listing(models.Model):
+    # Basic Details
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    property_type = models.CharField(max_length=10, choices=[('H', 'House'), ('A', 'Apartment'), ('C', 'Condo'), ('T', 'Townhouse')])
+    bedrooms = models.IntegerField()
+    bathrooms = models.IntegerField()
+    sqft_area = models.PositiveIntegerField()
+    laundry_type = models.CharField(max_length=10, choices=[('I', 'In-Unit'), ('S', 'Shared'), ('N', 'None')])
+    parking_spaces = models.IntegerField()
+    heating = models.BooleanField(default=False)
+    ac = models.BooleanField(default=False)
+    extra_amenities = models.TextField(blank=True, null=True)
+    pet_friendly = models.BooleanField(default=False)
+    verification_status = models.CharField(max_length=10, choices=[('V', 'Verified'), ('P', 'Pending'), ('U', 'Unverified')], default='U')
+    move_in_date = models.DateField()
+    description = models.TextField()
+
+    # Address
+    unit_number = models.CharField(max_length=10, blank=True, null=True)
+    street_address = models.CharField(max_length=255)
+    city = models.CharField(max_length=100)
+    postal_code = models.CharField(max_length=20)
+
+    # Additional fees and costs
+    utilities_cost = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    utilities_payable_by_tenant = models.BooleanField(default=False)
+
+    property_taxes = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    property_taxes_payable_by_tenant = models.BooleanField(default=False)
+
+    condo_fee = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    condo_fee_payable_by_tenant = models.BooleanField(default=False)
+
+    hoa_fee = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    hoa_fee_payable_by_tenant = models.BooleanField(default=False)
+
+    security_deposit = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    security_deposit_payable_by_tenant = models.BooleanField(default=False)
+
+    # Foreign Keys
+    owner = models.ForeignKey(MarketplaceUser, on_delete=models.CASCADE)
