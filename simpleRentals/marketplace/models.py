@@ -96,7 +96,7 @@ class ListingPicture(models.Model):
 class Group(models.Model):
     name = models.CharField(max_length=100)
     listing = models.ForeignKey(Listing, related_name="groups", on_delete=models.CASCADE)
-    members = models.ManyToManyField(MarketplaceUser, related_name="groups")
+    members = models.ManyToManyField(MarketplaceUser, related_name="listing_groups")
     description = models.TextField(blank=True, null=True)
     move_in_date = models.DateField()
     move_in_ready = models.BooleanField(default=False)
