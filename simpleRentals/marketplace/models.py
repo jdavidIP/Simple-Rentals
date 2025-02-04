@@ -34,7 +34,8 @@ class MarketplaceUser(AbstractUser):
 class Listing(models.Model):
     # Basic Details
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    property_type = models.CharField(max_length=10, choices=[('H', 'House'), ('A', 'Apartment'), ('C', 'Condo'), ('T', 'Townhouse')])
+    property_type = models.CharField(max_length=1, choices=[('H', 'House'), ('A', 'Apartment'), ('C', 'Condo'), ('T', 'Townhouse'), ('O', 'Other')])
+    payment_type = models.CharField(max_length=1, choices=[('C', 'Cheque'), ('D', 'Direct Deposit'), ('I', 'Interac / Wire Transfer'), ('P', 'PayPal'), ('X', 'Chexy'), ('O', 'Other')])
     bedrooms = models.IntegerField()
     bathrooms = models.IntegerField()
     sqft_area = models.PositiveIntegerField()
@@ -71,4 +72,44 @@ class Listing(models.Model):
     security_deposit_payable_by_tenant = models.BooleanField(default=False)
 
     # Foreign Keys
-    owner = models.ForeignKey(MarketplaceUser, on_delete=models.CASCADE)
+    owner = models.ForeignKey(MarketplaceUser, related_name="listings", on_delete=models.CASCADE)
+
+class Location(models.TextChoices):
+    AERIAL = 'A', 'Aerial View'
+    FRONT = 'F', 'Front Yard / Property Front'
+    BACKYARD = 'B', 'Backyard / Property Back'
+    BEDROOMS = 'Br', 'Bedroom(s)'
+    BATHROOMS = 'Bt', 'Bathroom(s)'
+    KITCHEN = 'K', 'Kitchen'
+    DINING = 'D', 'Dining Room'
+    LIVING = 'L', 'Living Room'
+    GARAGE = 'G', 'Garage'
+    PARKING = 'P', 'Parking'
+    UNCATEGORIZED = 'U', 'Uncategorized'
+
+class ListingPicture(models.Model):
+    listing = models.ForeignKey(Listing, related_name="pictures", on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='listing_pictures/')
+    location = models.CharField(max_length=2, choices=Location.choices, default=Location.UNCATEGORIZED)
+    is_primary = models.BooleanField(default=False)  # Flag to mark the picture as primary for the listing
+
+class Group(models.Model):
+    name = models.CharField(max_length=100)
+    listing = models.ForeignKey(Listing, related_name="groups", on_delete=models.CASCADE)
+    members = models.ManyToManyField(MarketplaceUser, related_name="groups")
+    description = models.TextField(blank=True, null=True)
+    move_in_date = models.DateField()
+    move_in_ready = models.BooleanField(default=False)
+    group_status = models.CharField(max_length=1, choices=[('O', 'Open'), ('F', 'Filled'), ('S', 'Sent'), ('U', 'Under Review'), ('R', 'Rejected'), ('I', 'Approved - Invited')], default='O')
+
+class Review(models.Model):
+    reviewer = models.ForeignKey(MarketplaceUser, related_name='given_reviews', on_delete=models.CASCADE)
+    reviewee = models.ForeignKey(MarketplaceUser, related_name='received_reviews', on_delete=models.CASCADE)
+    rating = models.PositiveIntegerField(choices=[(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')])
+    comment = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewee_role = models.CharField(max_length=1, choices=[('T', 'Tenant'), ('L', 'Landlord')])
+
+class Favorites(models.Model):
+    user = models.ForeignKey(MarketplaceUser, related_name="wishlist", on_delete=models.CASCADE)
+    favorite_listings = models.ManyToManyField(Listing, related_name='favorited_by', blank=True)
