@@ -2,7 +2,7 @@ from django import forms
 from .models import MarketplaceUser
 
 class UserRegistrationForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput)
+    forms.CharField(widget=forms.PasswordInput())
     
     class Meta:
         model = MarketplaceUser
@@ -24,6 +24,6 @@ class UserRegistrationForm(forms.ModelForm):
         user = super().save(commit=False)
         user.username = user.email
         if commit:
-            user.set_password(self.cleaned_data['password'])
+            user.set_password(self.cleaned_data.get('password'))
             user.save()
         return user

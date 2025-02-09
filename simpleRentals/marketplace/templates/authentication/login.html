@@ -1,0 +1,21 @@
+{% extends 'authentication/auth_forms_wrapper.html' %}
+
+{% block title %}Log In{% endblock %}
+
+{% block content %}
+<h2 class="text-center mt-3">Login</h2>
+<form class="m-4" method="post" action = "{% url 'login' %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="email" class="form-label">Email address</label>
+        <input type="email" class="form-control" id="email" name="email">
+    </div>
+    <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="password" name="password">
+    </div>
+    <div class="text-center">
+        <button type="submit" class="btn btn-primary mt-3 w-100">Submit</span></button>
+    </div>
+</form>
+{% endblock %}
