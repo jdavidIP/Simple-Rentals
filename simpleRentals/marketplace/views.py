@@ -47,8 +47,26 @@ def login_view(request):
 
 # PROFILE SECTION - START
 
+# Profile page - displays the user's profile
 @login_required(login_url="login")
 def profile(request):
     return render(request, 'profile/profile_home.html', {'user': request.user})
+
+# Profile edit page - returns a form to edit the user's profile
+@login_required(login_url="login")
+def edit_profile(request):
+    if request.user.is_authenticated:
+        form = UserRegistrationForm(request.POST or None, instance=request.user)
+
+        if form.is_valid():
+            form.save()
+            login(request, request.user)
+            messages.success(request, ("Your profile updates have been saved successfully"))
+            redirect('profile')
+
+        return render(request, 'profile/edit_profile.html', {'form': form})
+    else:
+        messages.error(request, "You need to be logged in to view this page")
+        return redirect('login')
 
 # PROFILE SECTION - END
