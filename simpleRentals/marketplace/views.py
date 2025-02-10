@@ -56,13 +56,13 @@ def profile(request):
 @login_required(login_url="login")
 def edit_profile(request):
     if request.user.is_authenticated:
-        form = UserRegistrationForm(request.POST or None, instance=request.user)
+        form = UserEditForm(request.POST or None, request.FILES or None, instance=request.user)
 
         if form.is_valid():
             form.save()
             login(request, request.user)
             messages.success(request, ("Your profile updates have been saved successfully"))
-            redirect('profile')
+            return redirect('profile')
 
         return render(request, 'profile/edit_profile.html', {'form': form})
     else:
