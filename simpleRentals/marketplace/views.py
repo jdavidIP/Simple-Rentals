@@ -5,6 +5,14 @@ from django.contrib.auth.decorators import *
 
 from .forms import *
 
+# HOME SECTION - START
+
+# Home page - displays the home page
+def home(request):
+    return render(request, 'home.html')
+
+# HOME SECTION - END
+
 # USER AUTHENTICTION SECTION - START
 
 # Registration handling - returns a registration form on GET, processes the form on POST

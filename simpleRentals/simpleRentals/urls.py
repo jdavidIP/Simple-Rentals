@@ -28,6 +28,8 @@ urlpatterns = [
     path("logout/", views.logout_view, name="logout"),
     path("login/", views.login_view, name="login"),
     path("edit-profile/", views.edit_profile, name="edit_profile"),
+    path("", views.home, name="home"),
 ]
 
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
