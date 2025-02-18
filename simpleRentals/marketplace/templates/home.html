@@ -8,8 +8,8 @@
         <link rel="stylesheet" href="static/css/home_style.css">
     </head>
     <body class="">
-        <header>
-            <div class="position-fixed top-0 start-0 w-100 h-100 overflow-hidden z-n1">
+        <header class="vh-100">
+            <div class="position-absolute top-0 start-0 w-100 h-100 overflow-hidden z-n1">
                 <video autoplay muted loop style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
                     <source src="static/videos/background.mp4" type="video/mp4">
                     Your browser does not support the video tag.
@@ -34,5 +34,48 @@
                 </a>
             </div>
         </header>
+
+        <section class="bg-light py-5">
+            <div class="container">
+                <h2 class="header_font text-center mb-5">Key Features</h2>
+                <div class="row justify-content-center gy-4">
+                    <div class="col-md-4">
+                        <div class="bg-white p-4 shadow-sm rounded text-center">
+                            <img src="static/images/verified-listing.png" alt="" class="img-fluid w-25">
+                            <h4 class="mt-3">Verified Listings</h4>
+                            <p>We add a verified badge to the listing that underwent our verification process to ensure they are accurate and trustworthy, so you can browse with confidence.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="bg-white p-4 shadow-sm rounded text-center">
+                            <img src="static/images/verified-landlord.png" alt="" class="img-fluid w-25">
+                            <h4 class="mt-3">Landlord Verification</h4>
+                            <p>All landlords willing to add more than one listing are required to undergo our rigorous verification process to ensure that they are reliable and credible for a safe renting experience.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="bg-white p-4 shadow-sm rounded text-center">
+                            <img src="static/images/verified-finance.png" alt="" class="img-fluid w-25">
+                            <h4 class="mt-3">Financial Health Check</h4>
+                            <p>We allow potential tenants to go thorough a financial health check to be able to see the listings that fit their budget and for landlords and to see tenant match level.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="bg-white p-4 shadow-sm rounded text-center">
+                            <img src="static/images/house-sharing.png" alt="" class="img-fluid w-25">
+                            <h4 class="mt-3">House Sharing Listings</h4>
+                            <p>Our platform allows landlords to enable sharing on their listings, which allows tenants to form tenant groups and apply to rent the space as roommates or housemates.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="bg-white p-4 shadow-sm rounded text-center">
+                            <img src="static/images/document-prep.png" alt="" class="img-fluid w-25">
+                            <h4 class="mt-3">Easy Document Preparation</h4>
+                            <p>Our platform allows landlords and tenants to easily prepare the various contracts and e-sign them. Easily prepare rental, co-tenant, sublease, and other agreements.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>    
     </body>
 </html>
