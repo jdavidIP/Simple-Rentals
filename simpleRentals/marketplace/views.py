@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import login
+from .models import Listing
 
 from .forms import UserRegistrationForm
 
@@ -19,3 +20,7 @@ def register(request):
 
 def profile(request):
     return render(request, 'profile/profile_home.html', {'user': request.user})
+
+def viewAllListings(request):
+    listings = Listing.objects.all()
+    return render(request, 'listings/viewAll.html', {'listings': listings})
