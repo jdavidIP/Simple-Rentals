@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Available Listings</title>
+    <style>
+        .listing-container {
+            border: 1px solid #ccc;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 16px 0;
+            transition: all 0.3s ease;
+        }
+        .hidden {
+            display: none;
+        }
+        .expand-btn {
+            cursor: pointer;
+            color: blue;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Available Listings</h1>
+    {% for listing in listings %}
+        <div class="listing-container">
+            <p><strong>Price:</strong> ${{ listing.price }}</p>
+            <p><strong>Property Type:</strong> {{ listing.get_property_type_display }}</p>
+            <p><strong>Bedrooms:</strong> {{ listing.bedrooms }}</p>
+            <p><strong>Bathrooms:</strong> {{ listing.bathrooms }}</p>
+            <p><strong>Location:</strong> {{ listing.street_address }}, {{ listing.city }}</p>
+            <p><strong>Move-in Date:</strong> {{ listing.move_in_date }}</p>
+            <p><strong>Verification Status:</strong> {{ listing.verification_status }}</p>
+            
+            <span class="expand-btn" onclick="toggleDetails('details-{{ listing.id }}')">Show More</span>
+            
+            <div id="details-{{ listing.id }}" class="hidden">
+                <p><strong>Payment Type:</strong> {{ listing.get_payment_type_display }}</p>
+                <p><strong>Sqft Area:</strong> {{ listing.sqft_area }}</p>
+                <p><strong>Pet Friendly:</strong> {% if listing.pet_friendly %} Yes {% else %} No {% endif %}</p>
+                <p><strong>Description:</strong> {{ listing.description }}</p>
+                <p><strong>Parking Spaces:</strong> {{ listing.parking_spaces }}</p>
+                <p><strong>Heating:</strong> {% if listing.heating %} Yes {% else %} No {% endif %}</p>
+            </div>
+        </div>
+    {% empty %}
+        <p>No listings available.</p>
+    {% endfor %}
+
+    <script>
+        function toggleDetails(id) {
+            const details = document.getElementById(id);
+            details.classList.toggle('hidden');
+        }
+    </script>
+</body>
+</html>
