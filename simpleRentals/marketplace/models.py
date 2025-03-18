@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
@@ -113,3 +114,26 @@ class Review(models.Model):
 class Favorites(models.Model):
     user = models.ForeignKey(MarketplaceUser, related_name="wishlist", on_delete=models.CASCADE)
     favorite_listings = models.ManyToManyField(Listing, related_name='favorited_by', blank=True)
+
+
+class Message(models.Model):
+    sender = models.ForeignKey(MarketplaceUser, related_name='sent_messages', on_delete=models.CASCADE)
+    receiver = models.ForeignKey(MarketplaceUser, related_name='received_messages', on_delete=models.CASCADE)
+    listing = models.ForeignKey(Listing, related_name='messages', on_delete=models.CASCADE)
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    read = models.BooleanField(default=False)  # Whether the message has been read by the receiver
+
+class Conversation(models.Model):
+    user = models.ForeignKey(MarketplaceUser, related_name='conversations', on_delete=models.CASCADE)
+    listing = models.ForeignKey(Listing, related_name='conversations', on_delete=models.CASCADE)
+    last_message = models.TextField(null=True, blank=True)
+    last_message_time = models.DateTimeField(null=True, blank=True)
+    
+    def update_last_message(self):
+        last_message = self.listing.messages.filter(receiver=self.user).last()
+        if last_message:
+            self.last_message = last_message.content
+            self.last_message_time = last_message.timestamp
+            self.save()

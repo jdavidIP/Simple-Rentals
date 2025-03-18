@@ -31,8 +31,6 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    "daphne",  # ASGI WebSockets support
-    "channels",  # Django Channels
     "marketplace",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -73,9 +71,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "simpleRentals.wsgi.application"
-
-ASGI_APPLICATION = "simpleRentals.asgi.application"
-
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
