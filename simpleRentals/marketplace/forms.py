@@ -1,5 +1,6 @@
 from django import forms
 from .models import MarketplaceUser
+from .models import Listing
 
 class UserRegistrationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
@@ -27,3 +28,29 @@ class UserRegistrationForm(forms.ModelForm):
             user.set_password(self.cleaned_data['password'])
             user.save()
         return user
+    
+
+class ListingPostingForm(forms.ModelForm):
+    move_in_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+
+    class Meta:
+        model = Listing
+        fields = [
+            'price', 'property_type', 'payment_type', 'bedrooms', 'bathrooms', 'sqft_area', 'laundry_type', 
+            'parking_spaces', 'heating', 'ac', 'extra_amenities', 'pet_friendly', 'verification_status', 
+            'move_in_date', 'description', 'unit_number', 'street_address', 'city', 'postal_code',
+            'utilities_cost', 'utilities_payable_by_tenant', 'property_taxes', 'property_taxes_payable_by_tenant', 
+            'condo_fee', 'condo_fee_payable_by_tenant', 'hoa_fee', 'hoa_fee_payable_by_tenant',
+            'security_deposit', 'security_deposit_payable_by_tenant'
+        ]
+    
+    def save(self, commit=True, owner=None):
+        listing = super().save(commit=False)
+
+        if owner:
+            listing.owner = owner
+        
+        if commit:
+            listing.save()
+
+        return listing

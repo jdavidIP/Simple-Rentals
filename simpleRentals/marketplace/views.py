@@ -4,6 +4,7 @@ from django.contrib.auth import login
 from .models import Listing
 
 from .forms import UserRegistrationForm
+from .forms import ListingPostingForm
 
 def register(request):
     if request.method == 'POST':
@@ -24,3 +25,17 @@ def profile(request):
 def viewAllListings(request):
     listings = Listing.objects.all()
     return render(request, 'listings/viewAll.html', {'listings': listings})
+
+def addListing(request):
+    if not request.user.is_authenticated:
+        return render(request, 'errors/error.html', {'error': "Access denied. You need to log in to access."})
+
+    form = ListingPostingForm()
+
+    if request.method == 'POST':
+        form = ListingPostingForm(request.POST)
+        if form.is_valid():
+            form.save(owner=request.user)
+            return redirect('viewAllListings')
+
+    return render(request, 'listings/add.html', {"form" : form})
