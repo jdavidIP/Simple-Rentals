@@ -1,8 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
+from .models import Conversation, Message, Listing
 
 from .forms import UserRegistrationForm
+from .forms import MessageForm
 
 def register(request):
     if request.method == 'POST':
@@ -19,3 +22,56 @@ def register(request):
 
 def profile(request):
     return render(request, 'profile/profile_home.html', {'user': request.user})
+
+@login_required
+def conversation_detail(request, conversation_id):
+    conversation = get_object_or_404(Conversation, id=conversation_id, participants=request.user)
+
+    # Mark all unread messages as read (except the ones the user sent)
+    conversation.messages.filter(read=False).exclude(sender=request.user).update(read=True)
+
+    form = MessageForm()
+
+    return render(request, 'messaging/conversation_detail.html', {
+        'conversation': conversation,
+        'form': form
+    })
+
+@login_required
+def start_conversation(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id)
+    
+    # Check if a conversation already exists
+    conversation = Conversation.objects.filter(participants=request.user, listing=listing).first()
+    
+    if not conversation:
+        conversation = Conversation.objects.create(listing=listing)
+        conversation.participants.add(request.user, listing.owner)
+
+        # Create the initial message in the conversation
+        initial_message = Message.objects.create(
+            conversation=conversation,
+            sender=request.user,
+            content="Hello, I'm interested in this listing.",
+        )
+
+    return redirect('conversation_detail', conversation_id=conversation.id)
+
+@login_required
+def send_message(request, conversation_id):
+    conversation = get_object_or_404(Conversation, id=conversation_id, participants=request.user)
+
+    if request.method == "POST":
+        form = MessageForm(request.POST)
+        if form.is_valid():
+            message = form.save(commit=False)
+            message.sender = request.user
+            message.conversation = conversation
+            message.save()
+
+            # Mark all messages as read after sending the new message
+            conversation.messages.filter(read=False).exclude(sender=request.user).update(read=True)
+
+            return redirect('conversation_detail', conversation_id=conversation.id)
+
+    return redirect('conversation_detail', conversation_id=conversation.id)
