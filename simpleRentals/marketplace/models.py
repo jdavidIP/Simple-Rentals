@@ -115,25 +115,23 @@ class Favorites(models.Model):
     user = models.ForeignKey(MarketplaceUser, related_name="wishlist", on_delete=models.CASCADE)
     favorite_listings = models.ManyToManyField(Listing, related_name='favorited_by', blank=True)
 
+class Conversation(models.Model):
+    participants = models.ManyToManyField(MarketplaceUser, related_name='conversations')
+    listing = models.ForeignKey(Listing, related_name='conversations', on_delete=models.CASCADE)
+    last_updated = models.DateTimeField(auto_now=True) 
+
+    def get_last_message(self):
+        return self.messages.order_by('-timestamp').first()
 
 class Message(models.Model):
+    conversation = models.ForeignKey(Conversation, related_name='messages', on_delete=models.CASCADE)
     sender = models.ForeignKey(MarketplaceUser, related_name='sent_messages', on_delete=models.CASCADE)
-    receiver = models.ForeignKey(MarketplaceUser, related_name='received_messages', on_delete=models.CASCADE)
-    listing = models.ForeignKey(Listing, related_name='messages', on_delete=models.CASCADE)
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
-    
-    read = models.BooleanField(default=False)  # Whether the message has been read by the receiver
+    read = models.BooleanField(default=False)
 
-class Conversation(models.Model):
-    user = models.ForeignKey(MarketplaceUser, related_name='conversations', on_delete=models.CASCADE)
-    listing = models.ForeignKey(Listing, related_name='conversations', on_delete=models.CASCADE)
-    last_message = models.TextField(null=True, blank=True)
-    last_message_time = models.DateTimeField(null=True, blank=True)
-    
-    def update_last_message(self):
-        last_message = self.listing.messages.filter(receiver=self.user).last()
-        if last_message:
-            self.last_message = last_message.content
-            self.last_message_time = last_message.timestamp
-            self.save()
+    def save(self, *args, **kwargs):
+        """Update conversation timestamp when a message is sent."""
+        super().save(*args, **kwargs)
+        self.conversation.last_updated = self.timestamp
+        self.conversation.save()
