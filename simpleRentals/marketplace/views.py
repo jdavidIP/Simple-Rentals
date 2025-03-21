@@ -4,6 +4,7 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from .models import Conversation, Message, Listing
 from django.utils.timezone import now
+from .models import Listing
 
 from .forms import UserRegistrationForm
 from .forms import MessageForm
@@ -80,3 +81,7 @@ def send_message(request, conversation_id):
             return redirect('conversation_detail', conversation_id=conversation.id)
 
     return redirect('conversation_detail', conversation_id=conversation.id)
+
+def viewAllListings(request):
+    listings = Listing.objects.all()
+    return render(request, 'listings/viewAll.html', {'listings': listings})
