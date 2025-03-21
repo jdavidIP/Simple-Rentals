@@ -26,7 +26,9 @@
     {% for listing in listings %}
         <div class="listing-container">
             {% if listing.pictures.all %}
-            <img src="{{ listing.pictures.first.image.url }}" alt="Listing Image" style="max-width: 300px;">
+                {% for picture in listing.pictures.all %}
+                    <img src="{{ picture.image.url }}" alt="Listing Image" style="max-width: 300px;">
+                {% endfor %}
             {% else %}
             <img src="/static/img/placeholder.jpg" alt="No Image Available" style="max-width: 300px;">
             {% endif %}

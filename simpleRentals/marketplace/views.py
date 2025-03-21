@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import login
-from .models import Listing
+from .models import Listing, ListingPicture
 
 from .forms import UserRegistrationForm
 from .forms import ListingPostingForm
@@ -31,10 +31,15 @@ def addListing(request):
         return render(request, 'errors/error.html', {'error': "Access denied. You need to log in to access."})
 
     if request.method == 'POST':
-        print(request.FILES)
         form = ListingPostingForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save(owner=request.user)
+            listing = form.save(owner=request.user)
+            
+            # Handle multiple images
+            images = request.FILES.getlist('images')
+            for image in images:
+                ListingPicture.objects.create(listing=listing, image=image)
+                
             return redirect('viewAllListings')
         else:
             print(form.errors)  # Debugging: Print form errors if there are any

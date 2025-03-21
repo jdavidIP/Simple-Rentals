@@ -31,9 +31,6 @@ class UserRegistrationForm(forms.ModelForm):
 class ListingPostingForm(forms.ModelForm):
     move_in_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
     
-    # Allow only one image
-    image = forms.FileField(label='Upload Image', required=False)
-
     class Meta:
         model = Listing
         fields = [
@@ -44,6 +41,12 @@ class ListingPostingForm(forms.ModelForm):
             'condo_fee', 'condo_fee_payable_by_tenant', 'hoa_fee', 'hoa_fee_payable_by_tenant',
             'security_deposit', 'security_deposit_payable_by_tenant'
         ]
+    
+    def clean_images(self):
+        images = self.files.getlist('images')
+        if len(images) > 10:
+            raise forms.ValidationError("You can upload up to 10 images only.")
+        return images
 
     def save(self, commit=True, owner=None):
         listing = super().save(commit=False)
@@ -51,13 +54,4 @@ class ListingPostingForm(forms.ModelForm):
             listing.owner = owner
         if commit:
             listing.save()
-
-        # Save the image (if provided)
-        image = self.cleaned_data.get('image')
-        if image:
-            ListingPicture.objects.create(
-                listing=listing,
-                image=image
-            )
-
         return listing

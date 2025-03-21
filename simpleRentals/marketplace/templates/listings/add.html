@@ -83,126 +83,13 @@
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             
+            {{ form.as_p }}
+            
             <div class="form-group">
-                <label for="id_price">Price:</label>
-                {{ form.price }}
+                <label for="id_images">Images</label>
+                <input type="file" name="images" id="id_images" multiple>
             </div>
-
-            <div class="form-group">
-                <label for="id_property_type">Property Type:</label>
-                {{ form.property_type }}
-            </div>
-
-            <div class="form-group">
-                <label for="id_payment_type">Payment Type:</label>
-                {{ form.payment_type }}
-            </div>
-
-            <div class="form-group">
-                <label for="id_bedrooms">Bedrooms:</label>
-                {{ form.bedrooms }}
-            </div>
-
-            <div class="form-group">
-                <label for="id_bathrooms">Bathrooms:</label>
-                {{ form.bathrooms }}
-            </div>
-
-            <div class="form-group">
-                <label for="id_sqft_area">Square Foot Area:</label>
-                {{ form.sqft_area }}
-            </div>
-
-            <div class="form-group">
-                <label for="id_laundry_type">Laundry Type:</label>
-                {{ form.laundry_type }}
-            </div>
-
-            <div class="form-group">
-                <label for="id_parking_spaces">Parking Spaces:</label>
-                {{ form.parking_spaces }}
-            </div>
-
-            <div class="form-group">
-                <label for="id_heating">Heating:</label>
-                {{ form.heating }}
-            </div>
-
-            <div class="form-group">
-                <label for="id_ac">Air Conditioning (A/C):</label>
-                {{ form.ac }}
-            </div>
-
-            <div class="form-group">
-                <label for="id_extra_amenities">Extra Amenities:</label>
-                {{ form.extra_amenities }}
-            </div>
-
-            <div class="form-group">
-                <label for="id_pet_friendly">Pet Friendly:</label>
-                {{ form.pet_friendly }}
-            </div>
-
-            <div class="form-group">
-                <label for="id_verification_status">Verification Status:</label>
-                {{ form.verification_status }}
-            </div>
-
-            <div class="form-group">
-                <label for="id_move_in_date">Move-in Date:</label>
-                {{ form.move_in_date }}
-            </div>
-
-            <div class="form-group">
-                <label for="id_description">Description:</label>
-                {{ form.description }}
-            </div>
-
-            <div class="form-group">
-                <label for="id_unit_number">Unit Number:</label>
-                {{ form.unit_number }}
-            </div>
-
-            <div class="form-group">
-                <label for="id_street_address">Street Address:</label>
-                {{ form.street_address }}
-            </div>
-
-            <div class="form-group">
-                <label for="id_city">City:</label>
-                {{ form.city }}
-            </div>
-
-            <div class="form-group">
-                <label for="id_postal_code">Postal Code:</label>
-                {{ form.postal_code }}
-            </div>
-
-            <div class="form-group">
-                <label for="id_utilities_cost">Utilities Cost:</label>
-                {{ form.utilities_cost }}
-            </div>
-
-            <div class="form-group">
-                <label for="id_utilities_payable_by_tenant">Utilities Payable by Tenant:</label>
-                {{ form.utilities_payable_by_tenant }}
-            </div>
-
-            <div class="form-group">
-                <label for="id_security_deposit">Security Deposit:</label>
-                {{ form.security_deposit }}
-            </div>
-
-            <div class="form-group">
-                <label for="id_security_deposit_payable_by_tenant">Security Deposit Payable by Tenant:</label>
-                {{ form.security_deposit_payable_by_tenant }}
-            </div>
-
-            <div class="form-group">
-                <label for="id_image">Upload Image:</label>
-                <input type="file" name="image" id="id_image">
-            </div>
-
+            
             <button type="submit">Submit Listing</button>
         </form>
     </div>
