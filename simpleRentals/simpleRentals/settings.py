@@ -73,7 +73,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "simpleRentals.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 

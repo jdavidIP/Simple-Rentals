@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
@@ -113,3 +114,24 @@ class Review(models.Model):
 class Favorites(models.Model):
     user = models.ForeignKey(MarketplaceUser, related_name="wishlist", on_delete=models.CASCADE)
     favorite_listings = models.ManyToManyField(Listing, related_name='favorited_by', blank=True)
+
+class Conversation(models.Model):
+    participants = models.ManyToManyField(MarketplaceUser, related_name='conversations')
+    listing = models.ForeignKey(Listing, related_name='conversations', on_delete=models.CASCADE)
+    last_updated = models.DateTimeField(auto_now=True) 
+
+    def get_last_message(self):
+        return self.messages.order_by('-timestamp').first()
+
+class Message(models.Model):
+    conversation = models.ForeignKey(Conversation, related_name='messages', on_delete=models.CASCADE)
+    sender = models.ForeignKey(MarketplaceUser, related_name='sent_messages', on_delete=models.CASCADE)
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    read = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        """Update conversation timestamp when a message is sent."""
+        super().save(*args, **kwargs)
+        self.conversation.last_updated = self.timestamp
+        self.conversation.save()

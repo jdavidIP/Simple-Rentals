@@ -1,5 +1,7 @@
 from django import forms
-from .models import MarketplaceUser, Listing, ListingPicture
+
+from .models import MarketplaceUser, Listing, ListingPicture, Message
+
 
 class UserRegistrationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
@@ -61,3 +63,11 @@ class ListingPostingForm(forms.ModelForm):
         if commit:
             listing.save()
         return listing
+    
+class MessageForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Write your message...'})
+        }
