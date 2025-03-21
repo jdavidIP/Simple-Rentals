@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from .models import Conversation, Message, Listing
+from django.utils.timezone import now
 
 from .forms import UserRegistrationForm
 from .forms import MessageForm
@@ -25,7 +26,7 @@ def profile(request):
 
 @login_required
 def conversation_detail(request, conversation_id):
-    conversation = get_object_or_404(Conversation, id=conversation_id, participants=request.user)
+    conversation = get_object_or_404(Conversation.objects.filter(participants=request.user), id=conversation_id)
 
     # Mark all unread messages as read (except the ones the user sent)
     conversation.messages.filter(read=False).exclude(sender=request.user).update(read=True)
@@ -49,17 +50,17 @@ def start_conversation(request, listing_id):
         conversation.participants.add(request.user, listing.owner)
 
         # Create the initial message in the conversation
-        initial_message = Message.objects.create(
+        Message.objects.create(
             conversation=conversation,
             sender=request.user,
-            content="Hello, I'm interested in this listing.",
+            content="Hello, I'm interested in this listing."
         )
 
     return redirect('conversation_detail', conversation_id=conversation.id)
 
 @login_required
 def send_message(request, conversation_id):
-    conversation = get_object_or_404(Conversation, id=conversation_id, participants=request.user)
+    conversation = get_object_or_404(Conversation.objects.filter(participants=request.user), id=conversation_id)
 
     if request.method == "POST":
         form = MessageForm(request.POST)
@@ -69,7 +70,11 @@ def send_message(request, conversation_id):
             message.conversation = conversation
             message.save()
 
-            # Mark all messages as read after sending the new message
+            # Update last_updated field
+            conversation.last_updated = now()
+            conversation.save(update_fields=['last_updated'])
+
+            # Mark all unread messages as read after sending a message
             conversation.messages.filter(read=False).exclude(sender=request.user).update(read=True)
 
             return redirect('conversation_detail', conversation_id=conversation.id)
