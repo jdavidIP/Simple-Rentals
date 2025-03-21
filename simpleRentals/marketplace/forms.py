@@ -1,5 +1,7 @@
 from django import forms
 from .models import MarketplaceUser
+from .models import Message
+
 
 class UserRegistrationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
@@ -27,3 +29,11 @@ class UserRegistrationForm(forms.ModelForm):
             user.set_password(self.cleaned_data['password'])
             user.save()
         return user
+    
+class MessageForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Write your message...'})
+        }
