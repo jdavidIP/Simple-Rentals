@@ -1,6 +1,5 @@
 from django import forms
-from .models import MarketplaceUser
-from .models import Listing
+from .models import MarketplaceUser, Listing, ListingPicture
 
 class UserRegistrationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
@@ -28,10 +27,12 @@ class UserRegistrationForm(forms.ModelForm):
             user.set_password(self.cleaned_data['password'])
             user.save()
         return user
-    
 
 class ListingPostingForm(forms.ModelForm):
     move_in_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+    
+    # Allow only one image
+    image = forms.FileField(label='Upload Image', required=False)
 
     class Meta:
         model = Listing
@@ -43,14 +44,20 @@ class ListingPostingForm(forms.ModelForm):
             'condo_fee', 'condo_fee_payable_by_tenant', 'hoa_fee', 'hoa_fee_payable_by_tenant',
             'security_deposit', 'security_deposit_payable_by_tenant'
         ]
-    
+
     def save(self, commit=True, owner=None):
         listing = super().save(commit=False)
-
         if owner:
             listing.owner = owner
-        
         if commit:
             listing.save()
+
+        # Save the image (if provided)
+        image = self.cleaned_data.get('image')
+        if image:
+            ListingPicture.objects.create(
+                listing=listing,
+                image=image
+            )
 
         return listing

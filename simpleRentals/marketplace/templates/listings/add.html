@@ -80,7 +80,7 @@
         {% endif %}
 
         <!-- Form for Posting a Listing -->
-        <form method="post" action="">
+        <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             
             <div class="form-group">
@@ -196,6 +196,11 @@
             <div class="form-group">
                 <label for="id_security_deposit_payable_by_tenant">Security Deposit Payable by Tenant:</label>
                 {{ form.security_deposit_payable_by_tenant }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_image">Upload Image:</label>
+                <input type="file" name="image" id="id_image">
             </div>
 
             <button type="submit">Submit Listing</button>

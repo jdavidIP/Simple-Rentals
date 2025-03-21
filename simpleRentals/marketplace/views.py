@@ -30,12 +30,16 @@ def addListing(request):
     if not request.user.is_authenticated:
         return render(request, 'errors/error.html', {'error': "Access denied. You need to log in to access."})
 
-    form = ListingPostingForm()
-
     if request.method == 'POST':
-        form = ListingPostingForm(request.POST)
+        print(request.FILES)
+        form = ListingPostingForm(request.POST, request.FILES)
         if form.is_valid():
             form.save(owner=request.user)
             return redirect('viewAllListings')
+        else:
+            print(form.errors)  # Debugging: Print form errors if there are any
+    else:
+        form = ListingPostingForm()
 
-    return render(request, 'listings/add.html', {"form" : form})
+    return render(request, 'listings/add.html', {"form": form})
+
