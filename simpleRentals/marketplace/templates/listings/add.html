@@ -93,6 +93,14 @@
             <button type="submit">Submit Listing</button>
         </form>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const numberInputs = document.querySelectorAll('input[type="number"], input[type="decimal"]');
+            numberInputs.forEach(input => {
+                input.setAttribute('min', '0');
+            });
+        });
+    </script>
 </body>
 
 </html>

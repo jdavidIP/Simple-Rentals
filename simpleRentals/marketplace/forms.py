@@ -42,11 +42,17 @@ class ListingPostingForm(forms.ModelForm):
             'security_deposit', 'security_deposit_payable_by_tenant'
         ]
     
-    def clean_images(self):
-        images = self.files.getlist('images')
-        if len(images) > 10:
-            raise forms.ValidationError("You can upload up to 10 images only.")
-        return images
+    def clean(self):
+        cleaned_data = super().clean()
+        number_fields = [
+            'price', 'bedrooms', 'bathrooms', 'sqft_area', 'parking_spaces', 
+            'utilities_cost', 'property_taxes', 'condo_fee', 'hoa_fee', 'security_deposit'
+        ]
+        for field in number_fields:
+            value = cleaned_data.get(field)
+            if value is not None and value < 0:
+                self.add_error(field, "This value cannot be negative.")
+        return cleaned_data
 
     def save(self, commit=True, owner=None):
         listing = super().save(commit=False)
