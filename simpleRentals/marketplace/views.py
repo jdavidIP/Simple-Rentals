@@ -26,6 +26,11 @@ def profile(request):
     return render(request, 'profile/profile_home.html', {'user': request.user})
 
 @login_required
+def conversation_list(request):
+    conversations = Conversation.objects.filter(participants=request.user).order_by('-last_updated')
+    return render(request, "messaging/conversation_list.html", {"conversations": conversations})
+
+@login_required
 def conversation_detail(request, conversation_id):
     conversation = get_object_or_404(Conversation.objects.filter(participants=request.user), id=conversation_id)
 
