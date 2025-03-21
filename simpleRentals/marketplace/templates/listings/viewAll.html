@@ -25,13 +25,20 @@
     <h1>Available Listings</h1>
     {% for listing in listings %}
         <div class="listing-container">
+            {% if listing.pictures.all %}
+                {% for picture in listing.pictures.all %}
+                    <img src="{{ picture.image.url }}" alt="Listing Image" style="max-width: 300px;">
+                {% endfor %}
+            {% else %}
+            <img src="/static/img/placeholder.jpg" alt="No Image Available" style="max-width: 300px;">
+            {% endif %}
             <p><strong>Price:</strong> ${{ listing.price }}</p>
             <p><strong>Property Type:</strong> {{ listing.get_property_type_display }}</p>
             <p><strong>Bedrooms:</strong> {{ listing.bedrooms }}</p>
             <p><strong>Bathrooms:</strong> {{ listing.bathrooms }}</p>
             <p><strong>Location:</strong> {{ listing.street_address }}, {{ listing.city }}</p>
             <p><strong>Move-in Date:</strong> {{ listing.move_in_date }}</p>
-            <p><strong>Verification Status:</strong> {{ listing.verification_status }}</p>
+            <p><strong>Verification Status:</strong> {{ listing.get_verification_status_display }}</p>
             
             <span class="expand-btn" onclick="toggleDetails('details-{{ listing.id }}')">Show More</span>
             
@@ -42,6 +49,7 @@
                 <p><strong>Description:</strong> {{ listing.description }}</p>
                 <p><strong>Parking Spaces:</strong> {{ listing.parking_spaces }}</p>
                 <p><strong>Heating:</strong> {% if listing.heating %} Yes {% else %} No {% endif %}</p>
+                <p><strong>laundry_type:</strong> {{ listing.get_laundry_type_display }}</p>
             </div>
         </div>
     {% empty %}

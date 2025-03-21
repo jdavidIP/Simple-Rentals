@@ -2,12 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from .models import Conversation, Message, Listing
 from django.utils.timezone import now
-from .models import Listing
 
-from .forms import UserRegistrationForm
-from .forms import MessageForm
+from .models import Listing, ListingPicture, Conversation, Message
+from .forms import UserRegistrationForm, ListingPostingForm, MessageForm
 
 def register(request):
     if request.method == 'POST':
@@ -90,3 +88,31 @@ def send_message(request, conversation_id):
 def viewAllListings(request):
     listings = Listing.objects.all()
     return render(request, 'listings/viewAll.html', {'listings': listings})
+
+def addListing(request):
+    if not request.user.is_authenticated:
+        return render(request, 'errors/error.html', {'error': "Access denied. You need to log in to access."})
+
+    if request.method == 'POST':
+        form = ListingPostingForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            listing = form.save(owner=request.user)
+
+            images = request.FILES.getlist('images')
+            if len(images) > 10:
+                form.add_error(None, "You can upload a maximum of 10 images.")
+                listing.delete()  # Prevent saving incomplete data
+                return render(request, 'listings/add.html', {"form": form})
+
+            # Save each image
+            for image in images:
+                ListingPicture.objects.create(listing=listing, image=image)
+
+            return redirect('viewAllListings')
+        else:
+            print(form.errors)  # Debugging: Output form errors
+    else:
+        form = ListingPostingForm()
+
+    return render(request, 'listings/add.html', {"form": form})

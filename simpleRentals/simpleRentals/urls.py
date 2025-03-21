@@ -18,6 +18,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from marketplace import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -27,5 +29,6 @@ urlpatterns = [
     path('conversation/<int:conversation_id>/', views.conversation_detail, name='conversation_detail'),
     path('listing/<int:listing_id>/start_conversation/', views.start_conversation, name='start_conversation'),
     path('conversation/<int:conversation_id>/send_message/', views.send_message, name='send_message'),
-    path("listings/viewAll", views.viewAllListings, name="viewAllListings")
-]
+    path("listings/viewAll", views.viewAllListings, name="viewAllListings"),
+    path("listings/add", views.addListing, name="addListing")
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
