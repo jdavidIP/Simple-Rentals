@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .message {
+            background: white;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .sent {
+            background: #d1ffd6;
+            text-align: right;
+        }
+        .received {
+            background: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Conversation for {{ conversation.listing.title }}</h1>
+
+    <div>
+        {% for message in conversation.messages.all %}
+            <div class="message {% if message.sender == request.user %}sent{% else %}received{% endif %}">
+                <p><strong>{{ message.sender.username }}</strong>: {{ message.content }}</p>
+                <small>{{ message.timestamp }}</small>
+            </div>
+        {% empty %}
+            <p>No messages yet.</p>
+        {% endfor %}
+    </div>
+
+    <h2>Send a Message</h2>
+    <form method="post" action="{% url 'send_message' conversation.id %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Send</button>
+    </form>
+
+    <br>
+    <a href="{% url 'conversation_list' %}">Back to Conversations</a>
+
+</body>
+</html>
