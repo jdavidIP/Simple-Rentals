@@ -127,15 +127,14 @@ def post_listing(request):
     if request.method == 'POST':
         form = ListingPostingForm(request.POST, request.FILES)
 
-        if form.is_valid():
-            listing = form.save(owner=request.user)
-
+        if form.is_valid():            
             images = request.FILES.getlist('images')
             front_image = request.FILES.get('front_image')
             if len(images) + (1 if front_image else 0) > 10:
                 form.add_error(None, "You can upload a maximum of 10 images.")
-                listing.delete()  # Prevent saving incomplete data
                 return render(request, 'listings/add.html', {"form": form, "is_edit": False})
+            
+            listing = form.save(owner=request.user)
 
             # Save front image as primary
             if front_image:
