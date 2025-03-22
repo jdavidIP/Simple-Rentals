@@ -146,12 +146,21 @@ def edit_listing(request, listing_id):
         if form.is_valid():
             listing = form.save()
 
+            # Handle image deletions
+            delete_images = request.POST.getlist('delete_images')
+            for image_id in delete_images:
+                image = get_object_or_404(ListingPicture, id=image_id, listing=listing)
+                if image.image:
+                    if os.path.isfile(image.image.path):
+                        os.remove(image.image.path)
+                image.delete()
+
             images = request.FILES.getlist('images')
-            if len(images) > 10:
+            if len(images) + listing.pictures.count() > 10:
                 form.add_error(None, "You can upload a maximum of 10 images.")
                 return render(request, 'listings/add.html', {"form": form, "is_edit": True, "listing": listing})
 
-            # Save each image
+            # Save each new image
             for image in images:
                 ListingPicture.objects.create(listing=listing, image=image)
 

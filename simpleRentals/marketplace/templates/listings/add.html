@@ -73,6 +73,20 @@
             border-radius: 8px;
             border: 1px solid #ccc;
         }
+
+        .delete-checkbox {
+            margin-top: 5px;
+        }
+
+        .image-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .image-container img.vanish {
+            opacity: 0.5;
+        }
     </style>
 </head>
 
@@ -106,7 +120,10 @@
                 <div class="image-preview" id="imagePreview">
                     {% if is_edit and existing_images %}
                         {% for image in existing_images %}
-                            <img src="{{ image.image.url }}" alt="Existing Image">
+                            <div class="image-container">
+                                <img src="{{ image.image.url }}" alt="Existing Image">
+                                <input type="checkbox" name="delete_images" value="{{ image.id }}" class="delete-checkbox">
+                            </div>
                         {% endfor %}
                     {% endif %}
                 </div>
@@ -126,17 +143,59 @@
             const imagePreview = document.getElementById('imagePreview');
 
             imageInput.addEventListener('change', function() {
-                imagePreview.innerHTML = '';
                 const files = imageInput.files;
+                const existingImagesCount = document.querySelectorAll('.image-container').length;
+                if (files.length + existingImagesCount > 10) {
+                    alert('You can upload a maximum of 10 images.');
+                    imageInput.value = ''; // Clear the input
+                    return;
+                }
+
                 for (const file of files) {
                     const reader = new FileReader();
                     reader.onload = function(e) {
+                        const imgContainer = document.createElement('div');
+                        imgContainer.classList.add('image-container');
+
                         const img = document.createElement('img');
                         img.src = e.target.result;
-                        imagePreview.appendChild(img);
+
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.classList.add('delete-checkbox');
+
+                        checkbox.addEventListener('change', function() {
+                            if (this.checked) {
+                                imgContainer.remove();
+                                // Remove the file from the input
+                                const dt = new DataTransfer();
+                                for (let i = 0; i < imageInput.files.length; i++) {
+                                    if (imageInput.files[i] !== file) {
+                                        dt.items.add(imageInput.files[i]);
+                                    }
+                                }
+                                imageInput.files = dt.files;
+                            }
+                        });
+
+                        imgContainer.appendChild(img);
+                        imgContainer.appendChild(checkbox);
+                        imagePreview.appendChild(imgContainer);
                     }
                     reader.readAsDataURL(file);
                 }
+            });
+
+            const deleteCheckboxes = document.querySelectorAll('.delete-checkbox');
+            deleteCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const img = this.previousElementSibling;
+                    if (this.checked) {
+                        img.classList.add('vanish');
+                    } else {
+                        img.classList.remove('vanish');
+                    }
+                });
             });
         });
     </script>
