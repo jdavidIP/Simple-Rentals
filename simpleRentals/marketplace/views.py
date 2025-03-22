@@ -105,7 +105,7 @@ def post_listing(request):
             if len(images) > 10:
                 form.add_error(None, "You can upload a maximum of 10 images.")
                 listing.delete()  # Prevent saving incomplete data
-                return render(request, 'listings/add.html', {"form": form})
+                return render(request, 'listings/add.html', {"form": form, "is_edit": False})
 
             # Save each image
             for image in images:
@@ -117,7 +117,7 @@ def post_listing(request):
     else:
         form = ListingPostingForm()
 
-    return render(request, 'listings/add.html', {"form": form})
+    return render(request, 'listings/add.html', {"form": form, "is_edit": False})
 
 @login_required
 def delete_listing(request, listing_id):
@@ -137,3 +137,28 @@ def delete_listing(request, listing_id):
 def view_listing(request, listing_id):
     listing = get_object_or_404(Listing, id=listing_id)
     return render(request, 'listings/view.html', {'listing': listing})
+
+@login_required
+def edit_listing(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id, owner=request.user)
+    if request.method == 'POST':
+        form = ListingPostingForm(request.POST, request.FILES, instance=listing)
+        if form.is_valid():
+            listing = form.save()
+
+            images = request.FILES.getlist('images')
+            if len(images) > 10:
+                form.add_error(None, "You can upload a maximum of 10 images.")
+                return render(request, 'listings/add.html', {"form": form, "is_edit": True, "listing": listing})
+
+            # Save each image
+            for image in images:
+                ListingPicture.objects.create(listing=listing, image=image)
+
+            return redirect('viewAllListings')
+    else:
+        form = ListingPostingForm(instance=listing)
+
+    existing_images = listing.pictures.all()
+
+    return render(request, 'listings/add.html', {"form": form, "is_edit": True, "listing": listing, "existing_images": existing_images})
