@@ -148,3 +148,84 @@ class DeleteListingTests(TestCase):
         self.client.login(username='otheruser', password='otherpass')
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, 404)  # Should return 404 since the user is not the owner
+
+class ViewAllListingsTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.url = reverse('viewAllListings')
+        self.user = get_user_model().objects.create_user(username='testuser', password='testpass')
+        self.listing1 = Listing.objects.create(
+            owner=self.user,
+            price='1000.00',
+            property_type='A',
+            payment_type='C',
+            bedrooms=2,
+            bathrooms=1,
+            sqft_area=800,
+            laundry_type='I',
+            parking_spaces=1,
+            heating=True,
+            ac=True,
+            move_in_date='2025-01-01',
+            description='A nice apartment.',
+            street_address='123 Main St',
+            city='Testville',
+            postal_code='12345',
+            verification_status='P'
+        )
+        self.listing2 = Listing.objects.create(
+            owner=self.user,
+            price='1500.00',
+            property_type='H',
+            payment_type='D',
+            bedrooms=3,
+            bathrooms=2,
+            sqft_area=1200,
+            laundry_type='S',
+            parking_spaces=2,
+            heating=True,
+            ac=True,
+            move_in_date='2025-02-01',
+            description='A nice house.',
+            street_address='456 Elm St',
+            city='Testville',
+            postal_code='12345',
+            verification_status='P'
+        )
+
+    def test_view_all_listings_no_filters(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'A nice apartment.')
+        self.assertContains(response, 'A nice house.')
+
+    def test_view_all_listings_with_filters(self):
+        response = self.client.get(self.url, {'min_price': '1200'})
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'A nice apartment.')
+        self.assertContains(response, 'A nice house.')
+
+        response = self.client.get(self.url, {'max_price': '1200'})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'A nice apartment.')
+        self.assertNotContains(response, 'A nice house.')
+
+        response = self.client.get(self.url, {'location': 'Main'})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'A nice apartment.')
+        self.assertNotContains(response, 'A nice house.')
+
+        response = self.client.get(self.url, {'bedrooms': '3'})
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'A nice apartment.')
+        self.assertContains(response, 'A nice house.')
+
+        response = self.client.get(self.url, {'bathrooms': '2'})
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'A nice apartment.')
+        self.assertContains(response, 'A nice house.')
+
+        response = self.client.get(self.url, {'property_type': 'H'})
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'A nice apartment.')
+        self.assertContains(response, 'A nice house.')
