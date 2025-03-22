@@ -113,6 +113,23 @@
             {% csrf_token %}
             
             {{ form.as_p }}
+
+            <div class="form-group">
+                <label for="id_front_image">Front Image: </label>
+                <input type="file" name="front_image" id="id_front_image">
+                <div class="image-preview" id="imagePreview-front">
+                    {% if is_edit and existing_images %}
+                        {% for image in existing_images %}
+                            {% if image.is_primary %}
+                                <div class="image-container">
+                                    <img src="{{ image.image.url }}" alt="Existing Image">
+                                    <input type="checkbox" name="delete_images" value="{{ image.id }}" class="delete-checkbox">
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
             
             <div class="form-group">
                 <label for="id_images">Images</label>
@@ -120,10 +137,12 @@
                 <div class="image-preview" id="imagePreview">
                     {% if is_edit and existing_images %}
                         {% for image in existing_images %}
-                            <div class="image-container">
-                                <img src="{{ image.image.url }}" alt="Existing Image">
-                                <input type="checkbox" name="delete_images" value="{{ image.id }}" class="delete-checkbox">
-                            </div>
+                            {% if not image.is_primary %}
+                                <div class="image-container">
+                                    <img src="{{ image.image.url }}" alt="Existing Image">
+                                    <input type="checkbox" name="delete_images" value="{{ image.id }}" class="delete-checkbox">
+                                </div>
+                            {% endif %}
                         {% endfor %}
                     {% endif %}
                 </div>
@@ -140,7 +159,38 @@
             });
 
             const imageInput = document.getElementById('id_images');
+            const frontImageInput = document.getElementById('id_front_image');
+            const imagePreviewFront = document.getElementById('imagePreview-front');
             const imagePreview = document.getElementById('imagePreview');
+
+            frontImageInput.addEventListener('change', function() {
+                const file = frontImageInput.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgContainer = document.createElement('div');
+                    imgContainer.classList.add('image-container');
+
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.classList.add('delete-checkbox');
+
+                    checkbox.addEventListener('change', function() {
+                        if (this.checked) {
+                            imgContainer.remove();
+                            // Remove the file from the input
+                            frontImageInput.value = '';
+                        }
+                    });
+
+                    imgContainer.appendChild(img);
+                    imgContainer.appendChild(checkbox);
+                    imagePreviewFront.appendChild(imgContainer);
+                }
+                reader.readAsDataURL(file);
+            });
 
             imageInput.addEventListener('change', function() {
                 const files = imageInput.files;

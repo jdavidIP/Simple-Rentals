@@ -102,12 +102,19 @@ def post_listing(request):
             listing = form.save(owner=request.user)
 
             images = request.FILES.getlist('images')
-            if len(images) > 10:
+            front_image = request.FILES.get('front_image')
+            if len(images) + (1 if front_image else 0) > 10:
                 form.add_error(None, "You can upload a maximum of 10 images.")
                 listing.delete()  # Prevent saving incomplete data
                 return render(request, 'listings/add.html', {"form": form, "is_edit": False})
 
-            # Save each image
+            # Save front image as primary
+            if front_image:
+                primary_image = ListingPicture.objects.create(listing=listing, image=front_image, is_primary=True)
+                # Unset primary for all other pictures of the listing
+                ListingPicture.objects.filter(listing=listing, is_primary=True).exclude(id=primary_image.id).update(is_primary=False)
+
+            # Save each additional image
             for image in images:
                 ListingPicture.objects.create(listing=listing, image=image)
 
@@ -156,9 +163,16 @@ def edit_listing(request, listing_id):
                 image.delete()
 
             images = request.FILES.getlist('images')
-            if len(images) + listing.pictures.count() > 10:
+            front_image = request.FILES.get('front_image')
+            if len(images) + listing.pictures.count() + (1 if front_image else 0) > 10:
                 form.add_error(None, "You can upload a maximum of 10 images.")
-                return render(request, 'listings/add.html', {"form": form, "is_edit": True, "listing": listing})
+                return render(request, 'listings/add.html', {"form": form, "is_edit": True, "existing_images": existing_images})
+
+            # Save front image as primary
+            if front_image:
+                primary_image = ListingPicture.objects.create(listing=listing, image=front_image, is_primary=True)
+                # Unset primary for all other pictures of the listing
+                ListingPicture.objects.filter(listing=listing, is_primary=True).exclude(id=primary_image.id).update(is_primary=False)
 
             # Save each new image
             for image in images:
@@ -170,4 +184,4 @@ def edit_listing(request, listing_id):
 
     existing_images = listing.pictures.all()
 
-    return render(request, 'listings/add.html', {"form": form, "is_edit": True, "listing": listing, "existing_images": existing_images})
+    return render(request, 'listings/add.html', {"form": form, "is_edit": True, "existing_images": existing_images})
