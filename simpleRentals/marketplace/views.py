@@ -7,6 +7,8 @@ from django.utils.timezone import now
 from .models import Listing, ListingPicture, Conversation, Message
 from .forms import UserRegistrationForm, ListingPostingForm, MessageForm
 
+import os
+
 def register(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST, request.FILES)  # Handle file uploads for profile picture
@@ -89,7 +91,7 @@ def viewAllListings(request):
     listings = Listing.objects.all()
     return render(request, 'listings/viewAll.html', {'listings': listings})
 
-def addListing(request):
+def post_listing(request):
     if not request.user.is_authenticated:
         return render(request, 'errors/error.html', {'error': "Access denied. You need to log in to access."})
 
@@ -116,3 +118,17 @@ def addListing(request):
         form = ListingPostingForm()
 
     return render(request, 'listings/add.html', {"form": form})
+
+@login_required
+def delete_listing(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id, owner=request.user)
+    if request.method == 'POST':
+        for picture in listing.pictures.all():
+            if picture.image:
+                if os.path.isfile(picture.image.path):
+                    os.remove(picture.image.path)
+        
+        listing.delete()
+        messages.success(request, 'Listing deleted successfully.')
+        return redirect('viewAllListings')
+    return redirect('viewAllListings')
