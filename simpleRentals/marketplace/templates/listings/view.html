@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listing Details</title>
+</head>
+<body>
+    <h1>{{ listing.get_property_type_display }} for Rent</h1>
+    <div class="listing-details">
+        <p><strong>Price:</strong> ${{ listing.price }}</p>
+        <p><strong>Bedrooms:</strong> {{ listing.bedrooms }}</p>
+        <p><strong>Bathrooms:</strong> {{ listing.bathrooms }}</p>
+        <p><strong>Square Feet:</strong> {{ listing.sqft_area }}</p>
+        <p><strong>Address:</strong> {{ listing.street_address }}, {{ listing.city }}, {{ listing.postal_code }}</p>
+        <p><strong>Description:</strong> {{ listing.description }}</p>
+        <p><strong>Move-in Date:</strong> {{ listing.move_in_date }}</p>
+        <p><strong>Pet Friendly:</strong> {{ listing.pet_friendly|yesno:"Yes,No" }}</p>
+        <p><strong>Heating:</strong> {{ listing.heating|yesno:"Yes,No" }}</p>
+        <p><strong>Laundry Type:</strong> {{ listing.get_laundry_type_display }}</p>
+        <p><strong>Payment Type:</strong> {{ listing.get_payment_type_display }}</p>
+        <p><strong>Parking Spaces:</strong> {{ listing.parking_spaces }}</p>
+        <p><strong>Verification Status:</strong> {{ listing.get_verification_status_display }}</p>
+        <!-- Add more fields as needed -->
+    </div>
+
+    <h2>Photos</h2>
+    <div class="photo-album">
+        {% for picture in listing.pictures.all %}
+            <div class="photo">
+                <img src="{{ picture.image.url }}" alt="Listing Photo">
+            </div>
+        {% endfor %}
+    </div>
+
+    <a href="{% url 'start_conversation' listing.id %}">Contact Owner</a>
+</body>
+</html>

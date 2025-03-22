@@ -102,12 +102,19 @@ def post_listing(request):
             listing = form.save(owner=request.user)
 
             images = request.FILES.getlist('images')
-            if len(images) > 10:
+            front_image = request.FILES.get('front_image')
+            if len(images) + (1 if front_image else 0) > 10:
                 form.add_error(None, "You can upload a maximum of 10 images.")
                 listing.delete()  # Prevent saving incomplete data
-                return render(request, 'listings/add.html', {"form": form})
+                return render(request, 'listings/add.html', {"form": form, "is_edit": False})
 
-            # Save each image
+            # Save front image as primary
+            if front_image:
+                primary_image = ListingPicture.objects.create(listing=listing, image=front_image, is_primary=True)
+                # Unset primary for all other pictures of the listing
+                ListingPicture.objects.filter(listing=listing, is_primary=True).exclude(id=primary_image.id).update(is_primary=False)
+
+            # Save each additional image
             for image in images:
                 ListingPicture.objects.create(listing=listing, image=image)
 
@@ -117,7 +124,7 @@ def post_listing(request):
     else:
         form = ListingPostingForm()
 
-    return render(request, 'listings/add.html', {"form": form})
+    return render(request, 'listings/add.html', {"form": form, "is_edit": False})
 
 @login_required
 def delete_listing(request, listing_id):
@@ -132,3 +139,49 @@ def delete_listing(request, listing_id):
         messages.success(request, 'Listing deleted successfully.')
         return redirect('viewAllListings')
     return redirect('viewAllListings')
+
+@login_required
+def view_listing(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id)
+    return render(request, 'listings/view.html', {'listing': listing})
+
+@login_required
+def edit_listing(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id, owner=request.user)
+    if request.method == 'POST':
+        form = ListingPostingForm(request.POST, request.FILES, instance=listing)
+        if form.is_valid():
+            listing = form.save()
+
+            # Handle image deletions
+            delete_images = request.POST.getlist('delete_images')
+            for image_id in delete_images:
+                image = get_object_or_404(ListingPicture, id=image_id, listing=listing)
+                if image.image:
+                    if os.path.isfile(image.image.path):
+                        os.remove(image.image.path)
+                image.delete()
+
+            images = request.FILES.getlist('images')
+            front_image = request.FILES.get('front_image')
+            if len(images) + listing.pictures.count() + (1 if front_image else 0) > 10:
+                form.add_error(None, "You can upload a maximum of 10 images.")
+                return render(request, 'listings/add.html', {"form": form, "is_edit": True, "existing_images": existing_images})
+
+            # Save front image as primary
+            if front_image:
+                primary_image = ListingPicture.objects.create(listing=listing, image=front_image, is_primary=True)
+                # Unset primary for all other pictures of the listing
+                ListingPicture.objects.filter(listing=listing, is_primary=True).exclude(id=primary_image.id).update(is_primary=False)
+
+            # Save each new image
+            for image in images:
+                ListingPicture.objects.create(listing=listing, image=image)
+
+            return redirect('viewAllListings')
+    else:
+        form = ListingPostingForm(instance=listing)
+
+    existing_images = listing.pictures.all()
+
+    return render(request, 'listings/add.html', {"form": form, "is_edit": True, "existing_images": existing_images})
