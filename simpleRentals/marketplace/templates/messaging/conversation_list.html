@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Conversations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .conversation {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Your Conversations</h1>
+
+    {% for conversation in conversations %}
+        <div class="conversation">
+            <h2>Listing: {{ conversation.listing.title }}</h2>
+            <p><strong>Last Updated:</strong> {{ conversation.last_updated }}</p>
+            <a href="{% url 'conversation_detail' conversation.id %}">View Conversation</a>
+        </div>
+    {% empty %}
+        <p>You have no active conversations.</p>
+    {% endfor %}
+
+</body>
+</html>
