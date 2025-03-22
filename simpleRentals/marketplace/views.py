@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.utils.timezone import now
+from django.db.models import Q
 
 from .models import Listing, ListingPicture, Conversation, Message
 from .forms import UserRegistrationForm, ListingPostingForm, MessageForm
@@ -89,7 +90,35 @@ def send_message(request, conversation_id):
 
 def viewAllListings(request):
     listings = Listing.objects.all()
-    return render(request, 'listings/viewAll.html', {'listings': listings})
+    filters = request.GET
+
+    # Get filter parameters
+    min_price = filters.get('min_price')
+    max_price = filters.get('max_price')
+    location = filters.get('location')
+    bedrooms = filters.get('bedrooms')
+    bathrooms = filters.get('bathrooms')
+    property_type = filters.get('property_type')
+
+    # Apply filters
+    if min_price:
+        listings = listings.filter(price__gte=min_price)
+    if max_price:
+        listings = listings.filter(price__lte=max_price)
+    if location:
+        listings = listings.filter(Q(street_address__icontains=location) | Q(city__icontains=location))
+    if bedrooms:
+        listings = listings.filter(bedrooms__gte=bedrooms)
+    if bathrooms:
+        listings = listings.filter(bathrooms__gte=bathrooms)
+    if property_type:
+        listings = listings.filter(property_type=property_type)
+
+    # Add primary image to each listing
+    for listing in listings:
+        listing.primary_image = listing.pictures.filter(is_primary=True).first()
+
+    return render(request, 'listings/viewAll.html', {'listings': listings, 'filters': filters})
 
 def post_listing(request):
     if not request.user.is_authenticated:

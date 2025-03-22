@@ -19,18 +19,44 @@
             color: blue;
             text-decoration: underline;
         }
+        .filter-container {
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <h1>Available Listings</h1>
+    <div class="filter-container">
+        <form method="get" action="{% url 'viewAllListings' %}">
+            <label for="min_price">Min Price:</label>
+            <input type="number" id="min_price" name="min_price" step="0.01" value="{{ filters.min_price }}">
+            <label for="max_price">Max Price:</label>
+            <input type="number" id="max_price" name="max_price" step="0.01" value="{{ filters.max_price }}">
+            <label for="location">Location:</label>
+            <input type="text" id="location" name="location" value="{{ filters.location }}">
+            <label for="bedrooms">Bedrooms:</label>
+            <input type="number" id="bedrooms" name="bedrooms" value="{{ filters.bedrooms }}">
+            <label for="bathrooms">Bathrooms:</label>
+            <input type="number" id="bathrooms" name="bathrooms" value="{{ filters.bathrooms }}">
+            <label for="property_type">Property Type:</label>
+            <select id="property_type" name="property_type">
+                <option value="">Any</option>
+                <option value="H" {% if filters.property_type == 'H' %}selected{% endif %}>House</option>
+                <option value="A" {% if filters.property_type == 'A' %}selected{% endif %}>Apartment</option>
+                <option value="C" {% if filters.property_type == 'C' %}selected{% endif %}>Condo</option>
+                <option value="T" {% if filters.property_type == 'T' %}selected{% endif %}>Townhouse</option>
+                <option value="O" {% if filters.property_type == 'O' %}selected{% endif %}>Other</option>
+            </select>
+            <button type="submit">Filter</button>
+            <a href="{% url 'viewAllListings' %}" class="button">Clear Filters</a>
+        </form>
+    </div>
     {% for listing in listings %}
         <div class="listing-container">
-            {% if listing.pictures.all %}
-                {% for picture in listing.pictures.all %}
-                    <img src="{{ picture.image.url }}" alt="Listing Image" style="max-width: 300px;">
-                {% endfor %}
+            {% if listing.primary_image %}
+                <img src="{{ listing.primary_image.image.url }}" alt="Listing Image" style="max-width: 300px;">
             {% else %}
-            <img src="/static/img/placeholder.jpg" alt="No Image Available" style="max-width: 300px;">
+                <img src="/static/img/placeholder.jpg" alt="No Image Available" style="max-width: 300px;">
             {% endif %}
             <p><strong>Price:</strong> ${{ listing.price }}</p>
             <p><strong>Property Type:</strong> {{ listing.get_property_type_display }}</p>
@@ -50,28 +76,16 @@
                     <button type="submit" onclick="return confirm('Are you sure you want to edit this listing?');">Edit</button>
                 </form>
             {% endif %}
-            
-            <span class="expand-btn" onclick="toggleDetails('details-{{ listing.id }}')">Show More</span>
-            
-            <div id="details-{{ listing.id }}" class="hidden">
-                <p><strong>Payment Type:</strong> {{ listing.get_payment_type_display }}</p>
-                <p><strong>Sqft Area:</strong> {{ listing.sqft_area }}</p>
-                <p><strong>Pet Friendly:</strong> {% if listing.pet_friendly %} Yes {% else %} No {% endif %}</p>
-                <p><strong>Description:</strong> {{ listing.description }}</p>
-                <p><strong>Parking Spaces:</strong> {{ listing.parking_spaces }}</p>
-                <p><strong>Heating:</strong> {% if listing.heating %} Yes {% else %} No {% endif %}</p>
-                <p><strong>laundry_type:</strong> {{ listing.get_laundry_type_display }}</p>
-            </div>
+
+            <form action="{% url 'view_listing' listing.id %}" method="get" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit">View More</button>
+            </form>
+        
         </div>
     {% empty %}
         <p>No listings available.</p>
     {% endfor %}
 
-    <script>
-        function toggleDetails(id) {
-            const details = document.getElementById(id);
-            details.classList.toggle('hidden');
-        }
-    </script>
 </body>
 </html>
