@@ -31,5 +31,7 @@ urlpatterns = [
     path('conversation/<int:conversation_id>/send_message/', views.send_message, name='send_message'),
     path("listings/viewAll", views.viewAllListings, name="viewAllListings"),
     path("listings/add", views.post_listing, name="post_listing"),
+    path("listings/<int:listing_id>", views.view_listing, name="view_listing"),
+    # path("listings/edit/<int:listing_id>", views.edit_listing, name="edit_listing"),
     path("listings/delete/<int:listing_id>", views.delete_listing, name="delete_listing"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

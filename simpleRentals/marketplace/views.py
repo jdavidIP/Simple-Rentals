@@ -132,3 +132,8 @@ def delete_listing(request, listing_id):
         messages.success(request, 'Listing deleted successfully.')
         return redirect('viewAllListings')
     return redirect('viewAllListings')
+
+@login_required
+def view_listing(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id)
+    return render(request, 'listings/view.html', {'listing': listing})
