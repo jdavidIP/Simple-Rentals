@@ -1,8 +1,11 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from .models import Listing, ListingPicture
+from django.contrib.auth.models import User
+from .models import Listing, ListingPicture, Conversation, Message
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.utils.timezone import now
+from .views import send_message
 
 class PostListingTests(TestCase):
     def setUp(self):
@@ -281,3 +284,39 @@ class ViewListingTests(TestCase):
         url = reverse('view_listing', args=[9999])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
+
+class MarketplaceViewsTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user1 = User.objects.create_user(username='user1', password='password')
+        self.user2 = User.objects.create_user(username='user2', password='password')
+        self.listing = Listing.objects.create(title='Test Listing', owner=self.user2)
+        self.conversation = Conversation.objects.create(listing=self.listing)
+        self.conversation.participants.add(self.user1, self.user2)
+        self.message = Message.objects.create(conversation=self.conversation, sender=self.user1, content='Hello')
+
+    def test_conversation_list(self):
+        self.client.login(username='user1', password='password')
+        response = self.client.get(reverse('conversation_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'messaging/conversation_list.html')
+        self.assertContains(response, self.conversation)
+
+    def test_conversation_detail(self):
+        self.client.login(username='user1', password='password')
+        response = self.client.get(reverse('conversation_detail', args=[self.conversation.id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'messaging/conversation_detail.html')
+        self.assertContains(response, self.message.content)
+
+    def test_start_conversation(self):
+        self.client.login(username='user1', password='password')
+        response = self.client.post(reverse('start_conversation', args=[self.listing.id]))
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Conversation.objects.filter(participants=self.user1, listing=self.listing).exists())
+
+    def test_send_message(self):
+        self.client.login(username='user1', password='password')
+        response = self.client.post(reverse('send_message', args=[self.conversation.id]), {'content': 'New message'})
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Message.objects.filter(conversation=self.conversation, content='New message').exists())
