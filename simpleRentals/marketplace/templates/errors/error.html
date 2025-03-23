@@ -1,0 +1,46 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Access Denied</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8d7da;
+            color: #721c24;
+            text-align: center;
+            padding-top: 50px;
+        }
+        .error-container {
+            border: 1px solid #f5c6cb;
+            border-radius: 12px;
+            padding: 20px;
+            display: inline-block;
+            background-color: #f8d7da;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #721c24;
+            color: #fff;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+        a:hover {
+            background-color: #5a1a1f;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="error-container">
+        <h1>Access Denied</h1>
+        <p>{{ error }}</p>
+        <a href="{% url 'register' %}">Register</a>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,254 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% if is_edit %} <title>Edit Listing</title> {% else %} <title>Post a Listing</title> {% endif %}
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .form-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .image-preview img {
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        .delete-checkbox {
+            margin-top: 5px;
+        }
+
+        .image-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .image-container img.vanish {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+
+<body>
+    {% if is_edit %} <h1>Edit Listing</h1> {% else %} <h1>Post a New Listing</h1> {% endif %}
+
+    <div class="form-container">
+        <!-- Display Form Errors -->
+        {% if form.errors %}
+            <div class="error">
+                <p>Please fix the following errors:</p>
+                <ul>
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <li>{{ field|title }}: {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <!-- Form for Posting a Listing -->
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            {{ form.as_p }}
+
+            <div class="form-group">
+                <label for="id_front_image">Front Image: </label>
+                <input type="file" name="front_image" id="id_front_image">
+                <div class="image-preview" id="imagePreview-front">
+                    {% if is_edit and existing_images %}
+                        {% for image in existing_images %}
+                            {% if image.is_primary %}
+                                <div class="image-container">
+                                    <img src="{{ image.image.url }}" alt="Existing Image">
+                                    <input type="checkbox" name="delete_images" value="{{ image.id }}" class="delete-checkbox">
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="id_images">Images</label>
+                <input type="file" name="images" id="id_images" multiple>
+                <div class="image-preview" id="imagePreview">
+                    {% if is_edit and existing_images %}
+                        {% for image in existing_images %}
+                            {% if not image.is_primary %}
+                                <div class="image-container">
+                                    <img src="{{ image.image.url }}" alt="Existing Image">
+                                    <input type="checkbox" name="delete_images" value="{{ image.id }}" class="delete-checkbox">
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            
+            <button type="submit">Submit Listing</button>
+        </form>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const numberInputs = document.querySelectorAll('input[type="number"], input[type="decimal"]');
+            numberInputs.forEach(input => {
+                input.setAttribute('min', '0');
+            });
+
+            const imageInput = document.getElementById('id_images');
+            const frontImageInput = document.getElementById('id_front_image');
+            const imagePreviewFront = document.getElementById('imagePreview-front');
+            const imagePreview = document.getElementById('imagePreview');
+
+            frontImageInput.addEventListener('change', function() {
+                const file = frontImageInput.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgContainer = document.createElement('div');
+                    imgContainer.classList.add('image-container');
+
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.classList.add('delete-checkbox');
+
+                    checkbox.addEventListener('change', function() {
+                        if (this.checked) {
+                            imgContainer.remove();
+                            // Remove the file from the input
+                            frontImageInput.value = '';
+                        }
+                    });
+
+                    imgContainer.appendChild(img);
+                    imgContainer.appendChild(checkbox);
+                    imagePreviewFront.appendChild(imgContainer);
+                }
+                reader.readAsDataURL(file);
+            });
+
+            imageInput.addEventListener('change', function() {
+                const files = imageInput.files;
+                const existingImagesCount = document.querySelectorAll('.image-container').length;
+                if (files.length + existingImagesCount > 10) {
+                    alert('You can upload a maximum of 10 images.');
+                    imageInput.value = ''; // Clear the input
+                    return;
+                }
+
+                for (const file of files) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imgContainer = document.createElement('div');
+                        imgContainer.classList.add('image-container');
+
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.classList.add('delete-checkbox');
+
+                        checkbox.addEventListener('change', function() {
+                            if (this.checked) {
+                                imgContainer.remove();
+                                // Remove the file from the input
+                                const dt = new DataTransfer();
+                                for (let i = 0; i < imageInput.files.length; i++) {
+                                    if (imageInput.files[i] !== file) {
+                                        dt.items.add(imageInput.files[i]);
+                                    }
+                                }
+                                imageInput.files = dt.files;
+                            }
+                        });
+
+                        imgContainer.appendChild(img);
+                        imgContainer.appendChild(checkbox);
+                        imagePreview.appendChild(imgContainer);
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            const deleteCheckboxes = document.querySelectorAll('.delete-checkbox');
+            deleteCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const img = this.previousElementSibling;
+                    if (this.checked) {
+                        img.classList.add('vanish');
+                    } else {
+                        img.classList.remove('vanish');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
