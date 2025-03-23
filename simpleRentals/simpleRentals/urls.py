@@ -18,13 +18,17 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from marketplace import views
-from django.conf import settings
 from django.conf.urls.static import static
+from django.conf import settings
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("register/", views.register, name="register"),
     path("profile/", views.profile, name="profile"),
+    path("logout/", views.logout_view, name="logout"),
+    path("login/", views.login_view, name="login"),
+    path("edit-profile/", views.edit_profile, name="edit_profile"),
+    path("", views.home, name="home"),
     path('conversations/', views.conversation_list, name='conversation_list'),
     path('conversation/<int:conversation_id>/', views.conversation_detail, name='conversation_detail'),
     path('listing/<int:listing_id>/start_conversation/', views.start_conversation, name='start_conversation'),
@@ -34,4 +38,7 @@ urlpatterns = [
     path("listings/<int:listing_id>", views.view_listing, name="view_listing"),
     path("listings/edit/<int:listing_id>", views.edit_listing, name="edit_listing"),
     path("listings/delete/<int:listing_id>", views.delete_listing, name="delete_listing"),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
