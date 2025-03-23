@@ -229,3 +229,55 @@ class ViewAllListingsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, 'A nice apartment.')
         self.assertContains(response, 'A nice house.')
+
+class ViewListingTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = get_user_model().objects.create_user(username='testuser', password='testpass')
+        self.client.login(username='testuser', password='testpass')
+        self.listing = Listing.objects.create(
+            owner=self.user,
+            price='1000.00',
+            property_type='A',
+            payment_type='C',
+            bedrooms=2,
+            bathrooms=1,
+            sqft_area=800,
+            laundry_type='I',
+            parking_spaces=1,
+            heating=True,
+            ac=True,
+            move_in_date='2025-04-02',
+            description='A nice apartment.',
+            street_address='123 Main St',
+            city='Testville',
+            postal_code='12345',
+            verification_status='P'
+        )
+        self.url = reverse('view_listing', args=[self.listing.id])
+
+    def test_view_listing_get(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'listings/view.html')
+        self.assertContains(response, 'A nice apartment.')
+        self.assertContains(response, '1000.00')
+        self.assertContains(response, '2')
+        self.assertContains(response, '1')
+        self.assertContains(response, '800')
+        self.assertContains(response, '123 Main St')
+        self.assertContains(response, 'Testville')
+        self.assertContains(response, '12345')
+        self.assertContains(response, 'April 2, 2025')
+        self.assertContains(response, 'Apartment')  # Property Type
+        self.assertContains(response, 'Yes')  # Heating
+        self.assertContains(response, 'Yes')  # AC
+        self.assertContains(response, 'In-Unit')  # Laundry Type
+        self.assertContains(response, 'Cheque')  # Payment Type
+        self.assertContains(response, '1')  # Parking Spaces
+        self.assertContains(response, 'Pending')  # Verification Status
+
+    def test_view_listing_not_found(self):
+        url = reverse('view_listing', args=[9999])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
