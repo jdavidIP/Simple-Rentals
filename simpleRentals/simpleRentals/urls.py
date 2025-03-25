@@ -33,6 +33,7 @@ urlpatterns = [
     path('conversation/<int:conversation_id>/', views.conversation_detail, name='conversation_detail'),
     path('listing/<int:listing_id>/start_conversation/', views.start_conversation, name='start_conversation'),
     path('conversation/<int:conversation_id>/send_message/', views.send_message, name='send_message'),
+    path("listings/", views.listings_home, name="listings_home"),
     path("listings/viewAll", views.viewAllListings, name="viewAllListings"),
     path("listings/add", views.post_listing, name="post_listing"),
     path("listings/<int:listing_id>", views.view_listing, name="view_listing"),

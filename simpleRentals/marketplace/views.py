@@ -149,24 +149,28 @@ def send_message(request, conversation_id):
     return redirect('conversation_detail', conversation_id=conversation.id)
 
 def viewAllListings(request):
-    listings = Listing.objects.all()
     filters = request.GET
+    location = filters.get('location')  # City filter
 
-    # Get filter parameters
+    # Ensure location filter is provided
+    if not location:
+        return render(request, 'errors/error.html', {'error': "Access denied. You need enter a location to access.", 'back_url': 'listings_home'})
+
+    listings = Listing.objects.all()
+
+    # Get other filter parameters
     min_price = filters.get('min_price')
     max_price = filters.get('max_price')
-    location = filters.get('location')
     bedrooms = filters.get('bedrooms')
     bathrooms = filters.get('bathrooms')
     property_type = filters.get('property_type')
 
     # Apply filters
+    listings = listings.filter(Q(street_address__icontains=location) | Q(city__icontains=location))
     if min_price:
         listings = listings.filter(price__gte=min_price)
     if max_price:
         listings = listings.filter(price__lte=max_price)
-    if location:
-        listings = listings.filter(Q(street_address__icontains=location) | Q(city__icontains=location))
     if bedrooms:
         listings = listings.filter(bedrooms__gte=bedrooms)
     if bathrooms:
@@ -180,9 +184,12 @@ def viewAllListings(request):
 
     return render(request, 'listings/viewAll.html', {'listings': listings, 'filters': filters})
 
+def listings_home(request):
+    return render(request, 'listings/homepage.html')
+
 def post_listing(request):
     if not request.user.is_authenticated:
-        return render(request, 'errors/error.html', {'error': "Access denied. You need to log in to access."})
+        return render(request, 'errors/error.html', {'error': "Access denied. You need to log in to access.", 'back_url': 'register'})
 
     if request.method == 'POST':
         form = ListingPostingForm(request.POST, request.FILES)
