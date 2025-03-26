@@ -197,8 +197,12 @@ def post_listing(request):
         if form.is_valid():            
             images = request.FILES.getlist('images')
             front_image = request.FILES.get('front_image')
+            if not front_image or len(images) + (1 if front_image else 0) < 3:
+                form.add_error(None, "A front image is required, and you must upload at least 3 images in total.")
+                return render(request, 'listings/add.html', {"form": form, "is_edit": False})
+        
             if len(images) + (1 if front_image else 0) > 10:
-                form.add_error(None, "You can upload a maximum of 10 images.")
+                form.add_error(None, "You can only upload a maximum of 10 images.")
                 return render(request, 'listings/add.html', {"form": form, "is_edit": False})
             
             listing = form.save(owner=request.user)
@@ -213,7 +217,7 @@ def post_listing(request):
             for image in images:
                 ListingPicture.objects.create(listing=listing, image=image)
 
-            return redirect('viewAllListings')
+            return redirect('listings_home')
         else:
             print(form.errors)  # Debugging: Output form errors
     else:
@@ -246,22 +250,31 @@ def edit_listing(request, listing_id):
     if request.method == 'POST':
         form = ListingPostingForm(request.POST, request.FILES, instance=listing)
         if form.is_valid():
-            listing = form.save()
-
+            front_image = request.FILES.get('front_image')
+            if not front_image and not listing.pictures.filter(is_primary=True).exists():
+                form.add_error(None, "A front image is required.")
+                return render(request, 'listings/add.html', {"form": form, "is_edit": True, "existing_images": listing.pictures.all()})
+            
             # Handle image deletions
             delete_images = request.POST.getlist('delete_images')
-            for image_id in delete_images:
-                image = get_object_or_404(ListingPicture, id=image_id, listing=listing)
-                if image.image:
-                    if os.path.isfile(image.image.path):
-                        os.remove(image.image.path)
+            images_to_delete = ListingPicture.objects.filter(id__in=delete_images, listing=listing)
+            for image in images_to_delete:
+                if image.image and os.path.isfile(image.image.path):
+                    os.remove(image.image.path)
                 image.delete()
 
+            remaining_images_count = listing.pictures.count()
+
             images = request.FILES.getlist('images')
-            front_image = request.FILES.get('front_image')
-            if len(images) + listing.pictures.count() + (1 if front_image else 0) > 10:
-                form.add_error(None, "You can upload a maximum of 10 images.")
-                return render(request, 'listings/add.html', {"form": form, "is_edit": True, "existing_images": existing_images})
+            total_images_after_upload = remaining_images_count + len(images) + (1 if front_image else 0)
+
+            if total_images_after_upload < 3:
+                form.add_error(None, "You must have at least 3 images in total.")
+                return render(request, 'listings/add.html', {"form": form, "is_edit": True, "existing_images": listing.pictures.all()})
+            
+            if len(images) + (1 if front_image else 0) > 10:
+                form.add_error(None, "You can only upload a maximum of 10 images.")
+                return render(request, 'listings/add.html', {"form": form, "is_edit": False})
 
             # Save front image as primary
             if front_image:
@@ -273,7 +286,7 @@ def edit_listing(request, listing_id):
             for image in images:
                 ListingPicture.objects.create(listing=listing, image=image)
 
-            return redirect('viewAllListings')
+            return redirect('listings_home')
     else:
         form = ListingPostingForm(instance=listing)
 
