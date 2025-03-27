@@ -30,6 +30,7 @@
 <body>
 
     <h1>Conversation for {{ conversation.listing.title }}</h1>
+    <p><a href="{% url 'view_listing' conversation.listing.id %}">View Listing</a></p>
 
     <div>
         {% for message in conversation.messages.all %}

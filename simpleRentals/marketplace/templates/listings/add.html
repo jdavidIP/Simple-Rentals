@@ -83,10 +83,6 @@
             flex-direction: column;
             align-items: center;
         }
-
-        .image-container img.vanish {
-            opacity: 0.5;
-        }
     </style>
 </head>
 
@@ -109,7 +105,7 @@
         {% endif %}
 
         <!-- Form for Posting a Listing -->
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" id="listingForm">
             {% csrf_token %}
             
             {{ form.as_p }}
@@ -149,55 +145,28 @@
             </div>
             
             <button type="submit">Submit Listing</button>
+            <a href="{% url 'viewAllListings' %}" style="display:inline;">
+                <button type="button">Cancel</button>
+            </a>
         </form>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const numberInputs = document.querySelectorAll('input[type="number"], input[type="decimal"]');
-            numberInputs.forEach(input => {
-                input.setAttribute('min', '0');
-            });
+            numberInputs.forEach(input => input.setAttribute('min', '0'));
 
             const imageInput = document.getElementById('id_images');
             const frontImageInput = document.getElementById('id_front_image');
-            const imagePreviewFront = document.getElementById('imagePreview-front');
-            const imagePreview = document.getElementById('imagePreview');
+            const deleteCheckboxes = document.querySelectorAll('.delete-checkbox');
 
-            frontImageInput.addEventListener('change', function() {
-                const file = frontImageInput.files[0];
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const imgContainer = document.createElement('div');
-                    imgContainer.classList.add('image-container');
+            function handleFileInputChange(input, previewContainer) {
+                const files = input.files;
+                if (!files) return;
 
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.classList.add('delete-checkbox');
-
-                    checkbox.addEventListener('change', function() {
-                        if (this.checked) {
-                            imgContainer.remove();
-                            // Remove the file from the input
-                            frontImageInput.value = '';
-                        }
-                    });
-
-                    imgContainer.appendChild(img);
-                    imgContainer.appendChild(checkbox);
-                    imagePreviewFront.appendChild(imgContainer);
-                }
-                reader.readAsDataURL(file);
-            });
-
-            imageInput.addEventListener('change', function() {
-                const files = imageInput.files;
-                const existingImagesCount = document.querySelectorAll('.image-container').length;
+                existingImagesCount = document.querySelectorAll('.image-container').length;
                 if (files.length + existingImagesCount > 10) {
                     alert('You can upload a maximum of 10 images.');
-                    imageInput.value = ''; // Clear the input
+                    input.value = '';
                     return;
                 }
 
@@ -213,39 +182,50 @@
                         const checkbox = document.createElement('input');
                         checkbox.type = 'checkbox';
                         checkbox.classList.add('delete-checkbox');
-
-                        checkbox.addEventListener('change', function() {
-                            if (this.checked) {
-                                imgContainer.remove();
-                                // Remove the file from the input
-                                const dt = new DataTransfer();
-                                for (let i = 0; i < imageInput.files.length; i++) {
-                                    if (imageInput.files[i] !== file) {
-                                        dt.items.add(imageInput.files[i]);
-                                    }
-                                }
-                                imageInput.files = dt.files;
-                            }
-                        });
+                        checkbox.addEventListener('change', () => imgContainer.remove());
 
                         imgContainer.appendChild(img);
                         imgContainer.appendChild(checkbox);
-                        imagePreview.appendChild(imgContainer);
-                    }
+                        previewContainer.appendChild(imgContainer);
+                    };
                     reader.readAsDataURL(file);
                 }
-            });
+            }
 
-            const deleteCheckboxes = document.querySelectorAll('.delete-checkbox');
+            frontImageInput.addEventListener('change', () => handleFileInputChange(frontImageInput, document.getElementById('imagePreview-front')));
+            imageInput.addEventListener('change', () => handleFileInputChange(imageInput, document.getElementById('imagePreview')));
+
             deleteCheckboxes.forEach(checkbox => {
                 checkbox.addEventListener('change', function() {
-                    const img = this.previousElementSibling;
-                    if (this.checked) {
-                        img.classList.add('vanish');
-                    } else {
-                        img.classList.remove('vanish');
-                    }
+                    const imgContainer = this.closest('.image-container');
+                    if (this.checked) imgContainer.remove();
                 });
+            });
+
+            document.getElementById('listingForm').addEventListener('submit', function(event) {
+                const existingImagesCount = document.querySelectorAll('.image-container').length;
+                const markedForDeletion = document.querySelectorAll('.delete-checkbox:checked').length;
+                const remainingImagesCount = existingImagesCount - markedForDeletion;
+
+                const frontImageCheckbox = document.querySelector('#imagePreview-front .delete-checkbox:checked');
+                const frontImageProvided = frontImageInput.files.length > 0 || (!frontImageCheckbox && document.querySelector('#imagePreview-front .image-container img[src]'));
+                const totalImagesProvided = imageInput.files.length + remainingImagesCount;
+
+                if (!frontImageProvided) {
+                    alert('A front image is required. Please upload a new front image if you are deleting the existing one.');
+                    event.preventDefault();
+                    return;
+                }
+
+                if (totalImagesProvided < 3) {
+                    alert('You must have at least 3 images in total.');
+                    event.preventDefault();
+                }
+
+                if (totalImagesProvided > 10) {
+                    alert('You can upload a maximum of 10 images.');
+                    event.preventDefault();
+                }
             });
         });
     </script>

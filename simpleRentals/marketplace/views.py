@@ -148,25 +148,51 @@ def send_message(request, conversation_id):
 
     return redirect('conversation_detail', conversation_id=conversation.id)
 
-def viewAllListings(request):
-    listings = Listing.objects.all()
-    filters = request.GET
 
-    # Get filter parameters
+# LISTING SECTION - START
+
+# Function to validate images (non end-user facing)
+def validate_images(form, images, front_image, remaining_images_count):
+    total_images = remaining_images_count + len(images) + (1 if front_image else 0)
+    if not front_image and remaining_images_count == 0:
+        form.add_error(None, "A front image is required.")
+    if total_images < 3:
+        form.add_error(None, "You must have at least 3 images in total.")
+    if total_images > 10:
+        form.add_error(None, "You can only upload a maximum of 10 images.")
+    return form
+
+# Function to save images (non end-user facing)
+def save_images(listing, images, front_image):
+    if front_image:
+        primary_image = ListingPicture.objects.create(listing=listing, image=front_image, is_primary=True)
+        ListingPicture.objects.filter(listing=listing, is_primary=True).exclude(id=primary_image.id).update(is_primary=False)
+    for image in images:
+        ListingPicture.objects.create(listing=listing, image=image)
+
+def viewAllListings(request):
+    filters = request.GET
+    location = filters.get('location')  # City filter
+
+    # Ensure location filter is provided
+    if not location:
+        return render(request, 'errors/error.html', {'error': "Access denied. You need enter a location to access.", 'back_url': 'listings_home'})
+
+    listings = Listing.objects.all()
+
+    # Get other filter parameters
     min_price = filters.get('min_price')
     max_price = filters.get('max_price')
-    location = filters.get('location')
     bedrooms = filters.get('bedrooms')
     bathrooms = filters.get('bathrooms')
     property_type = filters.get('property_type')
 
     # Apply filters
+    listings = listings.filter(Q(street_address__icontains=location) | Q(city__icontains=location))
     if min_price:
         listings = listings.filter(price__gte=min_price)
     if max_price:
         listings = listings.filter(price__lte=max_price)
-    if location:
-        listings = listings.filter(Q(street_address__icontains=location) | Q(city__icontains=location))
     if bedrooms:
         listings = listings.filter(bedrooms__gte=bedrooms)
     if bathrooms:
@@ -180,35 +206,24 @@ def viewAllListings(request):
 
     return render(request, 'listings/viewAll.html', {'listings': listings, 'filters': filters})
 
+def listings_home(request):
+    return render(request, 'listings/homepage.html')
+
 def post_listing(request):
     if not request.user.is_authenticated:
-        return render(request, 'errors/error.html', {'error': "Access denied. You need to log in to access."})
+        return render(request, 'errors/error.html', {'error': "Access denied. You need to log in to access.", 'back_url': 'register'})
 
     if request.method == 'POST':
         form = ListingPostingForm(request.POST, request.FILES)
-
-        if form.is_valid():            
+        if form.is_valid():
             images = request.FILES.getlist('images')
             front_image = request.FILES.get('front_image')
-            if len(images) + (1 if front_image else 0) > 10:
-                form.add_error(None, "You can upload a maximum of 10 images.")
+            form = validate_images(form, images, front_image, 0)
+            if form.errors:
                 return render(request, 'listings/add.html', {"form": form, "is_edit": False})
-            
             listing = form.save(owner=request.user)
-
-            # Save front image as primary
-            if front_image:
-                primary_image = ListingPicture.objects.create(listing=listing, image=front_image, is_primary=True)
-                # Unset primary for all other pictures of the listing
-                ListingPicture.objects.filter(listing=listing, is_primary=True).exclude(id=primary_image.id).update(is_primary=False)
-
-            # Save each additional image
-            for image in images:
-                ListingPicture.objects.create(listing=listing, image=image)
-
-            return redirect('viewAllListings')
-        else:
-            print(form.errors)  # Debugging: Output form errors
+            save_images(listing, images, front_image)
+            return redirect('listings_home')
     else:
         form = ListingPostingForm()
 
@@ -225,8 +240,8 @@ def delete_listing(request, listing_id):
         
         listing.delete()
         messages.success(request, 'Listing deleted successfully.')
-        return redirect('viewAllListings')
-    return redirect('viewAllListings')
+        return redirect('listings_home')
+    return redirect('listings_home')
 
 @login_required
 def view_listing(request, listing_id):
@@ -239,37 +254,26 @@ def edit_listing(request, listing_id):
     if request.method == 'POST':
         form = ListingPostingForm(request.POST, request.FILES, instance=listing)
         if form.is_valid():
-            listing = form.save()
-
-            # Handle image deletions
             delete_images = request.POST.getlist('delete_images')
-            for image_id in delete_images:
-                image = get_object_or_404(ListingPicture, id=image_id, listing=listing)
-                if image.image:
-                    if os.path.isfile(image.image.path):
-                        os.remove(image.image.path)
+            images_to_delete = ListingPicture.objects.filter(id__in=delete_images, listing=listing)
+            for image in images_to_delete:
+                if image.image and os.path.isfile(image.image.path):
+                    os.remove(image.image.path)
                 image.delete()
 
+            remaining_images_count = listing.pictures.count()
             images = request.FILES.getlist('images')
             front_image = request.FILES.get('front_image')
-            if len(images) + listing.pictures.count() + (1 if front_image else 0) > 10:
-                form.add_error(None, "You can upload a maximum of 10 images.")
-                return render(request, 'listings/add.html', {"form": form, "is_edit": True, "existing_images": existing_images})
-
-            # Save front image as primary
-            if front_image:
-                primary_image = ListingPicture.objects.create(listing=listing, image=front_image, is_primary=True)
-                # Unset primary for all other pictures of the listing
-                ListingPicture.objects.filter(listing=listing, is_primary=True).exclude(id=primary_image.id).update(is_primary=False)
-
-            # Save each new image
-            for image in images:
-                ListingPicture.objects.create(listing=listing, image=image)
-
-            return redirect('viewAllListings')
+            form = validate_images(form, images, front_image, remaining_images_count)
+            if form.errors:
+                return render(request, 'listings/add.html', {"form": form, "is_edit": True, "existing_images": listing.pictures.all()})
+            save_images(listing, images, front_image)
+            return redirect('listings_home')
     else:
         form = ListingPostingForm(instance=listing)
 
     existing_images = listing.pictures.all()
 
     return render(request, 'listings/add.html', {"form": form, "is_edit": True, "existing_images": existing_images})
+
+# LISTING SECTION - END
