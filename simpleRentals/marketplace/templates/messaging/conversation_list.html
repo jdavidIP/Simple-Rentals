@@ -34,5 +34,10 @@
         <p>You have no active conversations.</p>
     {% endfor %}
 
+    <form action="{% url 'listings_home' %}" method="get" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit">Back to Home</button>
+    </form>
+
 </body>
 </html>
