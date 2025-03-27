@@ -148,6 +148,28 @@ def send_message(request, conversation_id):
 
     return redirect('conversation_detail', conversation_id=conversation.id)
 
+
+# LISTING SECTION - START
+
+# Function to validate images (non end-user facing)
+def validate_images(form, images, front_image, remaining_images_count):
+    total_images = remaining_images_count + len(images) + (1 if front_image else 0)
+    if not front_image and remaining_images_count == 0:
+        form.add_error(None, "A front image is required.")
+    if total_images < 3:
+        form.add_error(None, "You must have at least 3 images in total.")
+    if total_images > 10:
+        form.add_error(None, "You can only upload a maximum of 10 images.")
+    return form
+
+# Function to save images (non end-user facing)
+def save_images(listing, images, front_image):
+    if front_image:
+        primary_image = ListingPicture.objects.create(listing=listing, image=front_image, is_primary=True)
+        ListingPicture.objects.filter(listing=listing, is_primary=True).exclude(id=primary_image.id).update(is_primary=False)
+    for image in images:
+        ListingPicture.objects.create(listing=listing, image=image)
+
 def viewAllListings(request):
     filters = request.GET
     location = filters.get('location')  # City filter
@@ -186,23 +208,6 @@ def viewAllListings(request):
 
 def listings_home(request):
     return render(request, 'listings/homepage.html')
-
-def validate_images(form, images, front_image, remaining_images_count):
-    total_images = remaining_images_count + len(images) + (1 if front_image else 0)
-    if not front_image and remaining_images_count == 0:
-        form.add_error(None, "A front image is required.")
-    if total_images < 3:
-        form.add_error(None, "You must have at least 3 images in total.")
-    if total_images > 10:
-        form.add_error(None, "You can only upload a maximum of 10 images.")
-    return form
-
-def save_images(listing, images, front_image):
-    if front_image:
-        primary_image = ListingPicture.objects.create(listing=listing, image=front_image, is_primary=True)
-        ListingPicture.objects.filter(listing=listing, is_primary=True).exclude(id=primary_image.id).update(is_primary=False)
-    for image in images:
-        ListingPicture.objects.create(listing=listing, image=image)
 
 def post_listing(request):
     if not request.user.is_authenticated:
@@ -270,3 +275,5 @@ def edit_listing(request, listing_id):
     existing_images = listing.pictures.all()
 
     return render(request, 'listings/add.html', {"form": form, "is_edit": True, "existing_images": existing_images})
+
+# LISTING SECTION - END
