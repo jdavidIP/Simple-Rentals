@@ -2,6 +2,25 @@ from django.utils.timezone import now
 from rest_framework import serializers
 from .models import MarketplaceUser, Listing, ListingPicture, Group, Review, Favorites, Conversation, Message
 
+# Utility functions for image validation and saving
+
+def validate_images(serializer, images, front_image, remaining_images_count):
+    total_images = remaining_images_count + len(images) + (1 if front_image else 0)
+    if not front_image and remaining_images_count == 0:
+        serializer._errors['front_image'] = "A front image is required."
+    if total_images < 3:
+        serializer._errors['images'] = "You must have at least 3 images in total."
+    if total_images > 10:
+        serializer._errors['images'] = "You can only upload a maximum of 10 images."
+    return serializer
+
+def save_images(listing, images, front_image):
+    if front_image:
+        primary_image = ListingPicture.objects.create(listing=listing, image=front_image, is_primary=True)
+        ListingPicture.objects.filter(listing=listing, is_primary=True).exclude(id=primary_image.id).update(is_primary=False)
+    for image in images:
+        ListingPicture.objects.create(listing=listing, image=image)
+
 # User management serializers
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -145,11 +164,21 @@ class ListingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Listing
         fields = '__all__'
+        
+
+class ListingPictureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ListingPicture
+        fields = ['id', 'image', 'location', 'is_primary']
+        extra_kwargs = {
+            'image': {'required': True},
+        }
 
 class ListingPostingSerializer(serializers.ModelSerializer):
     price = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0)
     bedrooms = serializers.IntegerField(min_value=0)
     bathrooms = serializers.IntegerField(min_value=0)
+    pictures = ListingPictureSerializer(many=True, required=False)  # Nested serializer for images
 
     class Meta:
         model = Listing
@@ -158,32 +187,48 @@ class ListingPostingSerializer(serializers.ModelSerializer):
             'parking_spaces', 'heating', 'ac', 'extra_amenities', 'pet_friendly', 'move_in_date', 'description',
             'unit_number', 'street_address', 'city', 'postal_code', 'utilities_cost', 'utilities_payable_by_tenant',
             'property_taxes', 'property_taxes_payable_by_tenant', 'condo_fee', 'condo_fee_payable_by_tenant',
-            'hoa_fee', 'hoa_fee_payable_by_tenant', 'security_deposit', 'security_deposit_payable_by_tenant'
+            'hoa_fee', 'hoa_fee_payable_by_tenant', 'security_deposit', 'security_deposit_payable_by_tenant',
+            'pictures'  # Include pictures in the fields
         ]
 
     def validate(self, data):
-        # Shared validation logic for both posting and editing
+        # Validate move-in date
         if data['move_in_date'] < now().date():
             raise serializers.ValidationError({"move_in_date": "Move-in date must be in the future."})
 
+        # Validate images using your existing logic
+        images = self.context['request'].FILES.getlist('pictures')
+        front_image = self.context['request'].FILES.get('front_image')
+        remaining_images_count = self.instance.pictures.count() if self.instance else 0
+        validate_images(self, images, front_image, remaining_images_count)
+
         return data
+
+    def create(self, validated_data):
+        # Remove pictures from validated_data
+        pictures_data = validated_data.pop('pictures', [])
+        listing = Listing.objects.create(**validated_data)
+
+        # Save images using your existing logic
+        images = self.context['request'].FILES.getlist('pictures')
+        front_image = self.context['request'].FILES.get('front_image')
+        save_images(listing, images, front_image)
+
+        return listing
 
     def update(self, instance, validated_data):
         # Update the instance with the validated data
+        pictures_data = validated_data.pop('pictures', [])
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
+
+        # Save images using your existing logic
+        images = self.context['request'].FILES.getlist('pictures')
+        front_image = self.context['request'].FILES.get('front_image')
+        save_images(instance, images, front_image)
+
         return instance
-
-
-class ListingPictureSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ListingPicture
-        fields = ['id', 'listing', 'image', 'location', 'is_primary']
-        extra_kwargs = {
-            'listing': {'required': True},
-            'image': {'required': True},
-        }
 
 
 class GroupSerializer(serializers.ModelSerializer):
