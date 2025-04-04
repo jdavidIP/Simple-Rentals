@@ -14,18 +14,18 @@ urlpatterns = [
     path("profile/", views.profile, name="profile"),
     path("logout/", views.logout_view, name="logout"),
     path("login/", views.LogInView.as_view(), name="login"),
-    path("edit-profile/", views.edit_profile, name="edit_profile"),
+    path("edit-profile/", views.UserEditView.as_view(), name="edit_profile"),
     path("", views.home, name="home"),
     path('conversations/', views.conversation_list, name='conversation_list'),
-    path('conversation/<int:conversation_id>/', views.conversation_detail, name='conversation_detail'),
-    path('listing/<int:listing_id>/start_conversation/', views.start_conversation, name='start_conversation'),
-    path('conversation/<int:conversation_id>/send_message/', views.send_message, name='send_message'),
+    path('conversation/<int:pk>/', views.conversation_detail, name='conversation_detail'), # pk = conversation id
+    path('listing/<int:pk>/start_conversation/', views.start_conversation, name='start_conversation'), # pk = listing id
+    path('conversation/<int:pk>/send_message/', views.send_message, name='send_message'), # pk = conversation id
     path("listings/", views.listings_home, name="listings_home"),
-    path("listings/viewAll", views.ListingAllView.as_view(), name="viewAllListings"),
-    path("listings/add", views.post_listing, name="post_listing"),
-    path("listings/<int:listing_id>", views.view_listing, name="view_listing"),
-    path("listings/edit/<int:listing_id>", views.edit_listing, name="edit_listing"),
-    path("listings/delete/<int:listing_id>", views.ListingDeleteView.as_view(), name="delete_listing"),
+    path("listings/viewAll", views.ListingListView.as_view(), name="viewAllListings"),
+    path("listings/add", views.ListingPostingView.as_view(), name="post_listing"),
+    path("listings/<int:pk>", views.ListingDetailView.as_view(), name="view_listing"), # pk = listing id
+    path("listings/edit/<int:pk>", views.ListingEditView.as_view(), name="edit_listing"), # pk = listing id
+    path("listings/delete/<int:pk>", views.ListingDeleteView.as_view(), name="delete_listing"), # pk = listing id
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

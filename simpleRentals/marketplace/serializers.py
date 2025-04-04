@@ -1,6 +1,8 @@
+from django.utils.timezone import now
 from rest_framework import serializers
 from .models import MarketplaceUser, Listing, ListingPicture, Group, Review, Favorites, Conversation, Message
 
+# User management serializers
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
@@ -90,13 +92,16 @@ class UserLogInSerializer(serializers.ModelSerializer):
         email = data.get('email')
         password = data.get('password')
 
-        if not MarketplaceUser.objects.filter(email=email).exists():
-            raise serializers.ValidationError("Incorrect email. Try again.")
+        try:
+            user = MarketplaceUser.objects.get(email=email)
+        except MarketplaceUser.DoesNotExist:
+            raise serializers.ValidationError("Invalid email or password.")
 
-        user = MarketplaceUser.objects.get(email=email)
         if not user.check_password(password):
-            raise serializers.ValidationError("Incorrect password. Try again.")
+            raise serializers.ValidationError("Invalid email or password.")
 
+        # Add the user object to the validated data
+        data['user'] = user
         return data
 
 
@@ -134,46 +139,41 @@ class UserEditSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+# Listing management serializers
+
 class ListingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Listing
-        fields = [
-            'id', 'price', 'property_type', 'payment_type', 'bedrooms', 'bathrooms', 'sqft_area', 'laundry_type',
-            'parking_spaces', 'heating', 'ac', 'extra_amenities', 'pet_friendly', 'verification_status',
-            'move_in_date', 'description', 'unit_number', 'street_address', 'city', 'postal_code',
-            'utilities_cost', 'utilities_payable_by_tenant', 'property_taxes', 'property_taxes_payable_by_tenant',
-            'condo_fee', 'condo_fee_payable_by_tenant', 'hoa_fee', 'hoa_fee_payable_by_tenant',
-            'security_deposit', 'security_deposit_payable_by_tenant', 'owner'
-        ]
-        extra_kwargs = {'owner': {'read_only': True}, 'verification_status': {'read_only': True}}
+        fields = '__all__'
 
 class ListingPostingSerializer(serializers.ModelSerializer):
     price = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0)
     bedrooms = serializers.IntegerField(min_value=0)
     bathrooms = serializers.IntegerField(min_value=0)
-    sqft_area = serializers.IntegerField(min_value=0)
-    parking_spaces = serializers.IntegerField(min_value=0, required=False)
-    utilities_cost = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0, required=False)
-    property_taxes = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0, required=False)
-    condo_fee = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0, required=False)
-    hoa_fee = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0, required=False)
-    security_deposit = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0, required=False)
 
     class Meta:
         model = Listing
         fields = [
             'id', 'price', 'property_type', 'payment_type', 'bedrooms', 'bathrooms', 'sqft_area', 'laundry_type',
-            'parking_spaces', 'heating', 'ac', 'extra_amenities', 'pet_friendly', 'verification_status',
-            'move_in_date', 'description', 'unit_number', 'street_address', 'city', 'postal_code',
-            'utilities_cost', 'utilities_payable_by_tenant', 'property_taxes', 'property_taxes_payable_by_tenant',
-            'condo_fee', 'condo_fee_payable_by_tenant', 'hoa_fee', 'hoa_fee_payable_by_tenant',
-            'security_deposit', 'security_deposit_payable_by_tenant', 'owner'
+            'parking_spaces', 'heating', 'ac', 'extra_amenities', 'pet_friendly', 'move_in_date', 'description',
+            'unit_number', 'street_address', 'city', 'postal_code', 'utilities_cost', 'utilities_payable_by_tenant',
+            'property_taxes', 'property_taxes_payable_by_tenant', 'condo_fee', 'condo_fee_payable_by_tenant',
+            'hoa_fee', 'hoa_fee_payable_by_tenant', 'security_deposit', 'security_deposit_payable_by_tenant'
         ]
-        read_only_fields = ['owner', 'verification_status']
 
-    def create(self, validated_data):
-        validated_data['owner'] = self.context['request'].user
-        return super().create(validated_data)
+    def validate(self, data):
+        # Shared validation logic for both posting and editing
+        if data['move_in_date'] < now().date():
+            raise serializers.ValidationError({"move_in_date": "Move-in date must be in the future."})
+
+        return data
+
+    def update(self, instance, validated_data):
+        # Update the instance with the validated data
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
 
 
 class ListingPictureSerializer(serializers.ModelSerializer):

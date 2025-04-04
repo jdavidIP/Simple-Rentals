@@ -3,8 +3,10 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import *
 from rest_framework import generics
-from .serializers import  UserRegistrationSerializer, UserLogInSerializer, ListingSerializer
+from rest_framework.response import Response
+from .serializers import  UserRegistrationSerializer, UserLogInSerializer, ListingSerializer, ListingPostingSerializer, MessageSerializer, UserEditSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.generics import ListAPIView, RetrieveAPIView, RetrieveUpdateDestroyAPIView
 
 from .forms import *
 from django.utils.timezone import now
@@ -14,24 +16,40 @@ from .models import Listing, ListingPicture, Conversation, Message, MarketplaceU
 
 import os
 
-class CreateUserView(generics.CreateAPIView):
+# USER AUTHENTICATION SECTION - START
+# API views for user authentication and registration
+
+class CreateUserView(generics.CreateAPIView): # Working (backend only) 
+    """API view to handle user registration."""
     queryset = MarketplaceUser.objects.all()
     serializer_class = UserRegistrationSerializer
     permission_classes = [AllowAny]
 
-class LogInView(generics.CreateAPIView):
-    queryset = MarketplaceUser.objects.all()
+class LogInView(generics.CreateAPIView): # Working (backend only)
+    """API view to handle user login."""
     serializer_class = UserLogInSerializer
     permission_classes = [AllowAny]
 
-class ListingAllView(generics.ListCreateAPIView):
-    serializer_class = ListingSerializer
-    permission_classes = [IsAuthenticated]
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        login(request, user)
+        return Response({"message": "Login successful"}, status=200)
 
-    def get_queryset(self):
-        return Listing.objects.all() 
+class UserEditView(generics.UpdateAPIView): # Not Working yet (needs integration with frontend)
+    """API view to handle user profile editing."""
+    serializer_class = UserEditSerializer
+    permission_classes = [AllowAny]
+
+    def get_object(self):
+        return self.request.user
     
-class ListingDeleteView(generics.DestroyAPIView):
+# LISTING SECTION - START
+# API views for listing management
+    
+class ListingDeleteView(generics.DestroyAPIView): # Not Working yet (needs integration with frontend)
+    """API view to handle listing deletion."""
     serializer_class = ListingSerializer
     permission_classes = [IsAuthenticated]
 
@@ -45,6 +63,71 @@ class ListingDeleteView(generics.DestroyAPIView):
                 if os.path.isfile(picture.image.path):
                     os.remove(picture.image.path)
         instance.delete()
+
+class ListingEditView(generics.RetrieveUpdateAPIView): # Not Working yet (needs integration with frontend)
+    """API view to handle listing editing."""
+    serializer_class = ListingPostingSerializer
+    permission_classes = [AllowAny]  # Ensure only authenticated users can edit listings
+
+    def get_object(self):
+        # Get the listing and ensure it belongs to the logged-in user
+        listing = get_object_or_404(Listing, id=self.kwargs['pk'], owner=self.request.user)
+        return listing
+    
+class ListingDetailView(generics.RetrieveAPIView): # Working (backend only)
+    """API view to handle listing details."""
+    serializer_class = ListingSerializer
+    permission_classes = [AllowAny]  # Allow unauthenticated users to view a listing (change back to only auth)
+
+    def get_object(self):
+        # Get the listing and ensure it belongs to the logged-in user
+        listing = get_object_or_404(Listing, id=self.kwargs['pk'])
+        return listing
+
+class ListingPostingView(generics.CreateAPIView): # Not Working yet (needs integration with frontend)
+    """API view to handle listing posting."""
+    serializer_class = ListingPostingSerializer
+    permission_classes = [AllowAny]  # Allow unauthenticated users to post a listing (change back to only auth)
+
+    def perform_create(self, serializer):
+        # The `context` is already passed to the serializer by DRF
+        serializer.save(owner=self.request.user)  # The `owner` is set in the serializer's `create()` method
+
+class ListingListView(generics.ListAPIView): # Working (backend only)
+    """API view to handle listing list based on filters."""
+    serializer_class = ListingSerializer
+    permission_classes = [AllowAny] # Allow unauthenticated users to view listings (change back to only auth)
+
+    def get_queryset(self):
+        filters = self.request.query_params
+        location = filters.get('location')  # City filter
+
+        # Ensure location filter is provided
+        if not location:
+            return Listing.objects.none()  # Return an empty queryset if no location is provided
+
+        queryset = Listing.objects.all()
+
+        # Apply filters (add more filters as needed)
+        queryset = queryset.filter(Q(street_address__icontains=location) | Q(city__icontains=location))
+        min_price = filters.get('min_price')
+        max_price = filters.get('max_price')
+        bedrooms = filters.get('bedrooms')
+        bathrooms = filters.get('bathrooms')
+        property_type = filters.get('property_type')
+
+        if min_price:
+            queryset = queryset.filter(price__gte=min_price)
+        if max_price:
+            queryset = queryset.filter(price__lte=max_price)
+        if bedrooms:
+            queryset = queryset.filter(bedrooms__gte=bedrooms)
+        if bathrooms:
+            queryset = queryset.filter(bathrooms__gte=bathrooms)
+        if property_type:
+            queryset = queryset.filter(property_type=property_type)
+
+        return queryset
 
 # HOME SECTION - START
 
