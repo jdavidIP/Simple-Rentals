@@ -2,14 +2,49 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import *
+from rest_framework import generics
+from .serializers import  UserRegistrationSerializer, UserLogInSerializer, ListingSerializer
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from .forms import *
 from django.utils.timezone import now
 from django.db.models import Q
 
-from .models import Listing, ListingPicture, Conversation, Message
+from .models import Listing, ListingPicture, Conversation, Message, MarketplaceUser
 
 import os
+
+class CreateUserView(generics.CreateAPIView):
+    queryset = MarketplaceUser.objects.all()
+    serializer_class = UserRegistrationSerializer
+    permission_classes = [AllowAny]
+
+class LogInView(generics.CreateAPIView):
+    queryset = MarketplaceUser.objects.all()
+    serializer_class = UserLogInSerializer
+    permission_classes = [AllowAny]
+
+class ListingAllView(generics.ListCreateAPIView):
+    serializer_class = ListingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Listing.objects.all() 
+    
+class ListingDeleteView(generics.DestroyAPIView):
+    serializer_class = ListingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Listing.objects.filter(owner=user)
+
+    def perform_destroy(self, instance):
+        for picture in instance.pictures.all():
+            if picture.image:
+                if os.path.isfile(picture.image.path):
+                    os.remove(picture.image.path)
+        instance.delete()
 
 # HOME SECTION - START
 
