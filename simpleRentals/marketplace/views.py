@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import *
 from rest_framework import generics
 from rest_framework.response import Response
-from .serializers import  UserRegistrationSerializer, UserLogInSerializer, ListingSerializer, ListingPostingSerializer, MessageSerializer, UserEditSerializer
+from .serializers import  UserRegistrationSerializer, UserLogInSerializer, ListingSerializer, ListingPostingSerializer, MessageSerializer, UserEditSerializer, UserSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.generics import ListAPIView, RetrieveAPIView, RetrieveUpdateDestroyAPIView
 
@@ -45,6 +45,15 @@ class UserEditView(generics.UpdateAPIView): # Not Working yet (needs integration
     def get_object(self):
         return self.request.user
     
+class UserProfileView(generics.RetrieveAPIView): # Working (backend only)
+    """API view to handle user profile retrieval."""
+    serializer_class = UserSerializer
+    permission_classes = [AllowAny]
+
+    def get_object(self):
+        user = get_object_or_404(MarketplaceUser, id=self.kwargs['pk'])
+        return user
+    
 # LISTING SECTION - START
 # API views for listing management
     
@@ -67,7 +76,7 @@ class ListingDeleteView(generics.DestroyAPIView): # Not Working yet (needs integ
 class ListingEditView(generics.RetrieveUpdateAPIView): # Not Working yet (needs integration with frontend)
     """API view to handle listing editing."""
     serializer_class = ListingPostingSerializer
-    permission_classes = [AllowAny]  # Ensure only authenticated users can edit listings
+    permission_classes = [IsAuthenticated]  # Ensure only authenticated users can edit listings
 
     def get_object(self):
         # Get the listing and ensure it belongs to the logged-in user
@@ -77,7 +86,7 @@ class ListingEditView(generics.RetrieveUpdateAPIView): # Not Working yet (needs 
 class ListingDetailView(generics.RetrieveAPIView): # Working (backend only)
     """API view to handle listing details."""
     serializer_class = ListingSerializer
-    permission_classes = [AllowAny]  # Allow unauthenticated users to view a listing (change back to only auth)
+    permission_classes = [AllowAny]
 
     def get_object(self):
         # Get the listing and ensure it belongs to the logged-in user
@@ -87,7 +96,7 @@ class ListingDetailView(generics.RetrieveAPIView): # Working (backend only)
 class ListingPostingView(generics.CreateAPIView): # Not Working yet (needs integration with frontend)
     """API view to handle listing posting."""
     serializer_class = ListingPostingSerializer
-    permission_classes = [AllowAny]  # Allow unauthenticated users to post a listing (change back to only auth)
+    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
         # The `context` is already passed to the serializer by DRF
@@ -96,7 +105,7 @@ class ListingPostingView(generics.CreateAPIView): # Not Working yet (needs integ
 class ListingListView(generics.ListAPIView): # Working (backend only)
     """API view to handle listing list based on filters."""
     serializer_class = ListingSerializer
-    permission_classes = [AllowAny] # Allow unauthenticated users to view listings (change back to only auth)
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         filters = self.request.query_params

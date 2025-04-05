@@ -23,6 +23,13 @@ def save_images(listing, images, front_image):
 
 # User management serializers
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MarketplaceUser
+        fields = [
+            'email', 'first_name', 'last_name', 'age', 'sex', 'profile_picture',
+        ]
+
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
     password_confirmation = serializers.CharField(write_only=True, style={'input_type': 'password'})
