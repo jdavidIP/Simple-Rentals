@@ -35,7 +35,16 @@ class LogInView(generics.CreateAPIView): # Working (backend only)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         login(request, user)
-        return Response({"message": "Login successful"}, status=200)
+
+        # Generate tokens for the user
+        refresh = RefreshToken.for_user(user)
+        access = refresh.access_token
+
+        return Response({
+            "message": "Login successful",
+            "access": str(access),
+            "refresh": str(refresh),
+        }, status=200)
 
 class UserEditView(generics.UpdateAPIView): # Not Functional yet (needs integration with frontend) - Tested locally and works
     """API view to handle user profile editing."""
@@ -52,19 +61,25 @@ class UserProfileView(generics.RetrieveAPIView): # Working (backend only)
 
     def get_object(self):
         user = get_object_or_404(MarketplaceUser, id=self.kwargs['pk'])
+        print("User retrieved:", user)
         return user
 
-class LogoutView(APIView): # Not Working yet (needs integration with frontend) - Not tested yet
+class LogoutView(APIView):
     """Custom logout view to blacklist refresh tokens."""
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        refresh_token = request.data.get("refresh")
+        if not refresh_token:
+            return Response({"error": "Refresh token is required."}, status=400)
+
         try:
-            refresh_token = request.data["refresh"]
             token = RefreshToken(refresh_token)
             token.blacklist()
+            print("Token successfully blacklisted.")  # Debugging
             return Response({"message": "Logout successful"}, status=200)
         except Exception as e:
+            print("Error blacklisting token:", str(e))  # Debugging
             return Response({"error": "Invalid token"}, status=400)
         
 ### USER AUTHENTICATION SECTION - END ###

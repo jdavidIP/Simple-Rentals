@@ -9,12 +9,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
+import Logout from "./pages/Logout";
 import ProtectedRoute from "./components/ProtectedRoute";
-
-function Logout() {
-  localStorage.clear();
-  return <Navigate to="/login" />;
-}
 
 function App() {
   return (

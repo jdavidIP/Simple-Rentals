@@ -1,11 +1,11 @@
 import { Navigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import api from "../api.js";
-import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants.js";
+import api from "../api";
+import { REFRESH_TOKEN, ACCESS_TOKEN } from "../constants";
 import { useState, useEffect } from "react";
 
 function ProtectedRoute({ children }) {
-  const [isAuthorized, setAuthorized] = useState(false);
+  const [isAuthorized, setAuthorized] = useState(null);
 
   useEffect(() => {
     auth().catch(() => setAuthorized(false));
@@ -14,8 +14,14 @@ function ProtectedRoute({ children }) {
   const refreshToken = async () => {
     const refreshToken = localStorage.getItem(REFRESH_TOKEN);
 
+    if (!refreshToken) {
+      console.error("No refresh token found.");
+      setAuthorized(false);
+      return;
+    }
+
     try {
-      const res = await api.post("/marketplace/token/refresh/", {
+      const res = await api.post("/api/token/refresh/", {
         refresh: refreshToken,
       });
 
@@ -23,6 +29,7 @@ function ProtectedRoute({ children }) {
         localStorage.setItem(ACCESS_TOKEN, res.data.access);
         setAuthorized(true);
       } else {
+        console.error("Failed to refresh token:", res);
         setAuthorized(false);
       }
     } catch (error) {
@@ -37,14 +44,21 @@ function ProtectedRoute({ children }) {
       setAuthorized(false);
       return;
     }
-    const decoded = jwtDecode(token);
-    let expirationTime = decoded.exp;
-    const now = Date.now() / 1000;
 
-    if ((expirationTime = now)) {
-      await refreshToken();
-    } else {
-      setAuthorized(true);
+    try {
+      const decoded = jwtDecode(token);
+      const expirationTime = decoded.exp;
+      const now = Date.now() / 1000;
+
+      if (expirationTime < now) {
+        console.log("Token expired, refreshing...");
+        await refreshToken();
+      } else {
+        setAuthorized(true);
+      }
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      setAuthorized(false);
     }
   };
 
