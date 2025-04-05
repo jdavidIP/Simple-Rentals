@@ -20,7 +20,7 @@ import os
 ### USER AUTHENTICATION SECTION - START ###
 # API views for user authentication and registration
 
-class CreateUserView(generics.CreateAPIView): # Working (backend only) 
+class CreateUserView(generics.CreateAPIView): # Working (backend only)
     """API view to handle user registration."""
     queryset = MarketplaceUser.objects.all()
     serializer_class = UserRegistrationSerializer
@@ -38,7 +38,7 @@ class LogInView(generics.CreateAPIView): # Working (backend only)
         login(request, user)
         return Response({"message": "Login successful"}, status=200)
 
-class UserEditView(generics.UpdateAPIView): # Not Working yet (needs integration with frontend)
+class UserEditView(generics.UpdateAPIView): # Not Functional yet (needs integration with frontend) - Tested locally and works
     """API view to handle user profile editing."""
     serializer_class = UserEditSerializer
     permission_classes = [AllowAny]
@@ -55,7 +55,7 @@ class UserProfileView(generics.RetrieveAPIView): # Working (backend only)
         user = get_object_or_404(MarketplaceUser, id=self.kwargs['pk'])
         return user
 
-class LogoutView(APIView):
+class LogoutView(APIView): # Not Working yet (needs integration with frontend) - Not tested yet
     """Custom logout view to blacklist refresh tokens."""
     permission_classes = [IsAuthenticated]
 
@@ -74,7 +74,7 @@ class LogoutView(APIView):
 ### LISTING SECTION - START ###
 # API views for listing management
     
-class ListingDeleteView(generics.DestroyAPIView): # Not Working yet (needs integration with frontend)
+class ListingDeleteView(generics.DestroyAPIView): # Not Working yet (needs integration with frontend) - Not tested yet
     """API view to handle listing deletion."""
     serializer_class = ListingSerializer
     permission_classes = [IsAuthenticated]
@@ -90,7 +90,7 @@ class ListingDeleteView(generics.DestroyAPIView): # Not Working yet (needs integ
                     os.remove(picture.image.path)
         instance.delete()
 
-class ListingEditView(generics.RetrieveUpdateAPIView): # Not Working yet (needs integration with frontend)
+class ListingEditView(generics.RetrieveUpdateAPIView): # Not Working yet (needs integration with frontend) - Tested locally and works
     """API view to handle listing editing."""
     serializer_class = ListingPostingSerializer
     permission_classes = [IsAuthenticated]  # Ensure only authenticated users can edit listings
@@ -110,7 +110,7 @@ class ListingDetailView(generics.RetrieveAPIView): # Working (backend only)
         listing = get_object_or_404(Listing, id=self.kwargs['pk'])
         return listing
 
-class ListingPostingView(generics.CreateAPIView): # Not Working yet (needs integration with frontend)
+class ListingPostingView(generics.CreateAPIView): # Not Working yet (needs integration with frontend) - Not tested yet
     """API view to handle listing posting."""
     serializer_class = ListingPostingSerializer
     permission_classes = [IsAuthenticated]
@@ -161,7 +161,7 @@ class ListingListView(generics.ListAPIView): # Working (backend only)
 ### CONVERSATION SECTION - START ###
 # API views for conversation management
 
-class ConversationListView(generics.ListAPIView): # Not Working yet (needs integration with frontend)
+class ConversationListView(generics.ListAPIView): # Not Working yet (needs integration with frontend) - Tested locally and works
     """API view to handle conversation list."""
     serializer_class = ConversationSerializer
     permission_classes = [IsAuthenticated] 
@@ -170,7 +170,7 @@ class ConversationListView(generics.ListAPIView): # Not Working yet (needs integ
         user = self.request.user
         return Conversation.objects.filter(participants=user).order_by('-last_updated')
     
-class ConversationDetailView(generics.RetrieveAPIView):
+class ConversationDetailView(generics.RetrieveAPIView): # Not Working yet (needs integration with frontend) - Tested locally and works
     """API view to retrieve conversation details."""
     serializer_class = ConversationSerializer
     permission_classes = [IsAuthenticated]
@@ -187,52 +187,51 @@ class ConversationDetailView(generics.RetrieveAPIView):
 
         return conversation
     
-class StartConversationView(APIView):
+class StartConversationView(generics.CreateAPIView): # Not Working yet (needs integration with frontend) - Not tested yet
     """API view to start a conversation for a listing."""
+    serializer_class = ConversationSerializer
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, listing_id):
-        listing = get_object_or_404(Listing, id=listing_id)
+    def perform_create(self, serializer):
+        listing = get_object_or_404(Listing, id=self.kwargs['pk'])
 
         # Check if a conversation already exists
-        conversation = Conversation.objects.filter(participants=request.user, listing=listing).first()
+        conversation = Conversation.objects.filter(participants=self.request.user, listing=listing).first()
 
-        if not conversation:
-            conversation = Conversation.objects.create(listing=listing)
-            conversation.participants.add(request.user, listing.owner)
+        if conversation:
+            raise serializer.ValidationError("A conversation for this listing already exists.")
 
-            # Create the initial message in the conversation
-            Message.objects.create(
-                conversation=conversation,
-                sender=request.user,
-                content="Hello, I'm interested in this listing."
-            )
+        # Create the conversation and add participants
+        conversation = serializer.save(listing=listing)
+        conversation.participants.add(self.request.user, listing.owner)
 
-        serializer = ConversationSerializer(conversation)
-        return Response(serializer.data, status=201)
+        # Create the initial message in the conversation
+        Message.objects.create(
+            conversation=conversation,
+            sender=self.request.user,
+            content="Hello, I'm interested in this listing."
+        )
 
-class SendMessageView(APIView):
+class SendMessageView(generics.CreateAPIView): # Not Working yet (needs integration with frontend) - Not tested yet
     """API view to send a message in a conversation."""
+    serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, conversation_id):
-        conversation = get_object_or_404(Conversation.objects.filter(participants=request.user), id=conversation_id)
+    def perform_create(self, serializer):
+        conversation = get_object_or_404(Conversation.objects.filter(participants=self.request.user), id=self.kwargs['pk'])
 
-        # Validate and save the message
-        serializer = MessageSerializer(data=request.data, context={'request': request})
-        if serializer.is_valid():
-            serializer.save(conversation=conversation)
+        # Save the message and associate it with the conversation
+        serializer.save(conversation=conversation, sender=self.request.user)
 
-            # Update last_updated field
-            conversation.last_updated = now()
-            conversation.save(update_fields=['last_updated'])
+        # Update last_updated field
+        conversation.last_updated = now()
+        conversation.save(update_fields=['last_updated'])
 
-            # Mark all unread messages as read after sending a message
-            conversation.messages.filter(read=False).exclude(sender=request.user).update(read=True)
+        # Mark all unread messages as read after sending a message
+        conversation.messages.filter(read=False).exclude(sender=self.request.user).update(read=True)
 
-            return Response(serializer.data, status=201)
+### CONVERSATION SECTION - END ###
 
-        return Response(serializer.errors, status=400)
 
 # HOME SECTION - START
 
@@ -242,68 +241,7 @@ def home(request):
 
 # HOME SECTION - END
 
-
-@login_required
-def conversation_list(request):
-    conversations = Conversation.objects.filter(participants=request.user).order_by('-last_updated')
-    return render(request, "messaging/conversation_list.html", {"conversations": conversations})
-
-@login_required
-def conversation_detail(request, conversation_id):
-    conversation = get_object_or_404(Conversation.objects.filter(participants=request.user), id=conversation_id)
-
-    # Mark all unread messages as read (except the ones the user sent)
-    conversation.messages.filter(read=False).exclude(sender=request.user).update(read=True)
-
-    form = MessageForm()
-
-    return render(request, 'messaging/conversation_detail.html', {
-        'conversation': conversation,
-        'form': form
-    })
-
-@login_required
-def start_conversation(request, listing_id):
-    listing = get_object_or_404(Listing, id=listing_id)
-    
-    # Check if a conversation already exists
-    conversation = Conversation.objects.filter(participants=request.user, listing=listing).first()
-    
-    if not conversation:
-        conversation = Conversation.objects.create(listing=listing)
-        conversation.participants.add(request.user, listing.owner)
-
-        # Create the initial message in the conversation
-        Message.objects.create(
-            conversation=conversation,
-            sender=request.user,
-            content="Hello, I'm interested in this listing."
-        )
-
-    return redirect('conversation_detail', conversation_id=conversation.id)
-
-@login_required
-def send_message(request, conversation_id):
-    conversation = get_object_or_404(Conversation.objects.filter(participants=request.user), id=conversation_id)
-
-    if request.method == "POST":
-        form = MessageForm(request.POST)
-        if form.is_valid():
-            message = form.save(commit=False)
-            message.sender = request.user
-            message.conversation = conversation
-            message.save()
-
-            # Update last_updated field
-            conversation.last_updated = now()
-            conversation.save(update_fields=['last_updated'])
-
-            # Mark all unread messages as read after sending a message
-            conversation.messages.filter(read=False).exclude(sender=request.user).update(read=True)
-
-            return redirect('conversation_detail', conversation_id=conversation.id)
-
-    return redirect('conversation_detail', conversation_id=conversation.id)
+# Listings home page - displays all listings
 
 def listings_home(request):
     listings = Listing.objects.all()
