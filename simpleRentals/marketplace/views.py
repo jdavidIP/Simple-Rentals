@@ -7,7 +7,6 @@ from rest_framework.response import Response
 from .serializers import *
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
-from .forms import *
 from django.utils.timezone import now
 from django.db.models import Q
 from django.core.exceptions import PermissionDenied
