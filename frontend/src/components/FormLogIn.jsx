@@ -14,7 +14,15 @@ function FormLogIn({ method }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      if (localStorage.getItem(ACCESS_TOKEN)) {
+        console.log(
+          "User already logged in, logging out to avoid conflicts..."
+        );
+        localStorage.clear();
+      }
+
       const response = await api.post("/login/", { email, password });
+
       localStorage.setItem(ACCESS_TOKEN, response.data.access);
       localStorage.setItem(REFRESH_TOKEN, response.data.refresh);
       navigate("/");

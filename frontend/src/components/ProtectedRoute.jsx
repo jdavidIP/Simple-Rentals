@@ -27,6 +27,7 @@ function ProtectedRoute({ children }) {
 
       if (res.status === 200) {
         localStorage.setItem(ACCESS_TOKEN, res.data.access);
+        console.log("Token refreshed succesfully.");
         setAuthorized(true);
       } else {
         console.error("Failed to refresh token:", res);
