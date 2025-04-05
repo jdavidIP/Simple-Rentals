@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import *
 from rest_framework import generics
 from rest_framework.response import Response
-from .serializers import  UserRegistrationSerializer, UserLogInSerializer, ListingSerializer, ListingPostingSerializer, MessageSerializer, UserEditSerializer, ConversationSerializer, UserSerializer
+from .serializers import *
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from .forms import *
