@@ -3,16 +3,17 @@ from django.urls import path, include
 from marketplace import views
 from django.conf.urls.static import static
 from django.conf import settings
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenBlacklistView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("register/", views.CreateUserView.as_view(), name="register"),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("api/token/blacklist/", TokenBlacklistView.as_view(), name="token_blacklist"),
     path("api-auth/", include("rest_framework.urls")),
     path("profile/<int:pk>", views.UserProfileView.as_view(), name="profile"), # pk = user id
-    path("logout/", views.logout_view, name="logout"),
+    path("logout/", views.LogoutView, name="logout"),
     path("login/", views.LogInView.as_view(), name="login"),
     path("edit-profile/", views.UserEditView.as_view(), name="edit_profile"),
     path("", views.home, name="home"),

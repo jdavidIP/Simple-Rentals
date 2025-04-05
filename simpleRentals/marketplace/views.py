@@ -53,7 +53,20 @@ class UserProfileView(generics.RetrieveAPIView): # Working (backend only)
     def get_object(self):
         user = get_object_or_404(MarketplaceUser, id=self.kwargs['pk'])
         return user
-    
+
+class LogoutView(generics.APIView):
+    """Custom logout view to blacklist refresh tokens."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            refresh_token = request.data["refresh"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response({"message": "Logout successful"}, status=200)
+        except Exception as e:
+            return Response({"error": "Invalid token"}, status=400)
+        
 # LISTING SECTION - START
 # API views for listing management
     
