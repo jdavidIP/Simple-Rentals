@@ -30,10 +30,12 @@ function ProtectedRoute({ children }) {
         setAuthorized(true);
       } else {
         console.error("Failed to refresh token:", res);
+        localStorage.clear();
         setAuthorized(false);
       }
     } catch (error) {
       console.error("Error refreshing token:", error);
+      localStorage.clear();
       setAuthorized(false);
     }
   };
