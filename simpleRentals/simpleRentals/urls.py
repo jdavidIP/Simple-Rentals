@@ -13,14 +13,14 @@ urlpatterns = [
     path("api/token/blacklist/", TokenBlacklistView.as_view(), name="token_blacklist"),
     path("api-auth/", include("rest_framework.urls")),
     path("profile/<int:pk>", views.UserProfileView.as_view(), name="profile"), # pk = user id
-    path("logout/", views.LogoutView, name="logout"),
+    path("logout/", views.LogoutView.as_view(), name="logout"),
     path("login/", views.LogInView.as_view(), name="login"),
     path("edit-profile/", views.UserEditView.as_view(), name="edit_profile"),
     path("", views.home, name="home"),
-    path('conversations/', views.conversation_list, name='conversation_list'),
-    path('conversation/<int:pk>/', views.conversation_detail, name='conversation_detail'), # pk = conversation id
-    path('listing/<int:pk>/start_conversation/', views.start_conversation, name='start_conversation'), # pk = listing id
-    path('conversation/<int:pk>/send_message/', views.send_message, name='send_message'), # pk = conversation id
+    path('conversations/', views.ConversationListView.as_view(), name='conversation_list'),
+    path('conversations/<int:pk>/', views.ConversationDetailView.as_view(), name='conversation_detail'), # pk = conversation id
+    path('listing/<int:pk>/start_conversation/', views.StartConversationView.as_view(), name='start_conversation'), # pk = listing id
+    path('conversations/<int:pk>/send_message/', views.SendMessageView.as_view(), name='send_message'), # pk = conversation id
     path("listings/", views.listings_home, name="listings_home"),
     path("listings/viewAll", views.ListingListView.as_view(), name="viewAllListings"),
     path("listings/add", views.ListingPostingView.as_view(), name="post_listing"),

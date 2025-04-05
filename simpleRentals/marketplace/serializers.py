@@ -167,12 +167,6 @@ class UserEditSerializer(serializers.ModelSerializer):
 
 # Listing management serializers
 
-class ListingSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Listing
-        fields = '__all__'
-        
-
 class ListingPictureSerializer(serializers.ModelSerializer):
     class Meta:
         model = ListingPicture
@@ -180,6 +174,14 @@ class ListingPictureSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'image': {'required': True},
         }
+
+class ListingSerializer(serializers.ModelSerializer):
+    owner = UserSerializer(read_only=True)  # Include owner details
+    pictures = ListingPictureSerializer(many=True, read_only=True)  # Include pictures
+
+    class Meta:
+        model = Listing
+        fields = '__all__'
 
 class ListingPostingSerializer(serializers.ModelSerializer):
     price = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0)
@@ -281,17 +283,29 @@ class FavoritesSerializer(serializers.ModelSerializer):
 
 
 class ConversationSerializer(serializers.ModelSerializer):
+    listing = ListingSerializer(read_only=True)  # Include listing details
+    last_message = serializers.SerializerMethodField()  # Add the last message in the conversation
+
     class Meta:
         model = Conversation
-        fields = ['id', 'participants', 'listing', 'last_updated']
+        fields = ['id', 'participants', 'listing', 'last_updated', 'last_message']
         extra_kwargs = {
             'participants': {'read_only': True},
             'listing': {'required': True},
             'last_updated': {'read_only': True},
         }
 
+    def get_last_message(self, obj):
+        # Retrieve the last message in the conversation
+        last_message = obj.get_last_message()
+        if last_message:
+            return MessageSerializer(last_message).data
+        return None
+
 
 class MessageSerializer(serializers.ModelSerializer):
+    sender = UserSerializer(read_only=True)  # Include sender details
+
     class Meta:
         model = Message
         fields = ['id', 'conversation', 'sender', 'content', 'timestamp', 'read']
@@ -302,6 +316,13 @@ class MessageSerializer(serializers.ModelSerializer):
             'timestamp': {'read_only': True},
             'read': {'read_only': True},
         }
+
+    def to_representation(self, instance):
+        # Automatically mark messages as read when retrieved
+        if not instance.read and instance.sender != self.context['request'].user:
+            instance.read = True
+            instance.save(update_fields=['read'])
+        return super().to_representation(instance)
 
     def create(self, validated_data):
         validated_data['sender'] = self.context['request'].user
