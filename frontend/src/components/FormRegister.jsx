@@ -7,46 +7,92 @@ function FormRegister({ method }) {
     email: "",
     password: "",
     password_confirmation: "",
+    profile_picture: null,
     first_name: "",
     last_name: "",
+    age: "",
+    sex: "",
     budget_min: "",
     budget_max: "",
+    city: "",
+    preferred_location: "",
     phone_number: "",
+    instagram_link: "",
+    facebook_link: "",
+    receive_email_notifications: false,
+    receive_sms_notifications: false,
     terms_accepted: false,
   });
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type, checked, files } = e.target;
     setFormData({
       ...formData,
-      [name]: type === "checkbox" ? checked : value,
+      [name]:
+        type === "checkbox" ? checked : type === "file" ? files[0] : value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (formData.budget_min === "") {
+      formData.budget_min = 0;
+    }
+
     if (formData.password !== formData.password_confirmation) {
-      setError("Passwords do not match");
+      setError(["Passwords do not match"]);
+      return;
+    }
+
+    if (formData.budget_min > formData.budget_max) {
+      setError(["Minimum budget cannot be greater than maximum budget"]);
       return;
     }
 
     try {
-      const response = await api.post("/register/", formData);
+      // Use FormData to handle file uploads
+      const data = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        data.append(key, value);
+      });
+
+      const response = await api.post("/register/", data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
       if (response.status === 201) {
         navigate("/login");
       }
     } catch (err) {
       console.error("Error during registration:", err);
-      setError("Registration failed. Please try again.");
+
+      // Check if the error response contains validation errors
+      if (err.response && err.response.data) {
+        const errorMessages = Object.entries(err.response.data).map(
+          ([field, messages]) => `${field}: ${messages.join(", ")}`
+        );
+        setError(errorMessages); // Store errors as an array
+      } else {
+        setError(["Registration failed. Please try again."]);
+      }
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="form-container">
       <h1>Register</h1>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && (
+        <ul style={{ color: "red" }}>
+          {error.map((errMsg, index) => (
+            <li key={index}>{errMsg}</li>
+          ))}
+        </ul>
+      )}
       <input
         type="email"
         name="email"
@@ -89,9 +135,34 @@ function FormRegister({ method }) {
       />
       <input
         type="number"
+        name="age"
+        placeholder="Age"
+        value={formData.age}
+        onChange={handleChange}
+        min="0"
+        required
+      />
+      <label>
+        Sex:
+        <select
+          name="sex"
+          value={formData.sex}
+          onChange={handleChange}
+          required
+        >
+          <option value="">Select</option>
+          <option value="M">Male</option>
+          <option value="F">Female</option>
+          <option value="O">Other</option>
+        </select>
+      </label>
+      <input
+        type="number"
         name="budget_min"
         placeholder="Budget Min (Optional)"
         value={formData.budget_min}
+        min="0"
+        step="0.01"
         onChange={handleChange}
       />
       <input
@@ -100,7 +171,23 @@ function FormRegister({ method }) {
         placeholder="Budget Max"
         value={formData.budget_max}
         onChange={handleChange}
+        min="0"
+        step="0.01"
         required
+      />
+      <input
+        type="text"
+        name="city"
+        placeholder="City"
+        value={formData.city}
+        onChange={handleChange}
+        required
+      />
+      <textarea
+        name="preferred_location"
+        placeholder="Preferred Location"
+        value={formData.preferred_location}
+        onChange={handleChange}
       />
       <input
         type="text"
@@ -110,6 +197,39 @@ function FormRegister({ method }) {
         onChange={handleChange}
         required
       />
+      <input
+        type="url"
+        name="instagram_link"
+        placeholder="Instagram Link"
+        value={formData.instagram_link}
+        onChange={handleChange}
+      />
+      <input
+        type="url"
+        name="facebook_link"
+        placeholder="Facebook Link"
+        value={formData.facebook_link}
+        onChange={handleChange}
+      />
+      <input type="file" name="profile_picture" onChange={handleChange} />
+      <label>
+        <input
+          type="checkbox"
+          name="receive_email_notifications"
+          checked={formData.receive_email_notifications}
+          onChange={handleChange}
+        />
+        I would like to receive email notifications
+      </label>
+      <label>
+        <input
+          type="checkbox"
+          name="receive_sms_notifications"
+          checked={formData.receive_sms_notifications}
+          onChange={handleChange}
+        />
+        I would like to receive text messages.
+      </label>
       <label>
         <input
           type="checkbox"
