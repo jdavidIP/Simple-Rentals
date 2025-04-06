@@ -18,12 +18,13 @@
   color: #343a40; /* Dark gray text */
 }
 
+/*Form link styling */
 .form-container a {
   text-align: center;
   margin-top: 20px;
-  font-size: 0.9rem; /* Adjusted to a more readable size */
-  color: #007bff; /* Bootstrap primary color for links */
-  text-decoration: none; /* Remove underline */
+  font-size: 0.9rem;
+  color: #007bff;
+  text-decoration: none;
   justify-content: center;
   display: flex;
 }
@@ -40,11 +41,12 @@
 .form-container input[type="number"],
 .form-container input[type="url"],
 .form-container input[type="date"],
+.form-container input[type="file"],
 .form-container textarea,
 .form-container select {
   width: 95%;
   padding: 10px;
-  margin-bottom: 15px;
+  margin-bottom: 25px;
   border: 1px solid #ced4da; /* Bootstrap default border color */
   border-radius: 4px;
   font-size: 1rem;
@@ -63,7 +65,7 @@
 /* Labels */
 .form-container label {
   font-weight: 500;
-  margin-bottom: 5px;
+  margin-bottom: 15px;
   display: block;
   color: #495057; /* Bootstrap default text color */
 }
@@ -74,11 +76,22 @@
   margin-right: 10px;
 }
 
+.form-container select {
+  width: 99.5%;
+  padding: 10px;
+  margin-bottom: 25px;
+  border: 1px solid #ced4da; /* Bootstrap default border color */
+  border-radius: 4px;
+  font-size: 1rem;
+  color: #495057;
+}
+
 /* Submit button */
 .form-container button[type="submit"] {
   width: 50%;
   padding: 10px;
   margin-left: 25%;
+  margin-top: 2%;
   font-size: 1rem;
   font-weight: bold;
   color: #fff;

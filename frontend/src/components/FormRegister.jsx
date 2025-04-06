@@ -142,20 +142,12 @@ function FormRegister({ method }) {
         min="0"
         required
       />
-      <label>
-        Sex:
-        <select
-          name="sex"
-          value={formData.sex}
-          onChange={handleChange}
-          required
-        >
-          <option value="">Select</option>
-          <option value="M">Male</option>
-          <option value="F">Female</option>
-          <option value="O">Other</option>
-        </select>
-      </label>
+      <select name="sex" value={formData.sex} onChange={handleChange} required>
+        <option value="">Select your gender</option>
+        <option value="M">Male</option>
+        <option value="F">Female</option>
+        <option value="O">Other</option>
+      </select>
       <input
         type="number"
         name="budget_min"
@@ -182,12 +174,6 @@ function FormRegister({ method }) {
         value={formData.city}
         onChange={handleChange}
         required
-      />
-      <textarea
-        name="preferred_location"
-        placeholder="Preferred Location"
-        value={formData.preferred_location}
-        onChange={handleChange}
       />
       <input
         type="text"
