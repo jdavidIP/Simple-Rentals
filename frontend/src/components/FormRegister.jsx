@@ -154,6 +154,7 @@ function FormRegister({ method }) {
         placeholder="Budget Min (Optional)"
         value={formData.budget_min}
         min="0"
+        max={formData.budget_max - 0.01 || ""}
         step="0.01"
         onChange={handleChange}
       />

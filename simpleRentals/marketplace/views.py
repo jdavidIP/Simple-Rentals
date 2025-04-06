@@ -11,6 +11,8 @@ from django.utils.timezone import now
 from django.db.models import Q
 from django.core.exceptions import PermissionDenied
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.exceptions import ValidationError
+
 
 from .models import Listing, ListingPicture, Conversation, Message, MarketplaceUser
 
@@ -144,7 +146,8 @@ class ListingListView(generics.ListAPIView): # Working (backend only)
 
         # Ensure location filter is provided
         if not location:
-            return Listing.objects.none()  # Return an empty queryset if no location is provided
+            print("No Location Provided.")
+            raise ValidationError({"Location": "A location is required to filter listings. Please enter one."})  # Return an empty queryset if no location is provided
 
         queryset = Listing.objects.all()
 

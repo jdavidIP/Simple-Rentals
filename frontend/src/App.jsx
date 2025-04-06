@@ -10,23 +10,20 @@ import Register from "./pages/Register";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import Logout from "./pages/Logout";
+import ListingsHome from "./pages/ListingsHome";
+import Listings from "./pages/Listings";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/logout" element={<Logout />} />
+        <Route path="/listings" element={<ListingsHome />} />
+        <Route path="/listings/results" element={<Listings />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
