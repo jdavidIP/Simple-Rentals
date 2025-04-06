@@ -32,7 +32,7 @@ function App() {
           path="/listings/post"
           element={
             <ProtectedRoute>
-              <ListingsPost />
+              <ListingsPost method="post" />
             </ProtectedRoute>
           }
         />
@@ -40,7 +40,7 @@ function App() {
           path="/listings/edit/:id"
           element={
             <ProtectedRoute>
-              <ListingsEdit />
+              <ListingsEdit method="edit" />
             </ProtectedRoute>
           }
         />

@@ -191,7 +191,7 @@ class ListingPostingSerializer(serializers.ModelSerializer):
     price = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0)
     bedrooms = serializers.IntegerField(min_value=0)
     bathrooms = serializers.IntegerField(min_value=0)
-    pictures = ListingPictureSerializer(many=True, required=False)  # Nested serializer for images
+    pictures = ListingPictureSerializer(many=True, required=True)  # Nested serializer for images
 
     class Meta:
         model = Listing

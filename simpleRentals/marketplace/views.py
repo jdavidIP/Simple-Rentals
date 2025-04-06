@@ -106,7 +106,7 @@ class ListingDeleteView(generics.DestroyAPIView): # Not Working yet (needs integ
                     os.remove(picture.image.path)
         instance.delete()
 
-class ListingEditView(generics.RetrieveUpdateAPIView): # Not Working yet (needs integration with frontend) - Tested locally and works
+class ListingEditView(generics.UpdateAPIView): # Not Working yet (needs integration with frontend) - Tested locally and works
     """API view to handle listing editing."""
     serializer_class = ListingPostingSerializer
     permission_classes = [IsAuthenticated]  # Ensure only authenticated users can edit listings
