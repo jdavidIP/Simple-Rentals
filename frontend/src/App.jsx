@@ -13,6 +13,8 @@ import Logout from "./pages/Logout";
 import ListingsHome from "./pages/ListingsHome";
 import Listings from "./pages/Listings";
 import ListingsView from "./pages/ListingsView";
+import ListingsPost from "./pages/ListingsPost";
+import ListingsEdit from "./pages/ListingsEdit";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -26,6 +28,22 @@ function App() {
         <Route path="/listings" element={<ListingsHome />} />
         <Route path="/listings/results" element={<Listings />} />
         <Route path="/listings/:id" element={<ListingsView />} />
+        <Route
+          path="/listings/post"
+          element={
+            <ProtectedRoute>
+              <ListingsPost />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/listings/edit/:id"
+          element={
+            <ProtectedRoute>
+              <ListingsEdit />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

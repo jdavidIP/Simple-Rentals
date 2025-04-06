@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api.js";
 
-function FormRegister({ method }) {
+function FormRegister() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",

@@ -5,7 +5,7 @@ import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants.js";
 import "../styles/forms.css";
 import { Link } from "react-router-dom";
 
-function FormLogIn({ method }) {
+function FormLogIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
