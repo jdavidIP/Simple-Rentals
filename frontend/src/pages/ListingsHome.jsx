@@ -16,7 +16,9 @@ function ListingsHome() {
       });
 
       // Navigate to a results page or display the listings
-      navigate("/listings/results", { state: { listings: response.data } });
+      navigate("/listings/results", {
+        state: { listings: response.data, city: city },
+      });
     } catch (err) {
       console.error("Error fetching listings:", err);
       setError("Failed to fetch listings. Please try again.");

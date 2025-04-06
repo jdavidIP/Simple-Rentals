@@ -6,7 +6,7 @@ function Listings() {
   const location = useLocation();
   const [listings, setListings] = useState(location.state?.listings || []); // State to store listings
   const [filters, setFilters] = useState({
-    location: location.state?.listings[0]?.city || "",
+    location: location.state?.city || "",
     min_price: "",
     max_price: "",
     bedrooms: "",
@@ -22,7 +22,15 @@ function Listings() {
       const response = await api.get("/listings/viewAll", {
         params: customFilters,
       });
-      setListings(response.data);
+
+      const processedListings = response.data.map((listing) => {
+        const primaryImage = listing.pictures.find(
+          (picture) => picture.is_primary
+        );
+        return { ...listing, primary_image: primaryImage };
+      });
+
+      setListings(processedListings);
     } catch (err) {
       console.error("Error fetching listings:", err);
       setError(err.response?.data?.Location || "Failed to fetch Listings.");
@@ -52,7 +60,7 @@ function Listings() {
   // Clear all filters
   const clearFilters = () => {
     const clearedFilters = {
-      location: location.state?.listings[0]?.city || "",
+      location: filters.location || "",
       min_price: "",
       max_price: "",
       bedrooms: "",
