@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import Logout from "./pages/Logout";
 import ListingsHome from "./pages/ListingsHome";
 import Listings from "./pages/Listings";
+import ListingsView from "./pages/ListingsView";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
         <Route path="/logout" element={<Logout />} />
         <Route path="/listings" element={<ListingsHome />} />
         <Route path="/listings/results" element={<Listings />} />
+        <Route path="/listings/:id" element={<ListingsView />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

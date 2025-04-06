@@ -76,6 +76,15 @@ function Listings() {
   useEffect(() => {
     if (!location.state?.listings) {
       fetchListings();
+    } else {
+      const processedListings = location.state?.listings.map((listing) => {
+        const primaryImage = listing.pictures.find(
+          (picture) => picture.is_primary
+        );
+        return { ...listing, primary_image: primaryImage };
+      });
+
+      setListings(processedListings);
     }
   }, [location.state]);
 

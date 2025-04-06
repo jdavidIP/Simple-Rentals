@@ -177,7 +177,11 @@ class ListingPictureSerializer(serializers.ModelSerializer):
 
 class ListingSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)  # Include owner details
-    pictures = ListingPictureSerializer(many=True, read_only=True)  # Include pictures
+    pictures = ListingPictureSerializer(many=True)  # Include pictures
+    property_type =  serializers.CharField(source='get_property_type_display')
+    payment_type = serializers.CharField(source='get_payment_type_display')
+    laundry_type = serializers.CharField(source='get_laundry_type_display')
+    verification_status =  serializers.CharField(source='get_verification_status_display')
 
     class Meta:
         model = Listing
