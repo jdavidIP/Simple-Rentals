@@ -1,5 +1,7 @@
 import axios from "axios";
 import { ACCESS_TOKEN } from "./constants";
+import "bootstrap/dist/css/bootstrap.css";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,

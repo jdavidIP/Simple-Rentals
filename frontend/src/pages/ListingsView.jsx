@@ -80,18 +80,20 @@ function ListingsView() {
           <div
             id="carouselExampleIndicators"
             className="carousel slide"
-            data-ride="carousel"
+            data-bs-ride="carousel"
           >
-            <ol className="carousel-indicators">
+            <div className="carousel-indicators">
               {listing.pictures.map((picture, index) => (
-                <li
-                  key={index}
-                  data-target="#carouselExampleIndicators"
-                  data-slide-to={index}
+                <button
+                  type="button"
+                  data-bs-target="#carouselExampleIndicators"
+                  data-bs-slide-to={index}
                   className={index === 0 ? "active" : ""}
-                ></li>
+                  aria-current={index === 0 ? "true" : undefined}
+                  aria-label={`Slide ${index + 1}`}
+                />
               ))}
-            </ol>
+            </div>
             <div className="carousel-inner">
               {listing.pictures.map((picture, index) => (
                 <div
@@ -101,35 +103,36 @@ function ListingsView() {
                   <img
                     src={picture.image}
                     className="d-block w-100"
-                    alt="Listing Photo"
-                  />
+                    alt={`Listing photo #${index + 1}`}
+                  ></img>
                 </div>
               ))}
             </div>
-            <a
+            <button
               className="carousel-control-prev"
-              href="#carouselExampleIndicators"
-              role="button"
-              data-slide="prev"
+              type="button"
+              data-bs-target="#carouselExampleIndicators"
+              data-bs-slide="prev"
             >
               <span
                 className="carousel-control-prev-icon"
                 aria-hidden="true"
               ></span>
-              <span className="sr-only">Previous</span>
-            </a>
-            <a
+              <span className="visually-hidden">Previous</span>
+            </button>
+
+            <button
               className="carousel-control-next"
-              href="#carouselExampleIndicators"
-              role="button"
-              data-slide="next"
+              type="button"
+              data-bs-target="#carouselExampleIndicators"
+              data-bs-slide="next"
             >
               <span
                 className="carousel-control-next-icon"
                 aria-hidden="true"
               ></span>
-              <span className="sr-only">Next</span>
-            </a>
+              <span className="visually-hidden">Next</span>
+            </button>
           </div>
         ) : (
           <p>No photos available for this listing.</p>
