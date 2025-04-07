@@ -1,0 +1,19 @@
+.listing-details-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.listing-details {
+  margin-bottom: 20px;
+}
+
+.carousel-container {
+  max-width: 750px;
+  margin: auto;
+}
+
+.carousel-item img {
+  max-height: 400px;
+  object-fit: cover;
+}

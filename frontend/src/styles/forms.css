@@ -1,0 +1,142 @@
+/* General form container styling */
+.form-container {
+  max-width: 500px;
+  margin: 50px auto;
+  padding: 20px;
+  background-color: #f8f9fa; /* Light gray background */
+  border: 1px solid #dee2e6; /* Border color */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+/* Form title styling */
+.form-container h1 {
+  font-size: 1.8rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20px;
+  color: #343a40; /* Dark gray text */
+}
+
+/*Form link styling */
+.form-container a {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.9rem;
+  color: #007bff;
+  text-decoration: none;
+  justify-content: center;
+  display: flex;
+}
+
+.form-container a:hover {
+  text-decoration: underline; /* Add underline on hover */
+  color: #0056b3; /* Darker blue on hover */
+}
+
+/* Input fields */
+.form-container input[type="text"],
+.form-container input[type="email"],
+.form-container input[type="password"],
+.form-container input[type="number"],
+.form-container input[type="url"],
+.form-container input[type="date"],
+.form-container input[type="file"],
+.form-container textarea,
+.form-container select {
+  width: 95%;
+  padding: 10px;
+  margin-bottom: 25px;
+  border: 1px solid #ced4da; /* Bootstrap default border color */
+  border-radius: 4px;
+  font-size: 1rem;
+  color: #495057; /* Bootstrap default text color */
+}
+
+/* Input focus state */
+.form-container input:focus,
+.form-container textarea:focus,
+.form-container select:focus {
+  border-color: #80bdff; /* Bootstrap primary color */
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.25); /* Subtle blue glow */
+}
+
+/* Labels */
+.form-container label {
+  font-weight: 500;
+  margin-bottom: 15px;
+  display: block;
+  color: #495057; /* Bootstrap default text color */
+}
+
+/* Checkboxes and radio buttons */
+.form-container input[type="checkbox"],
+.form-container input[type="radio"] {
+  margin-right: 10px;
+}
+
+.form-container select {
+  width: 99.5%;
+  padding: 10px;
+  margin-bottom: 25px;
+  border: 1px solid #ced4da; /* Bootstrap default border color */
+  border-radius: 4px;
+  font-size: 1rem;
+  color: #495057;
+}
+
+/* Submit button */
+.form-container button[type="submit"] {
+  width: 50%;
+  padding: 10px;
+  margin-left: 25%;
+  margin-top: 2%;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #fff;
+  background-color: #007bff; /* Bootstrap primary color */
+  border: none;
+  border-radius: 4px;
+  transition: background-color 0.3s ease; /* Smooth transition */
+}
+
+.form-container button[type="submit"]:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+  cursor: pointer;
+}
+
+.form-container button[type="submit"]:active {
+  background-color: #0056b3;
+  box-shadow: 0 2px #666;
+  transform: translateY(2px); /* Button press effect */
+}
+
+/* Error messages */
+.form-container ul {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 15px;
+}
+
+.form-container ul li {
+  color: #dc3545; /* Bootstrap danger color */
+  font-size: 0.9rem;
+}
+
+/* File input styling */
+.form-container input[type="file"] {
+  padding: 5px;
+  font-size: 0.9rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .form-container {
+    padding: 15px;
+  }
+
+  .form-container h1 {
+    font-size: 1.5rem;
+  }
+}
