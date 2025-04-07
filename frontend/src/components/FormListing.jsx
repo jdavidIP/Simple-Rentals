@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api.js";
 import "../styles/forms.css";
@@ -36,7 +36,10 @@ function FormListing({ method, listing }) {
     security_deposit_payable_by_tenant:
       listing?.security_deposit_payable_by_tenant || false,
     pictures: [],
+    front_image: null,
+    delete_images: [],
   });
+  const [existingImages, setExistingImages] = useState(listing?.pictures || []);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
@@ -48,14 +51,70 @@ function FormListing({ method, listing }) {
     });
   };
 
+  const handleFileInputChange = (e) => {
+    const { name, files } = e.target;
+    if (name === "front_image") {
+      setFormData({ ...formData, front_image: files[0] });
+    } else if (name === "pictures") {
+      setFormData({ ...formData, pictures: Array.from(files) });
+      renderImagePreview(Array.from(files));
+    }
+  };
+
+  const handleDeleteImage = (imageId) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      delete_images: [...prevData.delete_images, imageId],
+    }));
+    setExistingImages((prevImages) =>
+      prevImages.filter((image) => image.id !== imageId)
+    );
+  };
+
+  const validateImages = () => {
+    const totalImages =
+      formData.pictures.length +
+      existingImages.length -
+      formData.delete_images.length;
+
+    if (
+      !formData.front_image &&
+      !existingImages.some((img) => img.is_primary)
+    ) {
+      setError("A front image is required.");
+      return false;
+    }
+
+    if (totalImages < 3) {
+      setError("You must have at least 3 images in total.");
+      return false;
+    }
+
+    if (totalImages > 10) {
+      setError("You can upload a maximum of 10 images.");
+      return false;
+    }
+
+    setError(null);
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validateImages()) {
+      return;
+    }
 
     try {
       const data = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
         if (key === "pictures" && value.length > 0) {
-          Array.from(value).forEach((file) => data.append("pictures", file));
+          value.forEach((file) => data.append("pictures", file));
+        } else if (key === "front_image" && value) {
+          data.append("front_image", value);
+        } else if (key === "delete_images" && value.length > 0) {
+          value.forEach((imageId) => data.append("delete_images", imageId));
         } else {
           data.append(key, value);
         }
@@ -82,15 +141,34 @@ function FormListing({ method, listing }) {
     }
   };
 
+  const renderImagePreview = (images) => {
+    return images.map((img, index) => (
+      <div key={index} className="image-container">
+        <img
+          src={img.image || URL.createObjectURL(img)}
+          alt="Preview"
+          style={{ maxWidth: "150px" }}
+        />
+        {img.id && (
+          <button
+            type="button"
+            onClick={() => handleDeleteImage(img.id)}
+            className="btn btn-danger"
+          >
+            Delete
+          </button>
+        )}
+      </div>
+    ));
+  };
+
   return (
     <form onSubmit={handleSubmit} className="form-container">
       <h1>{method === "post" ? "Create Listing" : "Edit Listing"}</h1>
       {error && (
         <ul style={{ color: "red" }}>
-          {Object.entries(error).map(([field, messages], index) => (
-            <li key={index}>
-              <strong>{field}:</strong> {messages.join(", ")}
-            </li>
+          {error.map((errMsg, index) => (
+            <li key={index}>{errMsg}</li>
           ))}
         </ul>
       )}
@@ -164,16 +242,33 @@ function FormListing({ method, listing }) {
           required
         />
       </div>
+
+      {/* Front Image */}
       <div className="mb-3">
-        <label htmlFor="pictures">Pictures</label>
+        <label htmlFor="front_image">Front Image</label>
+        <input
+          type="file"
+          id="front_image"
+          name="front_image"
+          onChange={handleFileInputChange}
+        />
+        {renderImagePreview(existingImages.filter((img) => img.is_primary))}
+      </div>
+
+      {/* Additional Images */}
+      <div className="mb-3">
+        <label htmlFor="pictures">Additional Images</label>
         <input
           type="file"
           id="pictures"
           name="pictures"
-          onChange={handleChange}
+          onChange={handleFileInputChange}
           multiple
         />
+        {renderImagePreview(existingImages.filter((img) => !img.is_primary))}
+        {renderImagePreview(formData.pictures)}
       </div>
+
       <button type="submit" className="btn btn-primary">
         {method === "post" ? "Create Listing" : "Save Changes"}
       </button>
