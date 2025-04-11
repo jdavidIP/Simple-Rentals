@@ -8,6 +8,7 @@ function Profile() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [listings, setListings] = useState([]);
+  const [reviews, setReviews] = useState([]); // New state for reviews
   const [error, setError] = useState(null);
 
   const fetchProfile = async () => {
@@ -32,9 +33,22 @@ function Profile() {
     }
   };
 
+  const fetchReviews = async () => {
+    try {
+      const response = await api.get(`/profile/reviews`, {
+        params: { reviewee: id }, // Fetch reviews by reviewee ID
+      });
+      setReviews(response.data);
+    } catch (err) {
+      console.error("Error fetching reviews:", err);
+      setError("Failed to fetch reviews.");
+    }
+  };
+
   useEffect(() => {
     fetchProfile();
     fetchListings();
+    //fetchReviews(); // Fetch reviews
   }, [id]);
 
   if (error) {
@@ -89,6 +103,28 @@ function Profile() {
           </div>
         ) : (
           <p>No listings found.</p>
+        )}
+      </div>
+
+      <div className="reviews-section">
+        <h2>Reviews</h2>
+        {reviews.length > 0 ? (
+          <div className="reviews-list">
+            {reviews.map((review) => (
+              <div key={review.id} className="review-card">
+                <p>
+                  <strong>{review.reviewer_name}</strong> - Rating:{" "}
+                  {review.rating}/5
+                </p>
+                <p>{review.comment}</p>
+                <p>
+                  <em>Reviewed as: {review.reviewee_role}</em>
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p>No reviews yet.</p>
         )}
       </div>
     </div>

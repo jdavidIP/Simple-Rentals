@@ -285,12 +285,13 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    rating = serializers.IntegerField(min_value=1, max_value=5)
+    rating = serializers.ChoiceField(choices=[(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')])
+    reviewee_role = serializers.ChoiceField(choices=[('T', 'Tenant'), ('L', 'Landlord')])
 
     class Meta:
         model = Review
         fields = [
-            'id', 'reviewer', 'reviewee', 'rating', 'comment', 
+            'id', 'reviewer', 'reviewee', 'rating', 'comment',
             'created_at', 'reviewee_role'
         ]
         extra_kwargs = {
@@ -300,6 +301,12 @@ class ReviewSerializer(serializers.ModelSerializer):
             'reviewee_role': {'required': True},
             'created_at': {'read_only': True},
         }
+
+    def validate(self, data):
+        request = self.context.get('request')
+        if request and request.user == data.get('reviewee'):
+            raise serializers.ValidationError("You cannot review yourself.")
+        return data
 
 
 class FavoritesSerializer(serializers.ModelSerializer):

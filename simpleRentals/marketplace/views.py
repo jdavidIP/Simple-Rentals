@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import *
-from rest_framework import generics
+from rest_framework import generics, permissions
 from rest_framework.response import Response
 from .serializers import *
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -14,7 +14,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.exceptions import ValidationError
 
 
-from .models import Listing, ListingPicture, Conversation, Message, MarketplaceUser
+from .models import Listing, ListingPicture, Conversation, Message, MarketplaceUser, Review
 
 import os
 
@@ -259,6 +259,68 @@ class SendMessageView(generics.CreateAPIView): # Not Working yet (needs integrat
         conversation.messages.filter(read=False).exclude(sender=self.request.user).update(read=True)
 
 ### CONVERSATION SECTION - END ###
+
+
+### REVIEW SECTION - START ###
+# API views for Review management
+
+class ReviewListView(APIView):  # Use ListAPIView to return multiple reviews
+    serializer_class = ReviewSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        filters = self.request.query_params
+        reviewee = filters.get('reviewee') 
+        reviewer = filters.get('reviewer')
+
+        if not reviewer and not reviewee:
+            raise ValidationError(
+                {"Reviewer/Reviewee": "A reviewer or reviewee is required to filter reviews. Please provide at least one."}
+            )
+
+        queryset = Review.objects.all()
+
+        if reviewer:
+            queryset = queryset.filter(reviewer=reviewer)
+
+        if reviewee:
+            queryset = queryset.filter(reviewee=reviewee)
+
+        return queryset
+    
+class ReviewPosting(generics.CreateAPIView):
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        reviewee = get_object_or_404(MarketplaceUser, id=self.kwargs['pk'])
+
+        # Check if a conversation already exists
+        review = Review.objects.filter(reviewer=self.request.user, reviewee=reviewee).first()
+
+        if review:
+            raise ValidationError("You have already posted a review on this user.")
+        
+        serializer.save(reviewer=self.request.user, reviewee=reviewee)
+
+class IsReviewerOrDenied(permissions.BasePermission):
+    """
+    Custom permission to only allow reviewers to edit/delete their reviews.
+    """
+    def has_object_permission(self, request, view, obj):
+        return obj.reviewer == request.user
+
+
+class ReviewUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAuthenticated, IsReviewerOrDenied]
+
+    def get_object(self):
+        review = super().get_object()
+        if review.reviewer != self.request.user:
+            raise PermissionDenied("You do not have permission to modify this review.")
+        return review
 
 
 # HOME SECTION - START
