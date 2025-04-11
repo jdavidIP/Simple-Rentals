@@ -16,6 +16,7 @@ import ListingsView from "./pages/ListingsView";
 import ListingsPost from "./pages/ListingsPost";
 import ListingsEdit from "./pages/ListingsEdit";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Profile from "./pages/Profile";
 
 function App() {
   return (
@@ -41,6 +42,14 @@ function App() {
           element={
             <ProtectedRoute>
               <ListingsEdit method="edit" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="profile/:id"
+          element={
+            <ProtectedRoute>
+              <Profile />
             </ProtectedRoute>
           }
         />

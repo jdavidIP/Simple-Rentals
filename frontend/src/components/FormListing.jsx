@@ -6,12 +6,13 @@ import "../styles/forms.css";
 function FormListing({ method, listing }) {
   const [formData, setFormData] = useState({
     price: listing?.price || "",
-    property_type: listing?.property_type || "",
-    payment_type: listing?.payment_type || "",
+    property_type: listing?.property_type[0] || "",
+    payment_type:
+      listing?.payment_type == "Chexy" ? "X" : listing?.payment_type[0] || "",
     bedrooms: listing?.bedrooms || "",
     bathrooms: listing?.bathrooms || "",
     sqft_area: listing?.sqft_area || "",
-    laundry_type: listing?.laundry_type || "",
+    laundry_type: listing?.laundry_type[0] || "",
     parking_spaces: listing?.parking_spaces || "",
     heating: listing?.heating || false,
     ac: listing?.ac || false,
@@ -137,7 +138,11 @@ function FormListing({ method, listing }) {
       }
     } catch (err) {
       console.error("Error submitting form:", err);
-      setError(err.response?.data || "An error occurred. Please try again.");
+      setError(
+        Array.isArray(err.response?.data)
+          ? err.response.data
+          : [err.response?.data || "An error occurred. Please try again."]
+      );
     }
   };
 
@@ -162,14 +167,18 @@ function FormListing({ method, listing }) {
     ));
   };
 
+  console.log(listing);
+
   return (
     <form onSubmit={handleSubmit} className="form-container">
       <h1>{method === "post" ? "Create Listing" : "Edit Listing"}</h1>
       {error && (
         <ul style={{ color: "red" }}>
-          {error.map((errMsg, index) => (
-            <li key={index}>{errMsg}</li>
-          ))}
+          {Array.isArray(error) ? (
+            error.map((errMsg, index) => <li key={index}>{errMsg}</li>)
+          ) : (
+            <li>{error}</li>
+          )}
         </ul>
       )}
       <div className="mb-3">
@@ -201,6 +210,17 @@ function FormListing({ method, listing }) {
         </select>
       </div>
       <div className="mb-3">
+        <label htmlFor="sqft_area">Square Footage</label>
+        <input
+          type="number"
+          id="sqft_area"
+          name="sqft_area"
+          value={formData.sqft_area}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      <div className="mb-3">
         <label htmlFor="payment_type">Payment Type</label>
         <select
           id="payment_type"
@@ -221,6 +241,21 @@ function FormListing({ method, listing }) {
         </select>
       </div>
       <div className="mb-3">
+        <label htmlFor="laundry_type">Laundry Type</label>
+        <select
+          id="laundry_type"
+          name="laundry_type"
+          value={formData.laundry_type}
+          onChange={handleChange}
+          required
+        >
+          <option value="">Select</option>
+          <option value="I">In-Unit</option>
+          <option value="S">Shared</option>
+          <option value="N">None</option>
+        </select>
+      </div>
+      <div className="mb-3">
         <label htmlFor="bedrooms">Bedrooms</label>
         <input
           type="number"
@@ -238,6 +273,71 @@ function FormListing({ method, listing }) {
           id="bathrooms"
           name="bathrooms"
           value={formData.bathrooms}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      <div className="mb-3">
+        <label htmlFor="parking_spaces">Parking Spaces</label>
+        <input
+          type="number"
+          id="parking_spaces"
+          name="parking_spaces"
+          value={formData.parking_spaces}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      <div className="mb-3">
+        <label htmlFor="move_in_date">Move-in Date</label>
+        <input
+          type="date"
+          id="move_in_date"
+          name="move_in_date"
+          value={formData.move_in_date}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      <div className="mb-3">
+        <label htmlFor="description">Description</label>
+        <textarea
+          id="description"
+          name="description"
+          value={formData.description}
+          onChange={handleChange}
+          required
+        ></textarea>
+      </div>
+      <div className="mb-3">
+        <label htmlFor="street_address">Street Address</label>
+        <input
+          type="text"
+          id="street_address"
+          name="street_address"
+          value={formData.street_address}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      <div className="mb-3">
+        <label htmlFor="city">City</label>
+        <input
+          type="text"
+          id="city"
+          name="city"
+          value={formData.city}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      <div className="mb-3">
+        <label htmlFor="postal_code">Postal Code</label>
+        <input
+          type="text"
+          id="postal_code"
+          name="postal_code"
+          value={formData.postal_code}
           onChange={handleChange}
           required
         />

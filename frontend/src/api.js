@@ -9,7 +9,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const protectedRoutes = [];
+    const protectedRoutes = ["/listings/add", "/listings/edit", "/profile"];
     if (protectedRoutes.some((route) => config.url.startsWith(route))) {
       const token = localStorage.getItem(ACCESS_TOKEN);
       if (token) {

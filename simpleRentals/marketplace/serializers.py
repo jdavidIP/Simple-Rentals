@@ -6,13 +6,21 @@ from .models import MarketplaceUser, Listing, ListingPicture, Group, Review, Fav
 
 def validate_images(serializer, images, front_image, remaining_images_count):
     total_images = remaining_images_count + len(images) + (1 if front_image else 0)
+
+    errors = {}
+
     if not front_image and remaining_images_count == 0:
-        serializer._errors['front_image'] = "A front image is required."
+        errors['front_image'] = "A front image is required."
     if total_images < 3:
-        serializer._errors['images'] = "You must have at least 3 images in total."
+        errors['images'] = "You must have at least 3 images in total."
     if total_images > 10:
-        serializer._errors['images'] = "You can only upload a maximum of 10 images."
+        errors['images'] = "You can only upload a maximum of 10 images."
+
+    if errors:
+        raise serializers.ValidationError(errors)
+
     return serializer
+
 
 def save_images(listing, images, front_image):
     if front_image:
@@ -27,8 +35,11 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = MarketplaceUser
         fields = [
-            'email', 'first_name', 'last_name', 'age', 'sex', 'profile_picture',
+            'id', 'email', 'first_name', 'last_name',
+            'profile_picture', 'phone_number',
+            'facebook_link', 'instagram_link'
         ]
+
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
@@ -191,7 +202,7 @@ class ListingPostingSerializer(serializers.ModelSerializer):
     price = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0)
     bedrooms = serializers.IntegerField(min_value=0)
     bathrooms = serializers.IntegerField(min_value=0)
-    pictures = ListingPictureSerializer(many=True, required=True)  # Nested serializer for images
+    pictures = ListingPictureSerializer(many=True, read_only=True)
 
     class Meta:
         model = Listing
@@ -230,19 +241,21 @@ class ListingPostingSerializer(serializers.ModelSerializer):
         return listing
 
     def update(self, instance, validated_data):
-        # Update the instance with the validated data
         pictures_data = validated_data.pop('pictures', [])
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
 
-        # Save images using your existing logic
+        # Handle deletion of images
+        delete_ids = self.context['request'].POST.getlist('delete_images')
+        if delete_ids:
+            ListingPicture.objects.filter(listing=instance, id__in=delete_ids).delete()
+
         images = self.context['request'].FILES.getlist('pictures')
         front_image = self.context['request'].FILES.get('front_image')
         save_images(instance, images, front_image)
 
         return instance
-
 
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
