@@ -27,7 +27,7 @@ urlpatterns = [
     path("listings/<int:pk>", views.ListingDetailView.as_view(), name="view_listing"), # pk = listing id
     path("listings/edit/<int:pk>", views.ListingEditView.as_view(), name="edit_listing"), # pk = listing id
     path("listings/delete/<int:pk>", views.ListingDeleteView.as_view(), name="delete_listing"), # pk = listing id
-    path("profile/reviews/", views.ReviewListView.as_view(), name="view_reviews"),
+    path("profile/reviews", views.ReviewListView.as_view(), name="view_reviews"),
     path("profile/reviews/<int:pk>", views.ReviewPosting.as_view(), name="post_review"), # pk = reviewee id
     path("reviews/<int:pk>", views.ReviewUpdateDeleteView.as_view(), name="manage_review") # pk = review id
 ]

@@ -264,9 +264,9 @@ class SendMessageView(generics.CreateAPIView): # Not Working yet (needs integrat
 ### REVIEW SECTION - START ###
 # API views for Review management
 
-class ReviewListView(APIView):  # Use ListAPIView to return multiple reviews
+class ReviewListView(generics.ListAPIView):  # Use ListAPIView to return multiple reviews
     serializer_class = ReviewSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         filters = self.request.query_params

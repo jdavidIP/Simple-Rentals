@@ -113,12 +113,16 @@ function Profile() {
             {reviews.map((review) => (
               <div key={review.id} className="review-card">
                 <p>
-                  <strong>{review.reviewer_name}</strong> - Rating:{" "}
-                  {review.rating}/5
+                  <strong>
+                    {review.reviewer
+                      ? `${review.reviewer.first_name} ${review.reviewer.last_name}`
+                      : "Anonymous"}
+                  </strong>{" "}
+                  - Rating: {review.rating}/5
                 </p>
                 <p>{review.comment}</p>
                 <p>
-                  <em>Reviewed as: {review.reviewee_role}</em>
+                  <em>Reviewed as: {review.reviewee_role_display}</em>
                 </p>
               </div>
             ))}

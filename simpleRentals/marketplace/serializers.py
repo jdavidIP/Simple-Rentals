@@ -287,26 +287,35 @@ class GroupSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     rating = serializers.ChoiceField(choices=[(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')])
     reviewee_role = serializers.ChoiceField(choices=[('T', 'Tenant'), ('L', 'Landlord')])
+    reviewee_role_display = serializers.CharField(source='get_reviewee_role_display', read_only=True)
+    
+    reviewee = serializers.PrimaryKeyRelatedField(queryset=MarketplaceUser.objects.all())
+    reviewer = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Review
         fields = [
             'id', 'reviewer', 'reviewee', 'rating', 'comment',
-            'created_at', 'reviewee_role'
+            'created_at', 'reviewee_role', 'reviewee_role_display'
         ]
         extra_kwargs = {
-            'reviewer': {'read_only': True},
             'reviewee': {'required': True},
             'rating': {'required': True},
-            'reviewee_role': {'required': True},
             'created_at': {'read_only': True},
         }
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['reviewer'] = UserSerializer(instance.reviewer).data
+        data['reviewee'] = UserSerializer(instance.reviewee).data
+        return data
 
     def validate(self, data):
         request = self.context.get('request')
         if request and request.user == data.get('reviewee'):
             raise serializers.ValidationError("You cannot review yourself.")
         return data
+
 
 
 class FavoritesSerializer(serializers.ModelSerializer):
