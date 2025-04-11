@@ -63,7 +63,6 @@ class UserProfileView(generics.RetrieveAPIView): # Working (backend only)
 
     def get_object(self):
         user = get_object_or_404(MarketplaceUser, id=self.kwargs['pk'])
-        print("User retrieved:", user)
         return user
 
 class LogoutView(APIView):
@@ -135,24 +134,36 @@ class ListingPostingView(generics.CreateAPIView): # Not Working yet (needs integ
         # The `context` is already passed to the serializer by DRF
         serializer.save(owner=self.request.user)  # The `owner` is set in the serializer's `create()` method
 
-class ListingListView(generics.ListAPIView): # Working (backend only)
+class ListingListView(generics.ListAPIView):
     """API view to handle listing list based on filters."""
     serializer_class = ListingSerializer
     permission_classes = [AllowAny]
 
     def get_queryset(self):
         filters = self.request.query_params
-        location = filters.get('location')  # City filter
+        location = filters.get('location')  # City or location filter
+        owner = filters.get('owner')  # Owner filter
 
-        # Ensure location filter is provided
-        if not location:
-            print("No Location Provided.")
-            raise ValidationError({"Location": "A location is required to filter listings. Please enter one."})  # Return an empty queryset if no location is provided
+        # Ensure either location or owner filter is provided
+        if not location and not owner:
+            raise ValidationError(
+                {"Location/Owner": "A location or owner is required to filter listings. Please enter one."}
+            )
 
+        # Start with all listings
         queryset = Listing.objects.all()
 
-        # Apply filters (add more filters as needed)
-        queryset = queryset.filter(Q(street_address__icontains=location) | Q(city__icontains=location))
+        # Apply the location filter if provided
+        if location:
+            queryset = queryset.filter(
+                Q(street_address__icontains=location) | Q(city__icontains=location)
+            )
+
+        # Apply the owner filter if provided
+        if owner:
+            queryset = queryset.filter(owner_id=owner)
+
+        # Apply additional filters if they are provided
         min_price = filters.get('min_price')
         max_price = filters.get('max_price')
         bedrooms = filters.get('bedrooms')
