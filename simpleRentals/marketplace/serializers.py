@@ -1,6 +1,7 @@
 from django.utils.timezone import now
 from rest_framework import serializers
 from .models import MarketplaceUser, Listing, ListingPicture, Group, Review, Favorites, Conversation, Message
+import os
 
 # Utility functions for image validation and saving
 
@@ -203,6 +204,10 @@ class ListingPostingSerializer(serializers.ModelSerializer):
     bedrooms = serializers.IntegerField(min_value=0)
     bathrooms = serializers.IntegerField(min_value=0)
     pictures = ListingPictureSerializer(many=True, read_only=True)
+    delete_images = serializers.ListField(
+        child=serializers.IntegerField(), required=False
+    )
+
 
     class Meta:
         model = Listing
@@ -212,7 +217,7 @@ class ListingPostingSerializer(serializers.ModelSerializer):
             'unit_number', 'street_address', 'city', 'postal_code', 'utilities_cost', 'utilities_payable_by_tenant',
             'property_taxes', 'property_taxes_payable_by_tenant', 'condo_fee', 'condo_fee_payable_by_tenant',
             'hoa_fee', 'hoa_fee_payable_by_tenant', 'security_deposit', 'security_deposit_payable_by_tenant',
-            'pictures'  # Include pictures in the fields
+            'pictures', 'delete_images'
         ]
 
     def validate(self, data):
@@ -239,23 +244,30 @@ class ListingPostingSerializer(serializers.ModelSerializer):
         save_images(listing, images, front_image)
 
         return listing
-
+    
     def update(self, instance, validated_data):
-        pictures_data = validated_data.pop('pictures', [])
+        # Delete marked images
+        delete_ids = validated_data.pop('delete_images', [])
+        if delete_ids:
+            images_to_delete = ListingPicture.objects.filter(id__in=delete_ids, listing=instance)
+            for image in images_to_delete:
+                if image.image and os.path.isfile(image.image.path):
+                    os.remove(image.image.path)
+                image.delete()
+
+        # Add new pictures
+        new_pictures = validated_data.pop('pictures', [])
+        # Update other listing fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
-
-        # Handle deletion of images
-        delete_ids = self.context['request'].POST.getlist('delete_images')
-        if delete_ids:
-            ListingPicture.objects.filter(listing=instance, id__in=delete_ids).delete()
 
         images = self.context['request'].FILES.getlist('pictures')
         front_image = self.context['request'].FILES.get('front_image')
         save_images(instance, images, front_image)
 
         return instance
+
 
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
