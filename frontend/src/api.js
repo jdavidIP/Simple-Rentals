@@ -16,7 +16,6 @@ api.interceptors.request.use(
       "/profile/reviews",
     ];
     const url = new URL(config.url, config.baseURL).pathname;
-    console.log("Intercepted request URL:", config.url);
     if (protectedRoutes.some((route) => url.startsWith(route))) {
       const token = localStorage.getItem(ACCESS_TOKEN);
       if (token) {

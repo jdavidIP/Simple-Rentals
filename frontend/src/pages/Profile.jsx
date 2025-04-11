@@ -48,7 +48,7 @@ function Profile() {
   useEffect(() => {
     fetchProfile();
     fetchListings();
-    //fetchReviews(); // Fetch reviews
+    fetchReviews(); // Fetch reviews
   }, [id]);
 
   if (error) {
