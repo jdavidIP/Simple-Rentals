@@ -48,7 +48,7 @@ function FormRegister() {
       return;
     }
 
-    if (formData.budget_min > formData.budget_max) {
+    if (Number(formData.budget_min) > Number(formData.budget_max)) {
       setError(["Minimum budget cannot be greater than maximum budget"]);
       return;
     }
