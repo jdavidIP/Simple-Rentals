@@ -2,18 +2,27 @@ from django.utils.timezone import now
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from .models import MarketplaceUser, Listing, ListingPicture, Group, Review, Favorites, Conversation, Message
+import os
 
 # Utility functions for image validation and saving
 
 def validate_images(serializer, images, front_image, remaining_images_count):
     total_images = remaining_images_count + len(images) + (1 if front_image else 0)
+
+    errors = {}
+
     if not front_image and remaining_images_count == 0:
-        serializer._errors['front_image'] = "A front image is required."
+        errors['front_image'] = "A front image is required."
     if total_images < 3:
-        serializer._errors['images'] = "You must have at least 3 images in total."
+        errors['images'] = "You must have at least 3 images in total."
     if total_images > 10:
-        serializer._errors['images'] = "You can only upload a maximum of 10 images."
+        errors['images'] = "You can only upload a maximum of 10 images."
+
+    if errors:
+        raise serializers.ValidationError(errors)
+
     return serializer
+
 
 def save_images(listing, images, front_image):
     if front_image:
@@ -28,8 +37,11 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = MarketplaceUser
         fields = [
-            'email', 'first_name', 'last_name', 'age', 'sex', 'profile_picture',
+            'id', 'email', 'first_name', 'last_name',
+            'profile_picture', 'phone_number',
+            'facebook_link', 'instagram_link'
         ]
+
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
@@ -192,7 +204,11 @@ class ListingPostingSerializer(serializers.ModelSerializer):
     price = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0)
     bedrooms = serializers.IntegerField(min_value=0)
     bathrooms = serializers.IntegerField(min_value=0)
-    pictures = ListingPictureSerializer(many=True, required=True)  # Nested serializer for images
+    pictures = ListingPictureSerializer(many=True, read_only=True)
+    delete_images = serializers.ListField(
+        child=serializers.IntegerField(), required=False
+    )
+
 
     class Meta:
         model = Listing
@@ -202,7 +218,7 @@ class ListingPostingSerializer(serializers.ModelSerializer):
             'unit_number', 'street_address', 'city', 'postal_code', 'utilities_cost', 'utilities_payable_by_tenant',
             'property_taxes', 'property_taxes_payable_by_tenant', 'condo_fee', 'condo_fee_payable_by_tenant',
             'hoa_fee', 'hoa_fee_payable_by_tenant', 'security_deposit', 'security_deposit_payable_by_tenant',
-            'pictures'  # Include pictures in the fields
+            'pictures', 'delete_images'
         ]
 
     def validate(self, data):
@@ -229,15 +245,24 @@ class ListingPostingSerializer(serializers.ModelSerializer):
         save_images(listing, images, front_image)
 
         return listing
-
+    
     def update(self, instance, validated_data):
-        # Update the instance with the validated data
-        pictures_data = validated_data.pop('pictures', [])
+        # Delete marked images
+        delete_ids = validated_data.pop('delete_images', [])
+        if delete_ids:
+            images_to_delete = ListingPicture.objects.filter(id__in=delete_ids, listing=instance)
+            for image in images_to_delete:
+                if image.image and os.path.isfile(image.image.path):
+                    os.remove(image.image.path)
+                image.delete()
+
+        # Add new pictures
+        new_pictures = validated_data.pop('pictures', [])
+        # Update other listing fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
 
-        # Save images using your existing logic
         images = self.context['request'].FILES.getlist('pictures')
         front_image = self.context['request'].FILES.get('front_image')
         save_images(instance, images, front_image)
@@ -261,21 +286,37 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    rating = serializers.IntegerField(min_value=1, max_value=5)
+    rating = serializers.ChoiceField(choices=[(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')])
+    reviewee_role = serializers.ChoiceField(choices=[('T', 'Tenant'), ('L', 'Landlord')])
+    reviewee_role_display = serializers.CharField(source='get_reviewee_role_display', read_only=True)
+    
+    reviewee = serializers.PrimaryKeyRelatedField(queryset=MarketplaceUser.objects.all())
+    reviewer = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Review
         fields = [
-            'id', 'reviewer', 'reviewee', 'rating', 'comment', 
-            'created_at', 'reviewee_role'
+            'id', 'reviewer', 'reviewee', 'rating', 'comment',
+            'created_at', 'reviewee_role', 'reviewee_role_display'
         ]
         extra_kwargs = {
-            'reviewer': {'read_only': True},
             'reviewee': {'required': True},
             'rating': {'required': True},
-            'reviewee_role': {'required': True},
             'created_at': {'read_only': True},
         }
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['reviewer'] = UserSerializer(instance.reviewer).data
+        data['reviewee'] = UserSerializer(instance.reviewee).data
+        return data
+
+    def validate(self, data):
+        request = self.context.get('request')
+        if request and request.user == data.get('reviewee'):
+            raise serializers.ValidationError("You cannot review yourself.")
+        return data
+
 
 
 class FavoritesSerializer(serializers.ModelSerializer):

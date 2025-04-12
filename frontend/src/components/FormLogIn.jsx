@@ -25,7 +25,7 @@ function FormLogIn() {
 
       localStorage.setItem(ACCESS_TOKEN, response.data.access);
       localStorage.setItem(REFRESH_TOKEN, response.data.refresh);
-      navigate("/");
+      navigate("/listings");
     } catch (err) {
       console.error("Error during login:", err);
       setError("Login failed. Please check your credentials.");

@@ -6,12 +6,13 @@ import "../styles/forms.css";
 function FormListing({ method, listing }) {
   const [formData, setFormData] = useState({
     price: listing?.price || "",
-    property_type: listing?.property_type || "",
-    payment_type: listing?.payment_type || "",
+    property_type: listing?.property_type[0] || "",
+    payment_type:
+      listing?.payment_type == "Chexy" ? "X" : listing?.payment_type[0] || "",
     bedrooms: listing?.bedrooms || "",
     bathrooms: listing?.bathrooms || "",
     sqft_area: listing?.sqft_area || "",
-    laundry_type: listing?.laundry_type || "",
+    laundry_type: listing?.laundry_type[0] || "",
     parking_spaces: listing?.parking_spaces || "",
     heating: listing?.heating || false,
     ac: listing?.ac || false,
@@ -53,11 +54,22 @@ function FormListing({ method, listing }) {
 
   const handleFileInputChange = (e) => {
     const { name, files } = e.target;
+    const newFiles = Array.from(files);
+    const currentCount = existingImages.length - formData.delete_images.length;
+    const totalCount = currentCount + newFiles.length;
+
+    if (totalCount > 10) {
+      alert("You can upload a maximum of 10 images.");
+      return;
+    }
+
     if (name === "front_image") {
-      setFormData({ ...formData, front_image: files[0] });
+      setFormData({ ...formData, front_image: newFiles[0] });
     } else if (name === "pictures") {
-      setFormData({ ...formData, pictures: Array.from(files) });
-      renderImagePreview(Array.from(files));
+      setFormData((prevData) => ({
+        ...prevData,
+        pictures: [...prevData.pictures, ...newFiles],
+      }));
     }
   };
 
@@ -102,54 +114,64 @@ function FormListing({ method, listing }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateImages()) {
-      return;
-    }
+    if (!validateImages()) return;
 
     try {
       const data = new FormData();
+
+      // Append front_image (new or existing)
+      if (formData.front_image) {
+        data.append("front_image", formData.front_image);
+      }
+
+      // Append newly added pictures
+      formData.pictures.forEach((file) => {
+        data.append("pictures", file);
+      });
+
+      // Append delete_images as IDs
+      formData.delete_images.forEach((id) => {
+        data.append("delete_images", id);
+      });
+
+      // Append all other fields
       Object.entries(formData).forEach(([key, value]) => {
-        if (key === "pictures" && value.length > 0) {
-          value.forEach((file) => data.append("pictures", file));
-        } else if (key === "front_image" && value) {
-          data.append("front_image", value);
-        } else if (key === "delete_images" && value.length > 0) {
-          value.forEach((imageId) => data.append("delete_images", imageId));
-        } else {
+        if (
+          key !== "pictures" &&
+          key !== "front_image" &&
+          key !== "delete_images"
+        ) {
           data.append(key, value);
         }
       });
 
       if (method === "post") {
         await api.post("/listings/add", data, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         });
         navigate("/listings");
       } else if (method === "edit") {
         await api.patch(`/listings/edit/${listing.id}`, data, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         });
         navigate(`/listings/${listing.id}`);
       }
     } catch (err) {
       console.error("Error submitting form:", err);
-      setError(err.response?.data || "An error occurred. Please try again.");
+      setError(
+        Array.isArray(err.response?.data)
+          ? err.response.data
+          : [err.response?.data || "An error occurred. Please try again."]
+      );
     }
   };
 
-  const renderImagePreview = (images) => {
-    return images.map((img, index) => (
-      <div key={index} className="image-container">
-        <img
-          src={img.image || URL.createObjectURL(img)}
-          alt="Preview"
-          style={{ maxWidth: "150px" }}
-        />
-        {img.id && (
+  const renderExistingImagePreview = (images) =>
+    images
+      .filter((img) => !formData.delete_images.includes(img.id))
+      .map((img) => (
+        <div key={img.id} className="image-container">
+          <img src={img.image} alt="Preview" style={{ maxWidth: "150px" }} />
           <button
             type="button"
             onClick={() => handleDeleteImage(img.id)}
@@ -157,19 +179,42 @@ function FormListing({ method, listing }) {
           >
             Delete
           </button>
-        )}
+        </div>
+      ));
+
+  const renderNewImagePreview = () =>
+    formData.pictures.map((file, index) => (
+      <div key={index} className="image-container">
+        <img
+          src={URL.createObjectURL(file)}
+          alt="Preview"
+          style={{ maxWidth: "150px" }}
+        />
+        <button
+          type="button"
+          className="btn btn-danger"
+          onClick={() =>
+            setFormData((prevData) => ({
+              ...prevData,
+              pictures: prevData.pictures.filter((_, i) => i !== index),
+            }))
+          }
+        >
+          Remove
+        </button>
       </div>
     ));
-  };
 
   return (
     <form onSubmit={handleSubmit} className="form-container">
       <h1>{method === "post" ? "Create Listing" : "Edit Listing"}</h1>
       {error && (
         <ul style={{ color: "red" }}>
-          {error.map((errMsg, index) => (
-            <li key={index}>{errMsg}</li>
-          ))}
+          {Array.isArray(error) ? (
+            error.map((errMsg, index) => <li key={index}>{errMsg}</li>)
+          ) : (
+            <li>{error}</li>
+          )}
         </ul>
       )}
       <div className="mb-3">
@@ -201,6 +246,17 @@ function FormListing({ method, listing }) {
         </select>
       </div>
       <div className="mb-3">
+        <label htmlFor="sqft_area">Square Footage</label>
+        <input
+          type="number"
+          id="sqft_area"
+          name="sqft_area"
+          value={formData.sqft_area}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      <div className="mb-3">
         <label htmlFor="payment_type">Payment Type</label>
         <select
           id="payment_type"
@@ -218,6 +274,21 @@ function FormListing({ method, listing }) {
           <option value="P">PayPal</option>
           <option value="X">Chexy</option>
           <option value="O">Other</option>
+        </select>
+      </div>
+      <div className="mb-3">
+        <label htmlFor="laundry_type">Laundry Type</label>
+        <select
+          id="laundry_type"
+          name="laundry_type"
+          value={formData.laundry_type}
+          onChange={handleChange}
+          required
+        >
+          <option value="">Select</option>
+          <option value="I">In-Unit</option>
+          <option value="S">Shared</option>
+          <option value="N">None</option>
         </select>
       </div>
       <div className="mb-3">
@@ -242,6 +313,71 @@ function FormListing({ method, listing }) {
           required
         />
       </div>
+      <div className="mb-3">
+        <label htmlFor="parking_spaces">Parking Spaces</label>
+        <input
+          type="number"
+          id="parking_spaces"
+          name="parking_spaces"
+          value={formData.parking_spaces}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      <div className="mb-3">
+        <label htmlFor="move_in_date">Move-in Date</label>
+        <input
+          type="date"
+          id="move_in_date"
+          name="move_in_date"
+          value={formData.move_in_date}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      <div className="mb-3">
+        <label htmlFor="description">Description</label>
+        <textarea
+          id="description"
+          name="description"
+          value={formData.description}
+          onChange={handleChange}
+          required
+        ></textarea>
+      </div>
+      <div className="mb-3">
+        <label htmlFor="street_address">Street Address</label>
+        <input
+          type="text"
+          id="street_address"
+          name="street_address"
+          value={formData.street_address}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      <div className="mb-3">
+        <label htmlFor="city">City</label>
+        <input
+          type="text"
+          id="city"
+          name="city"
+          value={formData.city}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      <div className="mb-3">
+        <label htmlFor="postal_code">Postal Code</label>
+        <input
+          type="text"
+          id="postal_code"
+          name="postal_code"
+          value={formData.postal_code}
+          onChange={handleChange}
+          required
+        />
+      </div>
 
       {/* Front Image */}
       <div className="mb-3">
@@ -252,10 +388,11 @@ function FormListing({ method, listing }) {
           name="front_image"
           onChange={handleFileInputChange}
         />
-        {renderImagePreview(existingImages.filter((img) => img.is_primary))}
+        {renderExistingImagePreview(
+          existingImages.filter((img) => img.is_primary)
+        )}
       </div>
 
-      {/* Additional Images */}
       <div className="mb-3">
         <label htmlFor="pictures">Additional Images</label>
         <input
@@ -265,8 +402,10 @@ function FormListing({ method, listing }) {
           onChange={handleFileInputChange}
           multiple
         />
-        {renderImagePreview(existingImages.filter((img) => !img.is_primary))}
-        {renderImagePreview(formData.pictures)}
+        {renderExistingImagePreview(
+          existingImages.filter((img) => !img.is_primary)
+        )}
+        {renderNewImagePreview()}
       </div>
 
       <button type="submit" className="btn btn-primary">

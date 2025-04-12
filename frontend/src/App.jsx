@@ -18,6 +18,8 @@ import ListingsEdit from "./pages/ListingsEdit";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ConversationList from "./pages/ConversationList";
 import ConversationWindow from "./pages/ConversationWindow";
+import Profile from "./pages/Profile";
+import Reviews from "./pages/Reviews";
 
 function App() {
   return (
@@ -56,10 +58,26 @@ function App() {
           }
         />
         <Route
+          path="profile/:id"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/conversations/:conversationId"
           element={
             <ProtectedRoute>
               <ConversationWindow />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="profile/:id/reviews/"
+          element={
+            <ProtectedRoute>
+              <Reviews />
             </ProtectedRoute>
           }
         />
