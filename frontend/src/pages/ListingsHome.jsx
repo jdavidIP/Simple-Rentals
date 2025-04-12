@@ -1,21 +1,19 @@
+import React, { useState } from "react";
 import api from "../api.js";
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function ListingsHome() {
-  const [city, setCity] = useState(""); // State to store the city input
-  const [error, setError] = useState(null); // State to handle errors
+  const [city, setCity] = useState("");
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Send a GET request to the backend with the city as a query parameter
       const response = await api.get("/listings/viewAll", {
         params: { location: city },
       });
 
-      // Navigate to a results page or display the listings
       navigate("/listings/results", {
         state: { listings: response.data, city: city },
       });
@@ -26,24 +24,40 @@ function ListingsHome() {
   };
 
   return (
-    <div className="listings-home-container">
-      <h1>Search for Listings</h1>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <form onSubmit={handleSubmit} className="form-container">
-        <label htmlFor="city">Enter a city to start your search:</label>
-        <input
-          type="text"
-          id="city"
-          name="location"
-          placeholder="City name"
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          required
-        />
-        <button type="submit" className="btn btn-primary">
-          Search
-        </button>
-      </form>
+    <div
+      className="d-flex align-items-center justify-content-center min-vh-100"
+      style={{
+        background: "linear-gradient(to right, #f8f9fa, #e9ecef)",
+        padding: "20px",
+      }}
+    >
+      <div className="card shadow p-4" style={{ maxWidth: "40rem", width: "100%" }}>
+        <div className="card-body">
+          <h2 className="card-title text-center mb-4">🏠 Find Your Next Rental</h2>
+          {error && <div className="alert alert-danger">{error}</div>}
+
+          <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <label htmlFor="city" className="form-label">
+                Enter a city:
+              </label>
+              <input
+                type="text"
+                id="city"
+                className="form-control"
+                placeholder="e.g. Waterloo, Vancouver, Halifax"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                required
+              />
+            </div>
+
+            <button type="submit" className="btn btn-primary w-100">
+              🔍 Search Listings
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
