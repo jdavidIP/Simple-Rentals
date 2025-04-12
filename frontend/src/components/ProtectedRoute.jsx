@@ -2,7 +2,7 @@ import { Navigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import api from "../api";
 import { REFRESH_TOKEN, ACCESS_TOKEN } from "../constants";
-import { useState, useEffect } from "react";
+import { useState, useEffect, cloneElement } from "react";
 
 function ProtectedRoute({ children }) {
   const [isAuthorized, setAuthorized] = useState(null);
@@ -27,7 +27,7 @@ function ProtectedRoute({ children }) {
 
       if (res.status === 200) {
         localStorage.setItem(ACCESS_TOKEN, res.data.access);
-        console.log("Token refreshed succesfully.");
+        console.log("Token refreshed successfully.");
         setAuthorized(true);
       } else {
         console.error("Failed to refresh token:", res);
@@ -43,6 +43,7 @@ function ProtectedRoute({ children }) {
 
   const auth = async () => {
     const token = localStorage.getItem(ACCESS_TOKEN);
+
     if (!token) {
       setAuthorized(false);
       return;
@@ -69,7 +70,11 @@ function ProtectedRoute({ children }) {
     return <div>Loading...</div>;
   }
 
-  return isAuthorized ? children : <Navigate to="/login" />;
+  if (!isAuthorized) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return cloneElement(children, { isAuthorized });
 }
 
 export default ProtectedRoute;

@@ -10,11 +10,14 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const protectedRoutes = [
+      "/listings/edit/",
+      "/conversations",
       "/listings/add",
       "/listings/edit",
       "/profile",
       "/profile/reviews",
     ];
+    if (protectedRoutes.some((route) => config.url.startsWith(route))) {
     const url = new URL(config.url, config.baseURL).pathname;
     if (protectedRoutes.some((route) => url.startsWith(route))) {
       const token = localStorage.getItem(ACCESS_TOKEN);

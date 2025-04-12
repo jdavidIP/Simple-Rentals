@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import *
-from rest_framework import generics, permissions
+from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from .serializers import *
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -12,7 +12,7 @@ from django.db.models import Q
 from django.core.exceptions import PermissionDenied
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.exceptions import ValidationError
-
+from rest_framework.views import APIView
 
 from .models import Listing, ListingPicture, Conversation, Message, MarketplaceUser, Review
 
@@ -215,30 +215,32 @@ class ConversationDetailView(generics.RetrieveAPIView): # Not Working yet (needs
 
         return conversation
     
-class StartConversationView(generics.CreateAPIView): # Not Working yet (needs integration with frontend) - Not tested yet
-    """API view to start a conversation for a listing."""
-    serializer_class = ConversationSerializer
+class StartConversationView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
-        listing = get_object_or_404(Listing, id=self.kwargs['pk'])
+    def post(self, request, pk):
+        listing = get_object_or_404(Listing, id=pk)
 
-        # Check if a conversation already exists
-        conversation = Conversation.objects.filter(participants=self.request.user, listing=listing).first()
+        # Check if conversation already exists
+        conversation = Conversation.objects.filter(participants=request.user, listing=listing).first()
 
         if conversation:
-            raise serializer.ValidationError("A conversation for this listing already exists.")
+            raise ValidationError("A conversation for this listing already exists.")
 
-        # Create the conversation and add participants
-        conversation = serializer.save(listing=listing)
-        conversation.participants.add(self.request.user, listing.owner)
+        # Create the conversation
+        conversation = Conversation.objects.create(listing=listing)
+        conversation.participants.add(request.user, listing.owner)
 
-        # Create the initial message in the conversation
+        # Create the initial message
         Message.objects.create(
             conversation=conversation,
-            sender=self.request.user,
+            sender=request.user,
             content="Hello, I'm interested in this listing."
         )
+
+        # Serialize and return the conversation
+        serializer = ConversationSerializer(conversation, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class SendMessageView(generics.CreateAPIView): # Not Working yet (needs integration with frontend) - Not tested yet
     """API view to send a message in a conversation."""

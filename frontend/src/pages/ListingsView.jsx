@@ -4,6 +4,7 @@ import { useParams, Link } from "react-router-dom";
 
 function ListingsView() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [listing, setListing] = useState();
   const [error, setError] = useState(null);
 
@@ -29,6 +30,29 @@ function ListingsView() {
     );
   }
 
+  const handleStartConversation = async (listingId) => {
+    try {
+      // Check if conversation already exists
+      const existingConversations = await api.get("/conversations/");
+      const existingConversation = existingConversations.data.find(
+        (conv) => String(conv.listing.id) === String(listingId)
+      );
+  
+      if (existingConversation) {
+        console.log("Existing conversation found:", existingConversation.id);
+        navigate(`/conversations/${existingConversation.id}`);
+        return; 
+      }
+  
+      // If not, create a new conversation
+      const response = await api.post(`/listing/${listingId}/start_conversation/`, {});
+      const conversationId = response.data.id;
+      navigate(`/conversations/${conversationId}`);
+    } catch (err) {
+      console.error("Error starting conversation:", err);
+      setError("An unexpected error occurred. Please try again.");
+    }
+  };
   const owner = listing.owner;
 
   return (
@@ -104,6 +128,12 @@ function ListingsView() {
         )}
       </div>
 
+      <button
+        className="btn btn-primary mt-3"
+        onClick={() => handleStartConversation(listing.id)}>
+        Contact Owner
+      </button>
+      
       {/* Property Details */}
       <div className="mb-4">
         <h2 className="h5 border-bottom pb-2">Property Details</h2>
