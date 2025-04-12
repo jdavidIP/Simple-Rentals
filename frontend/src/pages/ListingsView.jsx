@@ -90,12 +90,12 @@ function ListingsView() {
                 {owner.first_name} {owner.last_name}
               </Link>
             </p>
-            <a
-              href={`/conversations/start/${listing.id}`}
-              className="btn btn-primary"
+            <button
+              className="btn btn-primary mt-3"
+              onClick={() => handleStartConversation(listing.id)}
             >
               Contact Owner
-            </a>
+            </button>
           </div>
         </div>
       </div>
@@ -154,13 +154,6 @@ function ListingsView() {
           </p>
         )}
       </div>
-
-      <button
-        className="btn btn-primary mt-3"
-        onClick={() => handleStartConversation(listing.id)}
-      >
-        Contact Owner
-      </button>
 
       {/* Property Details */}
       <div className="mb-4">

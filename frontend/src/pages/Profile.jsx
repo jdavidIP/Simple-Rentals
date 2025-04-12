@@ -70,6 +70,12 @@ function Profile() {
         <h1>{`${profile.first_name} ${profile.last_name}`}</h1>
         <p>{profile.email}</p>
         <p>{profile.phone_number}</p>
+        <button
+          onClick={() => navigate(`/profile/${id}/reviews`)}
+          class="btn btn-primary"
+        >
+          Write a Review
+        </button>
       </div>
 
       <div className="listings-section">

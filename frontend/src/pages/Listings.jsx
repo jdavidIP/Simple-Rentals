@@ -197,19 +197,19 @@ function Listings() {
       ) : (
         <div class="row g-4">
           {listings.map((listing) => (
-            <div key={listing.id} class="card col-3 mb-4 shadow-sm">
+            <div key={listing.id} class="card col-3 m-4 shadow-sm">
               {listing.primary_image ? (
                 <img
                   src={listing.primary_image.image}
                   alt="Listing"
-                  class="card-img-top border-2 border-bottom"
+                  class="card-img-top border-2 border-bottom my-1" 
                   style={{ maxheight: "20rem", objectFit: "cover" }}
                 />
               ) : (
                 <img
                   src="/static/img/placeholder.jpg"
                   alt="No Image Available"
-                  class="card-img-top"
+                  class="card-img-top my-1"
                   style={{ maxheight: "20rem", objectFit: "cover" }}
                 />
               )}
@@ -217,7 +217,7 @@ function Listings() {
               <div class="card-body">
                 {/* Listing Title */}
                 <h5 class="card-title mb-2">
-                  {listing.bedrooms} bedroom {listing.property_type_display} in {listing.city}
+                  {listing.bedrooms} bedroom {listing.property_type} in {listing.city}
                 </h5>
 
                 {/* Price */}

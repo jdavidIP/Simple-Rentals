@@ -11,11 +11,12 @@ api.interceptors.request.use(
   (config) => {
     const protectedRoutes = [
       "/listings/edit/",
-      "/conversations",
+      "/conversations/",
       "/listings/add",
       "/listings/edit",
       "/profile",
       "/profile/reviews",
+      "/listing",
     ];
     const url = new URL(config.url, config.baseURL).pathname;
 
