@@ -55,7 +55,12 @@ function ListingsView() {
             style={{ width: "10rem", height: "10rem", objectFit: "cover", outline: "0.5px solid #000" }}
           />
           <div>
-            <p className="mb-3 fw-bold">{owner.first_name} {owner.last_name}</p>
+            <p className="mb-3 fw-bold"> 
+              <Link
+              to={`/profile/${owner.id}`}
+              >
+              {owner.first_name} {owner.last_name}
+            </Link></p>
             <a
               href={`/conversations/start/${listing.id}`}
               className="btn btn-primary"
