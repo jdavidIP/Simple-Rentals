@@ -1,5 +1,6 @@
 from django.utils.timezone import now
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from .models import MarketplaceUser, Listing, ListingPicture, Group, Review, Favorites, Conversation, Message
 
 # Utility functions for image validation and saving
@@ -289,23 +290,22 @@ class FavoritesSerializer(serializers.ModelSerializer):
 class ConversationSerializer(serializers.ModelSerializer):
     listing = ListingSerializer(read_only=True)  # Include listing details
     last_message = serializers.SerializerMethodField()  # Add the last message in the conversation
+    messages = serializers.SerializerMethodField()  # Add all messages in the conversation
 
     class Meta:
         model = Conversation
-        fields = ['id', 'participants', 'listing', 'last_updated', 'last_message']
-        extra_kwargs = {
-            'participants': {'read_only': True},
-            'listing': {'required': True},
-            'last_updated': {'read_only': True},
-        }
+        fields = ['id', 'participants', 'listing', 'last_updated', 'last_message', 'messages']  # ✅ Add 'messages' here
 
     def get_last_message(self, obj):
-        # Retrieve the last message in the conversation
         last_message = obj.get_last_message()
         if last_message:
-            return MessageSerializer(last_message).data
+            return MessageSerializer(last_message, context=self.context).data
         return None
 
+    def get_messages(self, obj):
+        # ✅ Serialize all messages for this conversation
+        messages = obj.messages.order_by('timestamp')  # Order by timestamp ascending
+        return MessageSerializer(messages, many=True, context=self.context).data
 
 class MessageSerializer(serializers.ModelSerializer):
     sender = UserSerializer(read_only=True)  # Include sender details
@@ -314,7 +314,7 @@ class MessageSerializer(serializers.ModelSerializer):
         model = Message
         fields = ['id', 'conversation', 'sender', 'content', 'timestamp', 'read']
         extra_kwargs = {
-            'conversation': {'required': True},
+            'conversation': {'read_only': True},
             'content': {'required': True},
             'sender': {'read_only': True},
             'timestamp': {'read_only': True},

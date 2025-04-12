@@ -5,6 +5,7 @@ import "../styles/listing_details.css";
 
 function ListingsView() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [listing, setListing] = useState();
   const [error, setError] = useState(null); // State to handle errors
 
@@ -26,6 +27,30 @@ function ListingsView() {
   if (!listing) {
     return <p>Loading...</p>;
   }
+
+  const handleStartConversation = async (listingId) => {
+    try {
+      // Check if conversation already exists
+      const existingConversations = await api.get("/conversations/");
+      const existingConversation = existingConversations.data.find(
+        (conv) => String(conv.listing.id) === String(listingId)
+      );
+  
+      if (existingConversation) {
+        console.log("Existing conversation found:", existingConversation.id);
+        navigate(`/conversations/${existingConversation.id}`);
+        return; 
+      }
+  
+      // If not, create a new conversation
+      const response = await api.post(`/listing/${listingId}/start_conversation/`, {});
+      const conversationId = response.data.id;
+      navigate(`/conversations/${conversationId}`);
+    } catch (err) {
+      console.error("Error starting conversation:", err);
+      setError("An unexpected error occurred. Please try again.");
+    }
+  };
 
   return (
     <div className="listing-details-container">
@@ -139,12 +164,11 @@ function ListingsView() {
         )}
       </div>
 
-      <a
-        href={`/conversations/start/${listing.id}`}
+      <button
         className="btn btn-primary mt-3"
-      >
+        onClick={() => handleStartConversation(listing.id)}>
         Contact Owner
-      </a>
+      </button>
     </div>
   );
 }

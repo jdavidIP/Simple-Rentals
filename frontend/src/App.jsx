@@ -16,6 +16,8 @@ import ListingsView from "./pages/ListingsView";
 import ListingsPost from "./pages/ListingsPost";
 import ListingsEdit from "./pages/ListingsEdit";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ConversationList from "./pages/ConversationList";
+import ConversationWindow from "./pages/ConversationWindow";
 
 function App() {
   return (
@@ -28,6 +30,7 @@ function App() {
         <Route path="/listings" element={<ListingsHome />} />
         <Route path="/listings/results" element={<Listings />} />
         <Route path="/listings/:id" element={<ListingsView />} />
+        
         <Route
           path="/listings/post"
           element={
@@ -41,6 +44,22 @@ function App() {
           element={
             <ProtectedRoute>
               <ListingsEdit method="edit" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/conversations"
+          element={
+            <ProtectedRoute>
+              <ConversationList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/conversations/:conversationId"
+          element={
+            <ProtectedRoute>
+              <ConversationWindow />
             </ProtectedRoute>
           }
         />
