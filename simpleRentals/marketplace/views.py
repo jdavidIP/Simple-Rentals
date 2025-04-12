@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import *
-from rest_framework import generics
+from rest_framework import generics, permissions
 from rest_framework.response import Response
 from .serializers import *
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -14,7 +14,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.exceptions import ValidationError
 
 
-from .models import Listing, ListingPicture, Conversation, Message, MarketplaceUser
+from .models import Listing, ListingPicture, Conversation, Message, MarketplaceUser, Review
 
 import os
 
@@ -63,7 +63,6 @@ class UserProfileView(generics.RetrieveAPIView): # Working (backend only)
 
     def get_object(self):
         user = get_object_or_404(MarketplaceUser, id=self.kwargs['pk'])
-        print("User retrieved:", user)
         return user
 
 class LogoutView(APIView):
@@ -135,24 +134,36 @@ class ListingPostingView(generics.CreateAPIView): # Not Working yet (needs integ
         # The `context` is already passed to the serializer by DRF
         serializer.save(owner=self.request.user)  # The `owner` is set in the serializer's `create()` method
 
-class ListingListView(generics.ListAPIView): # Working (backend only)
+class ListingListView(generics.ListAPIView):
     """API view to handle listing list based on filters."""
     serializer_class = ListingSerializer
     permission_classes = [AllowAny]
 
     def get_queryset(self):
         filters = self.request.query_params
-        location = filters.get('location')  # City filter
+        location = filters.get('location')  # City or location filter
+        owner = filters.get('owner')  # Owner filter
 
-        # Ensure location filter is provided
-        if not location:
-            print("No Location Provided.")
-            raise ValidationError({"Location": "A location is required to filter listings. Please enter one."})  # Return an empty queryset if no location is provided
+        # Ensure either location or owner filter is provided
+        if not location and not owner:
+            raise ValidationError(
+                {"Location/Owner": "A location or owner is required to filter listings. Please enter one."}
+            )
 
+        # Start with all listings
         queryset = Listing.objects.all()
 
-        # Apply filters (add more filters as needed)
-        queryset = queryset.filter(Q(street_address__icontains=location) | Q(city__icontains=location))
+        # Apply the location filter if provided
+        if location:
+            queryset = queryset.filter(
+                Q(street_address__icontains=location) | Q(city__icontains=location)
+            )
+
+        # Apply the owner filter if provided
+        if owner:
+            queryset = queryset.filter(owner_id=owner)
+
+        # Apply additional filters if they are provided
         min_price = filters.get('min_price')
         max_price = filters.get('max_price')
         bedrooms = filters.get('bedrooms')
@@ -248,6 +259,68 @@ class SendMessageView(generics.CreateAPIView): # Not Working yet (needs integrat
         conversation.messages.filter(read=False).exclude(sender=self.request.user).update(read=True)
 
 ### CONVERSATION SECTION - END ###
+
+
+### REVIEW SECTION - START ###
+# API views for Review management
+
+class ReviewListView(generics.ListAPIView):  # Use ListAPIView to return multiple reviews
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        filters = self.request.query_params
+        reviewee = filters.get('reviewee') 
+        reviewer = filters.get('reviewer')
+
+        if not reviewer and not reviewee:
+            raise ValidationError(
+                {"Reviewer/Reviewee": "A reviewer or reviewee is required to filter reviews. Please provide at least one."}
+            )
+
+        queryset = Review.objects.all()
+
+        if reviewer:
+            queryset = queryset.filter(reviewer=reviewer)
+
+        if reviewee:
+            queryset = queryset.filter(reviewee=reviewee)
+
+        return queryset
+    
+class ReviewPosting(generics.CreateAPIView):
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        reviewee = get_object_or_404(MarketplaceUser, id=self.kwargs['pk'])
+
+        # Check if a conversation already exists
+        review = Review.objects.filter(reviewer=self.request.user, reviewee=reviewee).first()
+
+        if review:
+            raise ValidationError("You have already posted a review on this user.")
+        
+        serializer.save(reviewer=self.request.user, reviewee=reviewee)
+
+class IsReviewerOrDenied(permissions.BasePermission):
+    """
+    Custom permission to only allow reviewers to edit/delete their reviews.
+    """
+    def has_object_permission(self, request, view, obj):
+        return obj.reviewer == request.user
+
+
+class ReviewUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAuthenticated, IsReviewerOrDenied]
+
+    def get_object(self):
+        review = super().get_object()
+        if review.reviewer != self.request.user:
+            raise PermissionDenied("You do not have permission to modify this review.")
+        return review
 
 
 # HOME SECTION - START

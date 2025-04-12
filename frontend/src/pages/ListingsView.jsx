@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from "../api.js";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import "../styles/listing_details.css";
+import { Link } from "react-router-dom";
 
 function ListingsView() {
   const { id } = useParams();
@@ -30,6 +31,14 @@ function ListingsView() {
   return (
     <div className="listing-details-container">
       <h1>{listing.property_type} for Rent</h1>
+      {console.log(listing.owner)}
+      <p>
+        Posted by{" "}
+        <Link to={`/profile/${listing.owner.id}`} className="link">
+          {" "}
+          {listing.owner.first_name}{" "}
+        </Link>
+      </p>
       {error && <p style={{ color: "red" }}>{error}</p>}
       <div className="listing-details">
         <p>
