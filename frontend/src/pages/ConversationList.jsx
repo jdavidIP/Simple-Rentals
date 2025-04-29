@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
+import "../styles/Chat.css";
 
 function ConversationList() {
   const [conversations, setConversations] = useState([]);
@@ -17,19 +18,23 @@ function ConversationList() {
   };
 
   return (
-    <div>
+    <div className="chat-container">
       <h2>Your Conversations</h2>
       {conversations.length === 0 && <p>No conversations found.</p>}
-      <ul>
+      <ul className="conversation-list">
         {conversations.map((conv) => (
-          <li key={conv.id} onClick={() => handleConversationClick(conv.id)} style={{ cursor: "pointer" }}>
-            <strong>Listing:</strong> {conv.listing.street_address} <br />
-            <strong>Last updated:</strong> {new Date(conv.last_updated).toLocaleString()} <br />
-            {conv.last_message && (
-              <div>
-                <strong>Last message:</strong> {conv.last_message.content}
-              </div>
-            )}
+          <li key={conv.id} className="conversation-item" onClick={() => handleConversationClick(conv.id)}>
+            <div className="conversation-header">
+              <strong>Listing:</strong> {conv.listing.street_address}
+            </div>
+            <div className="conversation-meta">
+              <small><strong>Last updated:</strong> {new Date(conv.last_updated).toLocaleString()}</small>
+              {conv.last_message && (
+                <div className="last-message">
+                  <strong>Last message:</strong> {conv.last_message.content}
+                </div>
+              )}
+            </div>
           </li>
         ))}
       </ul>
