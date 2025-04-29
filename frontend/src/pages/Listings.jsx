@@ -34,6 +34,33 @@ function Listings() {
     }
   };
 
+  const handleStartConversation = async (listingId) => {
+    try {
+      // Check if a conversation already exists for this listing
+      const existingConversations = await api.get("/conversations/");
+      const existingConversation = existingConversations.data.find(
+        (conv) => String(conv.listing.id) === String(listingId)
+      );
+  
+      if (existingConversation) {
+        navigate(`/conversations/${existingConversation.id}`);
+        return;
+      }
+  
+      // If not found, create a new conversation
+      const response = await api.post(
+        `/listing/${listingId}/start_conversation/`,
+        {}
+      );
+  
+      const conversationId = response.data.id;
+      navigate(`/conversations/${conversationId}`);
+    } catch (err) {
+      console.error("Error starting conversation:", err);
+      setError("An unexpected error occurred. Please try again.");
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -239,12 +266,12 @@ function Listings() {
                     View Details
                   </button>
 
-                  <a
-                    href={`/conversations/start/${listing.id}`}
-                    class="btn btn-outline-success"
+                  <button
+                    className="btn btn-outline-success"
+                    onClick={() => handleStartConversation(listing.id)}
                   >
                     Contact Owner
-                  </a>
+                  </button>
                 </div>
               </div>
             </div>

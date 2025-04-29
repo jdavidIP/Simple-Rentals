@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import api from "../api";
+import "../styles/Chat.css";
 
-function ConversationWindow({ isAuthorized }) {
+function ConversationWindow({ isAuthorized, currentUserId })  {
   const { conversationId } = useParams();
   const [conversation, setConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const [loading, setLoading] = useState(true); // Optional: loading state
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!isAuthorized) return;
@@ -43,46 +44,37 @@ function ConversationWindow({ isAuthorized }) {
   };
 
   if (loading) {
-    return <div>Loading conversation...</div>;
+    return <div className="chat-container">Loading conversation...</div>;
   }
 
   return (
-    <div>
-      <h2>Conversation Details</h2>
+    <div className="chat-container">
+      <h2>Conversation</h2>
       {conversation && (
-        <div>
-          <p>
-            <strong>Listing:</strong> {conversation.listing.street_address}
-          </p>
-        </div>
+        <p className="chat-listing"><strong>Listing:</strong> {conversation.listing.street_address}</p>
       )}
-      <div
-        style={{
-          border: "1px solid #ccc",
-          padding: "1rem",
-          height: "300px",
-          overflowY: "scroll",
-          marginBottom: "1rem",
-        }}
-      >
-        {messages.map((msg) => (
-          <div key={msg.id}>
-            <strong>{msg.sender.first_name}:</strong> {msg.content}
-            <br />
-            <small>{new Date(msg.timestamp).toLocaleString()}</small>
-            <hr />
+      <div className="chat-messages">
+      {messages.map((msg) => {
+        const isMine = msg.sender.id === currentUserId;
+        return (
+          <div key={msg.id} className={`chat-message ${isMine ? 'mine' : 'theirs'}`}>
+            <div className="chat-bubble">
+              <p><strong>{msg.sender.first_name}:</strong> {msg.content}</p>
+              <small className="chat-timestamp">{new Date(msg.timestamp).toLocaleString()}</small>
+            </div>
           </div>
-        ))}
+        );
+      })}
       </div>
-      <div>
+      <div className="chat-input-section">
         <textarea
           rows="3"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           placeholder="Type your message..."
-        ></textarea>
-        <br />
-        <button onClick={handleSendMessage}>Send</button>
+          className="chat-textarea"
+        />
+        <button className="chat-send-button" onClick={handleSendMessage}>Send</button>
       </div>
     </div>
   );
