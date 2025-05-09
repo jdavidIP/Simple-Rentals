@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import api from "../api.js";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -15,6 +15,7 @@ function Listings() {
   });
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const errorRef = useRef(null);
 
   const fetchListings = async (customFilters = filters) => {
     try {
@@ -36,28 +37,29 @@ function Listings() {
 
   const handleStartConversation = async (listingId) => {
     try {
-      // Check if a conversation already exists for this listing
       const existingConversations = await api.get("/conversations/");
       const existingConversation = existingConversations.data.find(
         (conv) => String(conv.listing.id) === String(listingId)
       );
-  
+
       if (existingConversation) {
         navigate(`/conversations/${existingConversation.id}`);
         return;
       }
-  
-      // If not found, create a new conversation
+
       const response = await api.post(
         `/listing/${listingId}/start_conversation/`,
         {}
       );
-  
+
       const conversationId = response.data.id;
       navigate(`/conversations/${conversationId}`);
     } catch (err) {
-      console.error("Error starting conversation:", err);
-      setError("An unexpected error occurred. Please try again.");
+      if (err.response.statusText === "Unauthorized") {
+        setError("Log In to start a conversation with the owner.");
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
     }
   };
 
@@ -106,23 +108,33 @@ function Listings() {
     }
   }, [location.state]);
 
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [error]);
+
   return (
-    <div class="container py-5">
-      <h2 class="mb-4 text-center">🏘️ Available Listings</h2>
-      {error && <div class="alert alert-danger">{error}</div>}
+    <div className="container py-5">
+      <h2 className="mb-4 text-center">🏘️ Available Listings</h2>
+      {error && (
+        <div ref={errorRef} className="alert alert-danger">
+          {error}
+        </div>
+      )}
 
       {/* Filters */}
-      <div class="card mb-5 shadow-sm">
-        <div class="card-body">
+      <div className="card mb-5 shadow-sm">
+        <div className="card-body">
           <form onSubmit={handleSubmit}>
             {/* Location Filter */}
-            <div class="row g-3">
-              <div class="col-12">
-                <label class="form-label">Location</label>
+            <div className="row g-3">
+              <div className="col-12">
+                <label className="form-label">Location</label>
                 <input
                   type="text"
                   name="location"
-                  class="form-control"
+                  className="form-control"
                   value={filters.location}
                   onChange={handleInputChange}
                   required
@@ -130,12 +142,12 @@ function Listings() {
               </div>
 
               {/* Min Price */}
-              <div class="col-md-6">
-                <label class="form-label">Min Price</label>
+              <div className="col-md-6">
+                <label className="form-label">Min Price</label>
                 <input
                   type="number"
                   name="min_price"
-                  class="form-control"
+                  className="form-control"
                   value={filters.min_price}
                   onChange={handleInputChange}
                   min="0"
@@ -143,12 +155,12 @@ function Listings() {
               </div>
 
               {/* Max Price */}
-              <div class="col-md-6">
-                <label class="form-label">Max Price</label>
+              <div className="col-md-6">
+                <label className="form-label">Max Price</label>
                 <input
                   type="number"
                   name="max_price"
-                  class="form-control"
+                  className="form-control"
                   value={filters.max_price}
                   onChange={handleInputChange}
                   min="0"
@@ -156,11 +168,11 @@ function Listings() {
               </div>
 
               {/* Property Type */}
-              <div class="col-md-4">
-                <label class="form-label">Property Type</label>
+              <div className="col-md-4">
+                <label className="form-label">Property Type</label>
                 <select
                   name="property_type"
-                  class="form-select"
+                  className="form-select"
                   value={filters.property_type}
                   onChange={handleInputChange}
                 >
@@ -174,12 +186,12 @@ function Listings() {
               </div>
 
               {/* Bedrooms */}
-              <div class="col-md-4">
-                <label class="form-label">Bedrooms</label>
+              <div className="col-md-4">
+                <label className="form-label">Bedrooms</label>
                 <input
                   type="number"
                   name="bedrooms"
-                  class="form-control"
+                  className="form-control"
                   value={filters.bedrooms}
                   onChange={handleInputChange}
                   min="0"
@@ -187,12 +199,12 @@ function Listings() {
               </div>
 
               {/* Bathrooms */}
-              <div class="col-md-4">
-                <label class="form-label">Bathrooms</label>
+              <div className="col-md-4">
+                <label className="form-label">Bathrooms</label>
                 <input
                   type="number"
                   name="bathrooms"
-                  class="form-control"
+                  className="form-control"
                   value={filters.bathrooms}
                   onChange={handleInputChange}
                   min="0"
@@ -201,66 +213,66 @@ function Listings() {
             </div>
 
             {/* Buttons */}
-            <div class="d-flex justify-content-end gap-2 mt-4">
-              <button type="submit" class="btn btn-primary">
+            <div className="d-flex justify-content-end gap-2 mt-4">
+              <button type="submit" className="btn btn-primary">
                 🔍 Apply Filters
               </button>
               <button
                 type="button"
-                class="btn btn-secondary"
+                className="btn btn-secondary"
                 onClick={clearFilters}
               >
                 ✨ Clear All
               </button>
             </div>
           </form>
-
         </div>
       </div>
 
       {/* Listings Results */}
       {listings.length === 0 ? (
-        <p class="text-muted text-center">No listings found.</p>
+        <p className="text-muted text-center">No listings found.</p>
       ) : (
-        <div class="row g-4">
+        <div className="row g-4">
           {listings.map((listing) => (
-            <div key={listing.id} class="card col-3 m-4 shadow-sm">
+            <div key={listing.id} className="card col-3 m-4 shadow-sm">
               {listing.primary_image ? (
                 <img
                   src={listing.primary_image.image}
                   alt="Listing"
-                  class="card-img-top border-2 border-bottom my-1" 
-                  style={{ maxheight: "20rem", objectFit: "cover" }}
+                  className="card-img-top border-2 border-bottom my-1"
+                  style={{ maxHeight: "20rem", objectFit: "cover" }}
                 />
               ) : (
                 <img
                   src="/static/img/placeholder.jpg"
                   alt="No Image Available"
-                  class="card-img-top my-1"
-                  style={{ maxheight: "20rem", objectFit: "cover" }}
+                  className="card-img-top my-1"
+                  style={{ maxHeight: "20rem", objectFit: "cover" }}
                 />
               )}
 
-              <div class="card-body">
+              <div className="card-body">
                 {/* Listing Title */}
-                <h5 class="card-title mb-2">
-                  {listing.bedrooms} bedroom {listing.property_type} in {listing.city}
+                <h5 className="card-title mb-2">
+                  {listing.bedrooms} bedroom {listing.property_type} in{" "}
+                  {listing.city}
                 </h5>
 
                 {/* Price */}
-                <h6 class="text-primary fw-semibold mb-3">
+                <h6 className="text-primary fw-semibold mb-3">
                   ${listing.price}
                 </h6>
 
                 {/* Move-in Date */}
-                <p class="mb-3">
+                <p className="mb-3">
                   <strong>Move-in:</strong> {listing.move_in_date}
                 </p>
 
                 {/* Buttons */}
-                <div class="d-flex justify-content-evenly">
+                <div className="d-flex justify-content-evenly">
                   <button
-                    class="btn btn-outline-primary"
+                    className="btn btn-outline-primary"
                     onClick={() => navigate(`/listings/${listing.id}`)}
                   >
                     View Details
