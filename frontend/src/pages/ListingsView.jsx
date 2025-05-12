@@ -48,8 +48,11 @@ function ListingsView() {
       const conversationId = response.data.id;
       navigate(`/conversations/${conversationId}`);
     } catch (err) {
-      console.error("Error starting conversation:", err);
-      setError("An unexpected error occurred. Please try again.");
+      if (err.response.statusText === "Unauthorized") {
+        setError("Log In to start a conversation with the owner.");
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
     }
   };
   const owner = listing.owner;

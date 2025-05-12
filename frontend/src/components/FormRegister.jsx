@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api.js";
 import "../styles/forms.css";
+import { Link } from "react-router-dom";
 
 function FormRegister() {
   const [formData, setFormData] = useState({
@@ -229,6 +230,13 @@ function FormRegister() {
         I accept the terms and conditions
       </label>
       <button type="submit">Register</button>
+
+      <div>
+        <Link to="/login" className="link">
+          {" "}
+          Already have an acoount? Log In here!{" "}
+        </Link>
+      </div>
     </form>
   );
 }
