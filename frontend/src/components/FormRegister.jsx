@@ -1,40 +1,83 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../api.js";
 import "../styles/forms.css";
 import { Link } from "react-router-dom";
 
-function FormRegister() {
+function FormRegister({ method = "register", profile }) {
   const [formData, setFormData] = useState({
-    email: "",
+    email: profile?.email || "",
     password: "",
     password_confirmation: "",
     profile_picture: null,
-    first_name: "",
-    last_name: "",
-    age: "",
-    sex: "",
-    budget_min: "",
-    budget_max: "",
-    city: "",
-    preferred_location: "",
-    phone_number: "",
-    instagram_link: "",
-    facebook_link: "",
-    receive_email_notifications: false,
-    receive_sms_notifications: false,
-    terms_accepted: false,
+    first_name: profile?.first_name || "",
+    last_name: profile?.last_name || "",
+    age: profile?.age || "",
+    sex: profile?.sex || "",
+    budget_min: profile?.budget_min || "",
+    budget_max: profile?.budget_max || "",
+    city: profile?.city || "",
+    preferred_location: profile?.preferred_location || "",
+    phone_number: profile?.phone_number || "",
+    instagram_link: profile?.instagram_link || "",
+    facebook_link: profile?.facebook_link || "",
+    receive_email_notifications: profile?.receive_email_notifications || false,
+    receive_sms_notifications: profile?.receive_sms_notifications || false,
+    terms_accepted: profile?.terms_accepted || false,
   });
   const [error, setError] = useState(null);
+  const [existingProfilePicture, setExistingProfilePicture] = useState(
+    profile?.profile_picture || null
+  );
+  const [deleteProfilePicture, setDeleteProfilePicture] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (profile) {
+      setFormData((prev) => ({
+        ...prev,
+        ...profile,
+        password: "",
+        password_confirmation: "",
+        profile_picture: null,
+      }));
+      setExistingProfilePicture(profile.profile_picture || null);
+      setDeleteProfilePicture(false);
+    }
+  }, [profile]);
+
+  // Handle file input for profile picture (only one allowed)
+  const handleFileInputChange = (e) => {
+    const { files } = e.target;
+    if (files && files[0]) {
+      setFormData((prev) => ({
+        ...prev,
+        profile_picture: files[0],
+      }));
+      setExistingProfilePicture(null); // Hide old preview if uploading new
+      setDeleteProfilePicture(false);
+    }
+  };
+
   const handleChange = (e) => {
-    const { name, value, type, checked, files } = e.target;
+    const { name, value, type, checked } = e.target;
+    if (name === "profile_picture") {
+      // File input handled separately
+      return;
+    }
     setFormData({
       ...formData,
-      [name]:
-        type === "checkbox" ? checked : type === "file" ? files[0] : value,
+      [name]: type === "checkbox" ? checked : value,
     });
+  };
+
+  const handleDeleteProfilePicture = () => {
+    setExistingProfilePicture(null);
+    setDeleteProfilePicture(true);
+    setFormData((prev) => ({
+      ...prev,
+      profile_picture: null,
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -55,39 +98,91 @@ function FormRegister() {
     }
 
     try {
-      // Use FormData to handle file uploads
       const data = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        data.append(key, value);
+        // Don't send empty password fields on edit
+        if (
+          method === "edit" &&
+          (key === "password" || key === "password_confirmation") &&
+          !value
+        ) {
+          return;
+        }
+        // Only append the file if it's a File object
+        if (key === "profile_picture") {
+          if (value instanceof File) {
+            data.append("profile_picture", value);
+          }
+        } else {
+          data.append(key, value);
+        }
       });
 
-      const response = await api.post("/register/", data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      // If deleting the existing profile picture, inform the backend
+      if (method === "edit" && deleteProfilePicture) {
+        data.append("delete_profile_picture", "true");
+      }
 
-      if (response.status === 201) {
-        navigate("/login");
+      let response;
+      if (method === "edit") {
+        response = await api.patch("/edit-profile/", data, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        if (response.status === 200) {
+          navigate(`/profile/${response.data.id}`);
+        }
+      } else {
+        response = await api.post("/register/", data, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        if (response.status === 201) {
+          navigate("/login");
+        }
       }
     } catch (err) {
       console.error("Error during registration:", err);
 
-      // Check if the error response contains validation errors
       if (err.response && err.response.data) {
         const errorMessages = Object.entries(err.response.data).map(
-          ([field, messages]) => `${field}: ${messages.join(", ")}`
+          ([field, messages]) =>
+            `${field}: ${
+              Array.isArray(messages) ? messages.join(", ") : messages
+            }`
         );
-        setError(errorMessages); // Store errors as an array
+        setError(errorMessages);
       } else {
         setError(["Registration failed. Please try again."]);
       }
     }
   };
 
+  // Preview for new image
+  const renderNewImagePreview = () =>
+    formData.profile_picture instanceof File && (
+      <div className="image-container">
+        <img
+          src={URL.createObjectURL(formData.profile_picture)}
+          alt="Preview"
+          style={{ maxWidth: "150px" }}
+        />
+        <button
+          type="button"
+          className="btn btn-danger"
+          onClick={() =>
+            setFormData((prev) => ({
+              ...prev,
+              profile_picture: null,
+            }))
+          }
+        >
+          Remove
+        </button>
+      </div>
+    );
+
   return (
     <form onSubmit={handleSubmit} className="form-container">
-      <h1>Register</h1>
+      <h1>{method === "edit" ? "Edit Profile" : "Register"}</h1>
       {error && (
         <ul style={{ color: "red" }}>
           {error.map((errMsg, index) => (
@@ -102,22 +197,29 @@ function FormRegister() {
         value={formData.email}
         onChange={handleChange}
         required
+        disabled={method === "edit"}
       />
       <input
         type="password"
         name="password"
-        placeholder="Password"
+        placeholder={
+          method === "edit"
+            ? "New Password (leave blank to keep current)"
+            : "Password"
+        }
         value={formData.password}
         onChange={handleChange}
-        required
+        required={method !== "edit"}
       />
       <input
         type="password"
         name="password_confirmation"
-        placeholder="Confirm Password"
+        placeholder={
+          method === "edit" ? "Confirm New Password" : "Confirm Password"
+        }
         value={formData.password_confirmation}
         onChange={handleChange}
-        required
+        required={method !== "edit"}
       />
       <input
         type="text"
@@ -200,7 +302,33 @@ function FormRegister() {
         value={formData.facebook_link}
         onChange={handleChange}
       />
-      <input type="file" name="profile_picture" onChange={handleChange} />
+      <div>
+        <input
+          type="file"
+          name="profile_picture"
+          accept="image/*"
+          onChange={handleFileInputChange}
+        />
+        {existingProfilePicture && (
+          <div className="image-container">
+            <img
+              src={existingProfilePicture}
+              alt="Profile"
+              style={{ maxWidth: "150px" }}
+            />
+            {method === "edit" && (
+              <button
+                type="button"
+                className="btn btn-danger"
+                onClick={handleDeleteProfilePicture}
+              >
+                Delete
+              </button>
+            )}
+          </div>
+        )}
+        {renderNewImagePreview()}
+      </div>
       <label>
         <input
           type="checkbox"
@@ -226,17 +354,22 @@ function FormRegister() {
           checked={formData.terms_accepted}
           onChange={handleChange}
           required
+          disabled={method === "edit"}
         />
         I accept the terms and conditions
       </label>
-      <button type="submit">Register</button>
+      <button type="submit">
+        {method === "edit" ? "Save Changes" : "Register"}
+      </button>
 
-      <div>
-        <Link to="/login" className="link">
-          {" "}
-          Already have an acoount? Log In here!{" "}
-        </Link>
-      </div>
+      {method !== "edit" && (
+        <div>
+          <Link to="/login" className="link">
+            {" "}
+            Already have an account? Log In here!{" "}
+          </Link>
+        </div>
+      )}
     </form>
   );
 }

@@ -51,7 +51,7 @@ class LogInView(generics.CreateAPIView): # Working
 class UserEditView(generics.UpdateAPIView): # Not Functional yet (needs integration with frontend) - Tested locally and works
     """API view to handle user profile editing."""
     serializer_class = UserEditSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get_object(self):
         return self.request.user

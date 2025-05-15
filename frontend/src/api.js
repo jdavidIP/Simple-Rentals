@@ -14,9 +14,10 @@ api.interceptors.request.use(
       "/conversations/",
       "/listings/add",
       "/listings/edit",
-      "/profile",
-      "/profile/reviews",
-      "/listing",
+      "/profile/",
+      "/profile/reviews/",
+      "/listing/",
+      "/edit-profile/",
     ];
     const url = new URL(config.url, config.baseURL).pathname;
 

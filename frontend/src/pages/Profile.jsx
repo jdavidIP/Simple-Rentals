@@ -107,6 +107,15 @@ function Profile() {
             Write a Review
           </button>
         )}
+
+        {isOwner && (
+          <button
+            onClick={() => navigate(`/profile/edit/${id}`)}
+            className="btn btn-primary"
+          >
+            Edit Profile
+          </button>
+        )}
       </div>
 
       <div className="listings-section">
