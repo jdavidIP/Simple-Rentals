@@ -184,125 +184,158 @@ function FormRegister({ method = "register", profile }) {
     <form onSubmit={handleSubmit} className="form-container">
       <h1>{method === "edit" ? "Edit Profile" : "Register"}</h1>
       {error && (
-        <ul style={{ color: "red" }}>
-          {error.map((errMsg, index) => (
-            <li key={index}>{errMsg}</li>
-          ))}
-        </ul>
+        <div className="mb-3">
+          <ul style={{ color: "red" }}>
+            {error.map((errMsg, index) => (
+              <li key={index}>{errMsg}</li>
+            ))}
+          </ul>
+        </div>
       )}
-      <input
-        type="email"
-        name="email"
-        placeholder="Email"
-        value={formData.email}
-        onChange={handleChange}
-        required
-        disabled={method === "edit"}
-      />
-      <input
-        type="password"
-        name="password"
-        placeholder={
-          method === "edit"
-            ? "New Password (leave blank to keep current)"
-            : "Password"
-        }
-        value={formData.password}
-        onChange={handleChange}
-        required={method !== "edit"}
-      />
-      <input
-        type="password"
-        name="password_confirmation"
-        placeholder={
-          method === "edit" ? "Confirm New Password" : "Confirm Password"
-        }
-        value={formData.password_confirmation}
-        onChange={handleChange}
-        required={method !== "edit"}
-      />
-      <input
-        type="text"
-        name="first_name"
-        placeholder="First Name"
-        value={formData.first_name}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="text"
-        name="last_name"
-        placeholder="Last Name"
-        value={formData.last_name}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="number"
-        name="age"
-        placeholder="Age"
-        value={formData.age}
-        onChange={handleChange}
-        min="0"
-        required
-      />
-      <select name="sex" value={formData.sex} onChange={handleChange} required>
-        <option value="">Select your gender</option>
-        <option value="M">Male</option>
-        <option value="F">Female</option>
-        <option value="O">Other</option>
-      </select>
-      <input
-        type="number"
-        name="budget_min"
-        placeholder="Budget Min (Optional)"
-        value={formData.budget_min}
-        min="0"
-        max={formData.budget_max - 0.01 || ""}
-        step="0.01"
-        onChange={handleChange}
-      />
-      <input
-        type="number"
-        name="budget_max"
-        placeholder="Budget Max"
-        value={formData.budget_max}
-        onChange={handleChange}
-        min="0"
-        step="0.01"
-        required
-      />
-      <input
-        type="text"
-        name="city"
-        placeholder="City"
-        value={formData.city}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="text"
-        name="phone_number"
-        placeholder="Phone Number (e.g., +1-123-456-7890)"
-        value={formData.phone_number}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="url"
-        name="instagram_link"
-        placeholder="Instagram Link"
-        value={formData.instagram_link}
-        onChange={handleChange}
-      />
-      <input
-        type="url"
-        name="facebook_link"
-        placeholder="Facebook Link"
-        value={formData.facebook_link}
-        onChange={handleChange}
-      />
-      <div>
+      <div className="mb-3">
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          value={formData.email}
+          onChange={handleChange}
+          required
+          disabled={method === "edit"}
+        />
+      </div>
+      <div className="mb-3">
+        <input
+          type="password"
+          name="password"
+          placeholder={
+            method === "edit"
+              ? "New Password (leave blank to keep current)"
+              : "Password"
+          }
+          value={formData.password}
+          onChange={handleChange}
+          required={method !== "edit"}
+        />
+      </div>
+      <div className="mb-3">
+        <input
+          type="password"
+          name="password_confirmation"
+          placeholder={
+            method === "edit" ? "Confirm New Password" : "Confirm Password"
+          }
+          value={formData.password_confirmation}
+          onChange={handleChange}
+          required={method !== "edit"}
+        />
+      </div>
+      <div className="mb-3">
+        <input
+          type="text"
+          name="first_name"
+          placeholder="First Name"
+          value={formData.first_name}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      <div className="mb-3">
+        <input
+          type="text"
+          name="last_name"
+          placeholder="Last Name"
+          value={formData.last_name}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      <div className="mb-3">
+        <input
+          type="number"
+          name="age"
+          placeholder="Age"
+          value={formData.age}
+          onChange={handleChange}
+          min="0"
+          required
+        />
+      </div>
+      <div className="mb-3">
+        <select
+          name="sex"
+          value={formData.sex}
+          onChange={handleChange}
+          required
+        >
+          <option value="">Select your gender</option>
+          <option value="M">Male</option>
+          <option value="F">Female</option>
+          <option value="O">Other</option>
+        </select>
+      </div>
+      <div className="mb-3">
+        <input
+          type="number"
+          name="budget_min"
+          placeholder="Budget Min (Optional)"
+          value={formData.budget_min}
+          min="0"
+          max={formData.budget_max - 0.01 || ""}
+          step="0.01"
+          onChange={handleChange}
+        />
+      </div>
+      <div className="mb-3">
+        <input
+          type="number"
+          name="budget_max"
+          placeholder="Budget Max"
+          value={formData.budget_max}
+          onChange={handleChange}
+          min="0"
+          step="0.01"
+          required
+        />
+      </div>
+      <div className="mb-3">
+        <input
+          type="text"
+          name="city"
+          placeholder="City"
+          value={formData.city}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      <div className="mb-3">
+        <input
+          type="text"
+          name="phone_number"
+          placeholder="Phone Number (e.g., +1-123-456-7890)"
+          value={formData.phone_number}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      <div className="mb-3">
+        <input
+          type="url"
+          name="instagram_link"
+          placeholder="Instagram Link"
+          value={formData.instagram_link}
+          onChange={handleChange}
+        />
+      </div>
+      <div className="mb-3">
+        <input
+          type="url"
+          name="facebook_link"
+          placeholder="Facebook Link"
+          value={formData.facebook_link}
+          onChange={handleChange}
+        />
+      </div>
+      <div className="mb-3">
         <input
           type="file"
           name="profile_picture"
@@ -329,41 +362,48 @@ function FormRegister({ method = "register", profile }) {
         )}
         {renderNewImagePreview()}
       </div>
-      <label>
-        <input
-          type="checkbox"
-          name="receive_email_notifications"
-          checked={formData.receive_email_notifications}
-          onChange={handleChange}
-        />
-        I would like to receive email notifications
-      </label>
-      <label>
-        <input
-          type="checkbox"
-          name="receive_sms_notifications"
-          checked={formData.receive_sms_notifications}
-          onChange={handleChange}
-        />
-        I would like to receive text messages.
-      </label>
-      <label>
-        <input
-          type="checkbox"
-          name="terms_accepted"
-          checked={formData.terms_accepted}
-          onChange={handleChange}
-          required
-          disabled={method === "edit"}
-        />
-        I accept the terms and conditions
-      </label>
-      <button type="submit">
-        {method === "edit" ? "Save Changes" : "Register"}
-      </button>
-
+      <div className="mb-3">
+        <label>
+          <input
+            type="checkbox"
+            name="receive_email_notifications"
+            checked={formData.receive_email_notifications}
+            onChange={handleChange}
+          />
+          I would like to receive email notifications
+        </label>
+      </div>
+      <div className="mb-3">
+        <label>
+          <input
+            type="checkbox"
+            name="receive_sms_notifications"
+            checked={formData.receive_sms_notifications}
+            onChange={handleChange}
+          />
+          I would like to receive text messages.
+        </label>
+      </div>
+      <div className="mb-3">
+        <label>
+          <input
+            type="checkbox"
+            name="terms_accepted"
+            checked={formData.terms_accepted}
+            onChange={handleChange}
+            required
+            disabled={method === "edit"}
+          />
+          I accept the terms and conditions
+        </label>
+      </div>
+      <div className="mb-3">
+        <button type="submit">
+          {method === "edit" ? "Save Changes" : "Register"}
+        </button>
+      </div>
       {method !== "edit" && (
-        <div>
+        <div className="mb-3">
           <Link to="/login" className="link">
             {" "}
             Already have an account? Log In here!{" "}
