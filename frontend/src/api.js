@@ -18,6 +18,7 @@ api.interceptors.request.use(
       "/profile/reviews/",
       "/listing/",
       "/edit-profile/",
+      "/listings/delete/",
     ];
     const url = new URL(config.url, config.baseURL).pathname;
 

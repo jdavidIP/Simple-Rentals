@@ -167,6 +167,23 @@ function FormListing({ method, listing }) {
     }
   };
 
+  const handleDelete = async (e) => {
+    e.preventDefault();
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this listing? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+    try {
+      await api.delete(`/listings/delete/${listing.id}`);
+      navigate("/listings");
+    } catch (err) {
+      setError("Failed to delete listing.");
+    }
+  };
+
   const renderExistingImagePreview = (images) =>
     images
       .filter((img) => !formData.delete_images.includes(img.id))
@@ -414,6 +431,11 @@ function FormListing({ method, listing }) {
       <button type="submit" className="btn btn-primary">
         {method === "post" ? "Create Listing" : "Save Changes"}
       </button>
+      {method === "edit" && (
+        <button type="delete" className="btn btn-danger" onClick={handleDelete}>
+          Delete Listing
+        </button>
+      )}
     </form>
   );
 }
