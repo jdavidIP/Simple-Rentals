@@ -11,10 +11,28 @@ function ListingsView() {
   const fetchListing = async () => {
     try {
       const response = await api.get(`/listings/${id}`);
-      setListing(response.data);
+      const listing = response.data;
+      // Find the primary image
+      const primaryImage = listing.pictures.find((p) => p.is_primary);
+      // If primary image exists, put it first in the array
+      let orderedPictures = listing.pictures;
+      if (primaryImage) {
+        orderedPictures = [
+          primaryImage,
+          ...listing.pictures.filter((p) => p.id !== primaryImage.id),
+        ];
+      }
+
+      const processedListing = {
+        ...listing,
+        pictures: orderedPictures,
+        primary_image: primaryImage,
+      };
+
+      setListing(processedListing);
     } catch (err) {
-      console.error("Error fetching listing:", err);
-      setError("Failed to fetch listing.");
+      console.error("Error fetching listings:", err);
+      setError(err.response?.data?.Location || "Failed to fetch Listings.");
     }
   };
 

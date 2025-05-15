@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api.js";
 import "../styles/forms.css";
@@ -43,6 +43,7 @@ function FormListing({ method, listing }) {
   const [existingImages, setExistingImages] = useState(listing?.pictures || []);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const errorRef = useRef(null);
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
@@ -205,17 +206,19 @@ function FormListing({ method, listing }) {
       </div>
     ));
 
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [error]);
+
   return (
     <form onSubmit={handleSubmit} className="form-container">
       <h1>{method === "post" ? "Create Listing" : "Edit Listing"}</h1>
       {error && (
-        <ul style={{ color: "red" }}>
-          {Array.isArray(error) ? (
-            error.map((errMsg, index) => <li key={index}>{errMsg}</li>)
-          ) : (
-            <li>{error}</li>
-          )}
-        </ul>
+        <div ref={errorRef} className="alert alert-danger">
+          {error}
+        </div>
       )}
       <div className="mb-3">
         <label htmlFor="price">Price</label>

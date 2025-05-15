@@ -21,13 +21,13 @@ import os
 ### USER AUTHENTICATION SECTION - START ###
 # API views for user authentication and registration
 
-class CreateUserView(generics.CreateAPIView): # Working (backend only)
+class CreateUserView(generics.CreateAPIView): # Working
     """API view to handle user registration."""
     queryset = MarketplaceUser.objects.all()
     serializer_class = UserRegistrationSerializer
     permission_classes = [AllowAny]
 
-class LogInView(generics.CreateAPIView): # Working (backend only)
+class LogInView(generics.CreateAPIView): # Working 
     """API view to handle user login."""
     serializer_class = UserLogInSerializer
     permission_classes = [AllowAny]
@@ -56,7 +56,7 @@ class UserEditView(generics.UpdateAPIView): # Not Functional yet (needs integrat
     def get_object(self):
         return self.request.user
     
-class UserProfileView(generics.RetrieveAPIView): # Working (backend only)
+class UserProfileView(generics.RetrieveAPIView): # Working
     """API view to handle user profile retrieval."""
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
@@ -64,6 +64,16 @@ class UserProfileView(generics.RetrieveAPIView): # Working (backend only)
     def get_object(self):
         user = get_object_or_404(MarketplaceUser, id=self.kwargs['pk'])
         return user
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        data = self.get_serializer(instance).data
+
+        # Determine if the requesting user is the owner
+        is_owner = request.user.is_authenticated and request.user.id == instance.id
+        data['is_owner'] = is_owner
+
+        return Response(data)
 
 class LogoutView(APIView):
     """Custom logout view to blacklist refresh tokens."""
