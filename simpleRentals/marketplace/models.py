@@ -55,6 +55,8 @@ class Listing(models.Model):
     street_address = models.CharField(max_length=255)
     city = models.CharField(max_length=100)
     postal_code = models.CharField(max_length=20)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
 
     # Additional fees and costs
     utilities_cost = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
