@@ -20,6 +20,7 @@ import ConversationList from "./pages/ConversationList";
 import ConversationWindow from "./pages/ConversationWindow";
 import Profile from "./pages/Profile";
 import Reviews from "./pages/Reviews";
+import ProfileEdit from "./pages/ProfileEdit";
 
 function App() {
   return (
@@ -37,7 +38,7 @@ function App() {
           path="/listings/post"
           element={
             <ProtectedRoute>
-              <ListingsPost method="post" />
+              <ListingsPost />
             </ProtectedRoute>
           }
         />
@@ -45,7 +46,7 @@ function App() {
           path="/listings/edit/:id"
           element={
             <ProtectedRoute>
-              <ListingsEdit method="edit" />
+              <ListingsEdit />
             </ProtectedRoute>
           }
         />
@@ -62,6 +63,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="profile/edit/:id"
+          element={
+            <ProtectedRoute>
+              <ProfileEdit />
             </ProtectedRoute>
           }
         />

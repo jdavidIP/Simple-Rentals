@@ -10,11 +10,15 @@ function Profile() {
   const [listings, setListings] = useState([]);
   const [reviews, setReviews] = useState([]); // New state for reviews
   const [error, setError] = useState(null);
+  const [isOwner, setIsOwner] = useState(false);
 
   const fetchProfile = async () => {
     try {
       const response = await api.get(`/profile/${id}`);
       setProfile(response.data);
+
+      // Check if the logged-in user is the owner of this profile
+      setIsOwner(response.data.is_owner);
     } catch (err) {
       console.error("Error fetching profile:", err);
       setError("Failed to fetch profile.");
@@ -26,10 +30,28 @@ function Profile() {
       const response = await api.get(`/listings/viewAll`, {
         params: { owner: id },
       });
-      setListings(response.data);
+      const processedListings = response.data.map((listing) => {
+        // Find the primary image
+        const primaryImage = listing.pictures.find((p) => p.is_primary);
+        // If primary image exists, put it first in the array
+        let orderedPictures = listing.pictures;
+        if (primaryImage) {
+          orderedPictures = [
+            primaryImage,
+            ...listing.pictures.filter((p) => p.id !== primaryImage.id),
+          ];
+        }
+        return {
+          ...listing,
+          pictures: orderedPictures,
+          primary_image: primaryImage,
+        };
+      });
+
+      setListings(processedListings);
     } catch (err) {
       console.error("Error fetching listings:", err);
-      setError("Failed to fetch listings.");
+      setError(err.response?.data?.Location || "Failed to fetch Listings.");
     }
   };
 
@@ -70,12 +92,30 @@ function Profile() {
         <h1>{`${profile.first_name} ${profile.last_name}`}</h1>
         <p>{profile.email}</p>
         <p>{profile.phone_number}</p>
-        <button
-          onClick={() => navigate(`/profile/${id}/reviews`)}
-          class="btn btn-primary"
-        >
-          Write a Review
-        </button>
+        {isOwner ? (
+          <button
+            onClick={() => navigate(`/listings/post`)}
+            className="btn btn-primary"
+          >
+            Create a Listing
+          </button>
+        ) : (
+          <button
+            onClick={() => navigate(`/profile/${id}/reviews`)}
+            className="btn btn-primary"
+          >
+            Write a Review
+          </button>
+        )}
+
+        {isOwner && (
+          <button
+            onClick={() => navigate(`/profile/edit/${id}`)}
+            className="btn btn-primary"
+          >
+            Edit Profile
+          </button>
+        )}
       </div>
 
       <div className="listings-section">
@@ -104,6 +144,14 @@ function Profile() {
                 >
                   View More
                 </button>
+                {isOwner && (
+                  <button
+                    className="edit-button"
+                    onClick={() => navigate(`/listings/edit/${listing.id}`)}
+                  >
+                    Edit Listing
+                  </button>
+                )}
               </div>
             ))}
           </div>
