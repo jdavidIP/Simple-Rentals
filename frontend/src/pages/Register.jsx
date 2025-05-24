@@ -2,7 +2,12 @@ import React from "react";
 import FormRegister from "../components/FormRegister";
 
 function Register() {
-  return <FormRegister />;
+  return (
+    <div>
+      <Header />
+      <FormRegister />
+    </div>
+  );
 }
 
 export default Register;

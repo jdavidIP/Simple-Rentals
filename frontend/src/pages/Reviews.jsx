@@ -5,7 +5,12 @@ import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants.js";
 import FormReview from "../components/FormReview.jsx";
 
 function Reviews() {
-  return <FormReview />;
+  return (
+    <div>
+        <Header />
+        <FormReview />;
+    </div>
+  );
 }
 
 export default Reviews;
