@@ -13,6 +13,7 @@ from django.core.exceptions import PermissionDenied
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
+from math import radians, cos, sin, asin, sqrt
 
 from .models import Listing, ListingPicture, Conversation, Message, MarketplaceUser, Review
 
@@ -145,35 +146,37 @@ class ListingPostingView(generics.CreateAPIView): # Not Working yet (needs integ
         serializer.save(owner=self.request.user)  # The `owner` is set in the serializer's `create()` method
 
 class ListingListView(generics.ListAPIView):
-    """API view to handle listing list based on filters."""
+    """API view to handle listing list based on filters, including radius search."""
     serializer_class = ListingSerializer
     permission_classes = [AllowAny]
 
+    def haversine_distance(self, lat1, lon1, lat2, lon2):
+        """Calculate distance between two lat/lng points (in km)."""
+        R = 6371  # Earth radius in km
+        dlat = radians(lat2 - lat1)
+        dlon = radians(lon2 - lon1)
+        a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
+        c = 2 * asin(sqrt(a))
+        return R * c
+
     def get_queryset(self):
         filters = self.request.query_params
-        location = filters.get('location')  # City or location filter
-        owner = filters.get('owner')  # Owner filter
-
-        # Ensure either location or owner filter is provided
-        if not location and not owner:
-            raise ValidationError(
-                {"Location/Owner": "A location or owner is required to filter listings. Please enter one."}
-            )
-
-        # Start with all listings
+        location = filters.get('location')
+        owner = filters.get('owner')
+        lat = filters.get('lat')
+        lng = filters.get('lng')
+        radius = float(filters.get('radius', 5))
+        
         queryset = Listing.objects.all()
 
-        # Apply the location filter if provided
-        if location:
-            queryset = queryset.filter(
-                Q(street_address__icontains=location) | Q(city__icontains=location)
+        if not location and not owner and not (lat and lng):
+            raise ValidationError(
+                {"Location/Owner": "A location, owner, or coordinates are required to filter listings. Please provide at least one."}
             )
 
-        # Apply the owner filter if provided
         if owner:
             queryset = queryset.filter(owner_id=owner)
 
-        # Apply additional filters if they are provided
         min_price = filters.get('min_price')
         max_price = filters.get('max_price')
         bedrooms = filters.get('bedrooms')
@@ -190,6 +193,26 @@ class ListingListView(generics.ListAPIView):
             queryset = queryset.filter(bathrooms__gte=bathrooms)
         if property_type:
             queryset = queryset.filter(property_type=property_type)
+        
+        if lat and lng:
+            lat, lng = float(lat), float(lng)
+            queryset = queryset.filter(latitude__isnull=False, longitude__isnull=False)
+            print(f"Number of listings after owner/other filters: {queryset.count()}")
+
+            filtered_listings = []
+            for listing in queryset:
+                distance = self.haversine_distance(lat, lng, listing.latitude, listing.longitude)
+                print(f"Listing ID {listing.id}: distance = {distance} km")
+                if distance <= radius:
+                    filtered_listings.append(listing)
+
+            queryset = filtered_listings
+
+        elif location:
+            # Only fallback to location filter if lat/lng not provided
+            queryset = queryset.filter(
+                Q(street_address__icontains=location) | Q(city__icontains=location)
+            )
 
         return queryset
     

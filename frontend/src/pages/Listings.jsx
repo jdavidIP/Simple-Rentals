@@ -13,15 +13,24 @@ function Listings() {
     bathrooms: "",
     property_type: "",
   });
+  const [latLng, setLatLng] = useState({ lat: null, lng: null });
+  const [radius, setRadius] = useState("5"); // Default radius
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const errorRef = useRef(null);
+  const locationInputRef = useRef(null);
 
   const fetchListings = async (customFilters = filters) => {
     try {
-      const response = await api.get("/listings/viewAll", {
-        params: customFilters,
-      });
+      const params = { ...customFilters };
+
+      if (latLng.lat && latLng.lng) {
+        params.lat = latLng.lat;
+        params.lng = latLng.lng;
+        params.radius = radius;
+      }
+
+      const response = await api.get("/listings/viewAll", { params });
 
       const processedListings = response.data.map((listing) => {
         const primaryImage = listing.pictures.find((p) => p.is_primary);
@@ -34,6 +43,111 @@ function Listings() {
       setError(err.response?.data?.Location || "Failed to fetch Listings.");
     }
   };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (filters.min_price > filters.max_price) {
+      setError("Minimum price cannot be greater than maximum price.");
+      return;
+    }
+
+    setError(null);
+
+    const customFilters = { ...filters };
+    if (latLng.lat && latLng.lng) {
+      customFilters.location = filters.location.split(",")[0].trim();
+    }
+
+    fetchListings(customFilters);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const clearFilters = () => {
+    const cleared = {
+      location: "",
+      min_price: "",
+      max_price: "",
+      bedrooms: "",
+      bathrooms: "",
+      property_type: "",
+    };
+    setFilters(cleared);
+    setLatLng({ lat: null, lng: null });
+    setRadius("5");
+    fetchListings(cleared);
+  };
+
+  useEffect(() => {
+    if (!location.state?.listings) {
+      fetchListings();
+    } else {
+      const processed = location.state?.listings.map((listing) => {
+        const primaryImage = listing.pictures.find((p) => p.is_primary);
+        return { ...listing, primary_image: primaryImage };
+      });
+      setListings(processed);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [error]);
+
+  useEffect(() => {
+    const existingScript = document.getElementById("googleMaps");
+
+    if (!existingScript) {
+      const script = document.createElement("script");
+      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyCdOFDB8B2dHR7M6JXBfdZ-F-1XRjDm-2E&libraries=places`;
+      script.id = "googleMaps";
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+
+      script.onload = () => {
+        initAutocomplete();
+      };
+    } else {
+      initAutocomplete();
+    }
+
+    function initAutocomplete() {
+      if (!window.google || !locationInputRef.current) {
+        console.warn("Google Maps or input ref not ready");
+        return;
+      }
+
+      const autocomplete = new window.google.maps.places.Autocomplete(
+        locationInputRef.current
+      );
+
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        if (place.geometry) {
+          const { lat, lng } = place.geometry.location;
+          setLatLng({
+            lat: lat(),
+            lng: lng(),
+          });
+          setFilters((prev) => ({
+            ...prev,
+            location: place.name, 
+          }));
+          locationInputRef.current.value = place.formatted_address;
+        }
+      });
+    }
+  }, []);
 
   const handleStartConversation = async (listingId) => {
     try {
@@ -63,57 +177,6 @@ function Listings() {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (filters.min_price > filters.max_price) {
-      setError("Minimum price cannot be greater than maximum price.");
-      return;
-    }
-
-    setError(null);
-    fetchListings();
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFilters((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const clearFilters = () => {
-    const cleared = {
-      location: filters.location || "",
-      min_price: "",
-      max_price: "",
-      bedrooms: "",
-      bathrooms: "",
-      property_type: "",
-    };
-    setFilters(cleared);
-    fetchListings(cleared);
-  };
-
-  useEffect(() => {
-    if (!location.state?.listings) {
-      fetchListings();
-    } else {
-      const processed = location.state?.listings.map((listing) => {
-        const primaryImage = listing.pictures.find((p) => p.is_primary);
-        return { ...listing, primary_image: primaryImage };
-      });
-      setListings(processed);
-    }
-  }, [location.state]);
-
-  useEffect(() => {
-    if (error && errorRef.current) {
-      errorRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [error]);
-
   return (
     <div className="container py-5">
       <h2 className="mb-4 text-center">🏘️ Available Listings</h2>
@@ -127,18 +190,34 @@ function Listings() {
       <div className="card mb-5 shadow-sm">
         <div className="card-body">
           <form onSubmit={handleSubmit}>
-            {/* Location Filter */}
             <div className="row g-3">
+              {/* Location & Radius */}
               <div className="col-12">
-                <label className="form-label">Location</label>
-                <input
-                  type="text"
-                  name="location"
-                  className="form-control"
-                  value={filters.location}
-                  onChange={handleInputChange}
-                  required
-                />
+                <label className="form-label">Location & Radius</label>
+                <div className="input-group">
+                  <input
+                    type="text"
+                    name="location"
+                    ref={locationInputRef}
+                    className="form-control"
+                    defaultValue={filters.location}
+                    onChange={handleInputChange}
+                    required
+                  />
+
+                  <select
+                    className="form-select"
+                    style={{ maxWidth: "120px" }}
+                    value={radius}
+                    onChange={(e) => setRadius(e.target.value)}
+                  >
+                    <option value="1">1 km</option>
+                    <option value="5">5 km</option>
+                    <option value="10">10 km</option>
+                    <option value="20">20 km</option>
+                    <option value="50">50 km</option>
+                  </select>
+                </div>
               </div>
 
               {/* Min Price */}
@@ -212,7 +291,6 @@ function Listings() {
               </div>
             </div>
 
-            {/* Buttons */}
             <div className="d-flex justify-content-end gap-2 mt-4">
               <button type="submit" className="btn btn-primary">
                 🔍 Apply Filters
@@ -229,7 +307,7 @@ function Listings() {
         </div>
       </div>
 
-      {/* Listings Results */}
+      {/* Listings */}
       {listings.length === 0 ? (
         <p className="text-muted text-center">No listings found.</p>
       ) : (
@@ -253,23 +331,19 @@ function Listings() {
               )}
 
               <div className="card-body">
-                {/* Listing Title */}
                 <h5 className="card-title mb-2">
                   {listing.bedrooms} bedroom {listing.property_type} in{" "}
                   {listing.city}
                 </h5>
 
-                {/* Price */}
                 <h6 className="text-primary fw-semibold mb-3">
                   ${listing.price}
                 </h6>
 
-                {/* Move-in Date */}
                 <p className="mb-3">
                   <strong>Move-in:</strong> {listing.move_in_date}
                 </p>
 
-                {/* Buttons */}
                 <div className="d-flex justify-content-evenly">
                   <button
                     className="btn btn-outline-primary"
