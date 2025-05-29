@@ -8,7 +8,7 @@ function FormListing({ method, listing }) {
     price: listing?.price || "",
     property_type: listing?.property_type[0] || "",
     payment_type:
-      listing?.payment_type == "Chexy" ? "X" : listing?.payment_type[0] || "",
+      listing?.payment_type === "Chexy" ? "X" : listing?.payment_type[0] || "",
     bedrooms: listing?.bedrooms || "",
     bathrooms: listing?.bathrooms || "",
     sqft_area: listing?.sqft_area || "",
@@ -42,8 +42,53 @@ function FormListing({ method, listing }) {
   });
   const [existingImages, setExistingImages] = useState(listing?.pictures || []);
   const [error, setError] = useState(null);
+  const [latLng, setLatLng] = useState({
+    lat: listing?.latitude || null,
+    lng: listing?.longitude || null,
+  });
   const navigate = useNavigate();
   const errorRef = useRef(null);
+  const addressInputRef = useRef(null);
+
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyCdOFDB8B2dHR7M6JXBfdZ-F-1XRjDm-2E&libraries=places`;
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
+
+    script.onload = () => {
+      if (!addressInputRef.current) return;
+
+      const autocomplete = new window.google.maps.places.Autocomplete(
+        addressInputRef.current,
+        { types: ["geocode"] }
+      );
+
+    autocomplete.addListener("place_changed", () => {
+      const place = autocomplete.getPlace();
+
+      if (place.geometry) {
+        const streetNumber = place.address_components?.find(c => c.types.includes("street_number"))?.long_name || "";
+        const route = place.address_components?.find(c => c.types.includes("route"))?.long_name || "";
+
+        const streetAddress = [streetNumber, route].filter(Boolean).join(" ");
+
+        setFormData((prev) => ({
+          ...prev,
+          street_address: streetAddress || prev.street_address,
+          city: place.address_components?.find(c => c.types.includes("locality"))?.long_name || prev.city,
+          postal_code: place.address_components?.find(c => c.types.includes("postal_code"))?.long_name || prev.postal_code,
+        }));
+
+        setLatLng({
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+        });
+      }
+    });
+    };
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
@@ -114,28 +159,15 @@ function FormListing({ method, listing }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validateImages()) return;
 
     try {
       const data = new FormData();
 
-      // Append front_image (new or existing)
-      if (formData.front_image) {
-        data.append("front_image", formData.front_image);
-      }
+      if (formData.front_image) data.append("front_image", formData.front_image);
+      formData.pictures.forEach((file) => data.append("pictures", file));
+      formData.delete_images.forEach((id) => data.append("delete_images", id));
 
-      // Append newly added pictures
-      formData.pictures.forEach((file) => {
-        data.append("pictures", file);
-      });
-
-      // Append delete_images as IDs
-      formData.delete_images.forEach((id) => {
-        data.append("delete_images", id);
-      });
-
-      // Append all other fields
       Object.entries(formData).forEach(([key, value]) => {
         if (
           key !== "pictures" &&
@@ -145,6 +177,12 @@ function FormListing({ method, listing }) {
           data.append(key, value);
         }
       });
+
+      // Append lat and lng
+      if (latLng.lat && latLng.lng) {
+        data.append("latitude", latLng.lat);
+        data.append("longitude", latLng.lng);
+      }
 
       if (method === "post") {
         await api.post("/listings/add", data, {
@@ -159,28 +197,7 @@ function FormListing({ method, listing }) {
       }
     } catch (err) {
       console.error("Error submitting form:", err);
-      setError(
-        Array.isArray(err.response?.data)
-          ? err.response.data
-          : [err.response?.data || "An error occurred. Please try again."]
-      );
-    }
-  };
-
-  const handleDelete = async (e) => {
-    e.preventDefault();
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this listing? This action cannot be undone."
-      )
-    ) {
-      return;
-    }
-    try {
-      await api.delete(`/listings/delete/${listing.id}`);
-      navigate("/listings");
-    } catch (err) {
-      setError("Failed to delete listing.");
+      setError("An error occurred. Please try again.");
     }
   };
 
@@ -237,6 +254,44 @@ function FormListing({ method, listing }) {
           {error}
         </div>
       )}
+
+      <div className="mb-3">
+        <label htmlFor="street_address">Street Address</label>
+        <input
+          type="text"
+          id="street_address"
+          name="street_address"
+          ref={addressInputRef}
+          value={formData.street_address}
+          onChange={handleChange}
+          required
+        />
+      </div>
+
+      <div className="mb-3">
+        <label htmlFor="city">City</label>
+        <input
+          type="text"
+          id="city"
+          name="city"
+          value={formData.city}
+          onChange={handleChange}
+          required
+        />
+      </div>
+
+      <div className="mb-3">
+        <label htmlFor="postal_code">Postal Code</label>
+        <input
+          type="text"
+          id="postal_code"
+          name="postal_code"
+          value={formData.postal_code}
+          onChange={handleChange}
+          required
+        />
+      </div>
+
       <div className="mb-3">
         <label htmlFor="price">Price</label>
         <input
@@ -265,6 +320,7 @@ function FormListing({ method, listing }) {
           <option value="O">Other</option>
         </select>
       </div>
+
       <div className="mb-3">
         <label htmlFor="sqft_area">Square Footage</label>
         <input
@@ -276,6 +332,7 @@ function FormListing({ method, listing }) {
           required
         />
       </div>
+
       <div className="mb-3">
         <label htmlFor="payment_type">Payment Type</label>
         <select
@@ -296,6 +353,7 @@ function FormListing({ method, listing }) {
           <option value="O">Other</option>
         </select>
       </div>
+
       <div className="mb-3">
         <label htmlFor="laundry_type">Laundry Type</label>
         <select
@@ -311,6 +369,7 @@ function FormListing({ method, listing }) {
           <option value="N">None</option>
         </select>
       </div>
+
       <div className="mb-3">
         <label htmlFor="bedrooms">Bedrooms</label>
         <input
@@ -322,6 +381,7 @@ function FormListing({ method, listing }) {
           required
         />
       </div>
+
       <div className="mb-3">
         <label htmlFor="bathrooms">Bathrooms</label>
         <input
@@ -333,6 +393,7 @@ function FormListing({ method, listing }) {
           required
         />
       </div>
+
       <div className="mb-3">
         <label htmlFor="parking_spaces">Parking Spaces</label>
         <input
@@ -344,6 +405,7 @@ function FormListing({ method, listing }) {
           required
         />
       </div>
+
       <div className="mb-3">
         <label htmlFor="move_in_date">Move-in Date</label>
         <input
@@ -355,6 +417,7 @@ function FormListing({ method, listing }) {
           required
         />
       </div>
+
       <div className="mb-3">
         <label htmlFor="description">Description</label>
         <textarea
@@ -364,39 +427,6 @@ function FormListing({ method, listing }) {
           onChange={handleChange}
           required
         ></textarea>
-      </div>
-      <div className="mb-3">
-        <label htmlFor="street_address">Street Address</label>
-        <input
-          type="text"
-          id="street_address"
-          name="street_address"
-          value={formData.street_address}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      <div className="mb-3">
-        <label htmlFor="city">City</label>
-        <input
-          type="text"
-          id="city"
-          name="city"
-          value={formData.city}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      <div className="mb-3">
-        <label htmlFor="postal_code">Postal Code</label>
-        <input
-          type="text"
-          id="postal_code"
-          name="postal_code"
-          value={formData.postal_code}
-          onChange={handleChange}
-          required
-        />
       </div>
 
       {/* Front Image */}
@@ -431,11 +461,6 @@ function FormListing({ method, listing }) {
       <button type="submit" className="btn btn-primary">
         {method === "post" ? "Create Listing" : "Save Changes"}
       </button>
-      {method === "edit" && (
-        <button type="delete" className="btn btn-danger" onClick={handleDelete}>
-          Delete Listing
-        </button>
-      )}
     </form>
   );
 }
