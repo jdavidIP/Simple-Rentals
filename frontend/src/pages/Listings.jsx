@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import api from "../api.js";
 import { useNavigate, useLocation } from "react-router-dom";
 
+import Header from "../components/header";
+import Footer from "../components/footer";
+
 function Listings() {
   const location = useLocation();
   const [listings, setListings] = useState(location.state?.listings || []);
@@ -180,35 +183,55 @@ function Listings() {
   return (
     <div>
       <Header />
-      <div class="container py-5">
-        <h2 class="mb-4 text-center">🏘️ Available Listings</h2>
-        {error && <div class="alert alert-danger">{error}</div>}
+      <div className="container py-5">
+        <h2 className="mb-4 text-center">🏘️ Available Listings</h2>
+        {error && (
+          <div ref={errorRef} className="alert alert-danger">
+            {error}
+          </div>
+        )}
 
         {/* Filters */}
-        <div class="card mb-5 shadow-sm">
-          <div class="card-body">
+        <div className="card mb-5 shadow-sm">
+          <div className="card-body">
             <form onSubmit={handleSubmit}>
-              {/* Location Filter */}
-              <div class="row g-3">
-                <div class="col-12">
-                  <label class="form-label">Location</label>
-                  <input
-                    type="text"
-                    name="location"
-                    class="form-control"
-                    value={filters.location}
-                    onChange={handleInputChange}
-                    required
-                  />
+              <div className="row g-3">
+                {/* Location & Radius */}
+                <div className="col-12">
+                  <label className="form-label">Location & Radius</label>
+                  <div className="input-group">
+                    <input
+                      type="text"
+                      name="location"
+                      ref={locationInputRef}
+                      className="form-control"
+                      defaultValue={filters.location}
+                      onChange={handleInputChange}
+                      required
+                    />
+
+                    <select
+                      className="form-select"
+                      style={{ maxWidth: "120px" }}
+                      value={radius}
+                      onChange={(e) => setRadius(e.target.value)}
+                    >
+                      <option value="1">1 km</option>
+                      <option value="5">5 km</option>
+                      <option value="10">10 km</option>
+                      <option value="20">20 km</option>
+                      <option value="50">50 km</option>
+                    </select>
+                  </div>
                 </div>
 
                 {/* Min Price */}
-                <div class="col-md-6">
-                  <label class="form-label">Min Price</label>
+                <div className="col-md-6">
+                  <label className="form-label">Min Price</label>
                   <input
                     type="number"
                     name="min_price"
-                    class="form-control"
+                    className="form-control"
                     value={filters.min_price}
                     onChange={handleInputChange}
                     min="0"
@@ -216,12 +239,12 @@ function Listings() {
                 </div>
 
                 {/* Max Price */}
-                <div class="col-md-6">
-                  <label class="form-label">Max Price</label>
+                <div className="col-md-6">
+                  <label className="form-label">Max Price</label>
                   <input
                     type="number"
                     name="max_price"
-                    class="form-control"
+                    className="form-control"
                     value={filters.max_price}
                     onChange={handleInputChange}
                     min="0"
@@ -229,11 +252,11 @@ function Listings() {
                 </div>
 
                 {/* Property Type */}
-                <div class="col-md-4">
-                  <label class="form-label">Property Type</label>
+                <div className="col-md-4">
+                  <label className="form-label">Property Type</label>
                   <select
                     name="property_type"
-                    class="form-select"
+                    className="form-select"
                     value={filters.property_type}
                     onChange={handleInputChange}
                   >
@@ -247,12 +270,12 @@ function Listings() {
                 </div>
 
                 {/* Bedrooms */}
-                <div class="col-md-4">
-                  <label class="form-label">Bedrooms</label>
+                <div className="col-md-4">
+                  <label className="form-label">Bedrooms</label>
                   <input
                     type="number"
                     name="bedrooms"
-                    class="form-control"
+                    className="form-control"
                     value={filters.bedrooms}
                     onChange={handleInputChange}
                     min="0"
@@ -260,12 +283,12 @@ function Listings() {
                 </div>
 
                 {/* Bathrooms */}
-                <div class="col-md-4">
-                  <label class="form-label">Bathrooms</label>
+                <div className="col-md-4">
+                  <label className="form-label">Bathrooms</label>
                   <input
                     type="number"
                     name="bathrooms"
-                    class="form-control"
+                    className="form-control"
                     value={filters.bathrooms}
                     onChange={handleInputChange}
                     min="0"
@@ -273,67 +296,66 @@ function Listings() {
                 </div>
               </div>
 
-              {/* Buttons */}
-              <div class="d-flex justify-content-end gap-2 mt-4">
-                <button type="submit" class="btn btn-primary">
+              <div className="d-flex justify-content-end gap-2 mt-4">
+                <button type="submit" className="btn btn-primary">
                   🔍 Apply Filters
                 </button>
                 <button
                   type="button"
-                  class="btn btn-secondary"
+                  className="btn btn-secondary"
                   onClick={clearFilters}
                 >
                   ✨ Clear All
                 </button>
               </div>
             </form>
-
           </div>
         </div>
-      {/* Listings */}
-      {listings.length === 0 ? (
-        <p className="text-muted text-center">No listings found.</p>
-      ) : (
-        <div className="row g-4">
-          {listings.map((listing) => (
-            <div key={listing.id} className="card col-3 m-4 shadow-sm">
-              {listing.primary_image ? (
-                <img
-                  src={listing.primary_image.image}
-                  alt="Listing"
-                  className="card-img-top border-2 border-bottom my-1"
-                  style={{ maxHeight: "20rem", objectFit: "cover" }}
-                />
-              ) : (
-                <img
-                  src="/static/img/placeholder.jpg"
-                  alt="No Image Available"
-                  className="card-img-top my-1"
-                  style={{ maxHeight: "20rem", objectFit: "cover" }}
-                />
-              )}
 
-              <div className="card-body">
-                <h5 className="card-title mb-2">
-                  {listing.bedrooms} bedroom {listing.property_type} in{" "}
-                  {listing.city}
-                </h5>
+        {/* Listings */}
+        {listings.length === 0 ? (
+          <p className="text-muted text-center">No listings found.</p>
+        ) : (
+          <div className="row g-4">
+            {listings.map((listing) => (
+              <div key={listing.id} className="card col-3 m-4 shadow-sm">
+                {listing.primary_image ? (
+                  <img
+                    src={listing.primary_image.image}
+                    alt="Listing"
+                    className="card-img-top border-2 border-bottom my-1"
+                    style={{ maxHeight: "20rem", objectFit: "cover" }}
+                  />
+                ) : (
+                  <img
+                    src="/static/img/placeholder.jpg"
+                    alt="No Image Available"
+                    className="card-img-top my-1"
+                    style={{ maxHeight: "20rem", objectFit: "cover" }}
+                  />
+                )}
 
-                <h6 className="text-primary fw-semibold mb-3">
-                  ${listing.price}
-                </h6>
+                <div className="card-body">
+                  <h5 className="card-title mb-2">
+                    {listing.bedrooms} bedroom {listing.property_type} in{" "}
+                    {listing.city}
+                  </h5>
 
-                <p className="mb-3">
-                  <strong>Move-in:</strong> {listing.move_in_date}
-                </p>
+                  <h6 className="text-primary fw-semibold mb-3">
+                    ${listing.price}
+                  </h6>
 
-                <div className="d-flex justify-content-evenly">
-                  <button
-                    className="btn btn-outline-primary"
-                    onClick={() => navigate(`/listings/${listing.id}`)}
-                  >
-                    View Details
-                  </button>
+                  <p className="mb-3">
+                    <strong>Move-in:</strong> {listing.move_in_date}
+                  </p>
+
+                  <div className="d-flex justify-content-evenly">
+                    <button
+                      className="btn btn-outline-primary"
+                      onClick={() => navigate(`/listings/${listing.id}`)}
+                    >
+                      View Details
+                    </button>
 
                     <button
                       className="btn btn-outline-success"

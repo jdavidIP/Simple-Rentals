@@ -4,11 +4,15 @@ import api from "../api.js";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants.js";
 import FormLogIn from "../components/FormLogIn.jsx";
 
+import Header from "../components/header";
+import Footer from "../components/footer";
+
 function Login() {
   return (
   <div> 
     <Header />
     <FormLogIn />
+    <Footer />
   </div>
   );
 }

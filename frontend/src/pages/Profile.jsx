@@ -3,6 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../api.js";
 import "../styles/profile.css";
 
+import Header from "../components/header";
+import Footer from "../components/footer";
+
 function Profile() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -94,12 +97,30 @@ function Profile() {
           <h1>{`${profile.first_name} ${profile.last_name}`}</h1>
           <p>{profile.email}</p>
           <p>{profile.phone_number}</p>
-          <button
-            onClick={() => navigate(`/profile/${id}/reviews`)}
-            class="btn btn-primary"
-          >
-            Write a Review
-          </button>
+          {isOwner ? (
+            <button
+              onClick={() => navigate(`/listings/post`)}
+              className="btn btn-primary"
+            >
+              Create a Listing
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate(`/profile/${id}/reviews`)}
+              className="btn btn-primary"
+            >
+              Write a Review
+            </button>
+          )}
+
+          {isOwner && (
+            <button
+              onClick={() => navigate(`/profile/edit/${id}`)}
+              className="btn btn-primary"
+            >
+              Edit Profile
+            </button>
+          )}
         </div>
 
         <div className="listings-section">
@@ -128,6 +149,14 @@ function Profile() {
                   >
                     View More
                   </button>
+                  {isOwner && (
+                    <button
+                      className="edit-button"
+                      onClick={() => navigate(`/listings/edit/${listing.id}`)}
+                    >
+                      Edit Listing
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -135,6 +164,7 @@ function Profile() {
             <p>No listings found.</p>
           )}
         </div>
+
         <div className="reviews-section">
           <h2>Reviews</h2>
           {reviews.length > 0 ? (
@@ -161,6 +191,7 @@ function Profile() {
           )}
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
