@@ -5,7 +5,12 @@ import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants.js";
 import FormLogIn from "../components/FormLogIn.jsx";
 
 function Login() {
-  return <FormLogIn />;
+  return (
+  <div> 
+    <Header />
+    <FormLogIn />
+  </div>
+  );
 }
 
 export default Login;

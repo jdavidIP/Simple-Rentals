@@ -178,135 +178,118 @@ function Listings() {
   };
 
   return (
-    <div className="container py-5">
-      <h2 className="mb-4 text-center">🏘️ Available Listings</h2>
-      {error && (
-        <div ref={errorRef} className="alert alert-danger">
-          {error}
-        </div>
-      )}
+    <div>
+      <Header />
+      <div class="container py-5">
+        <h2 class="mb-4 text-center">🏘️ Available Listings</h2>
+        {error && <div class="alert alert-danger">{error}</div>}
 
-      {/* Filters */}
-      <div className="card mb-5 shadow-sm">
-        <div className="card-body">
-          <form onSubmit={handleSubmit}>
-            <div className="row g-3">
-              {/* Location & Radius */}
-              <div className="col-12">
-                <label className="form-label">Location & Radius</label>
-                <div className="input-group">
+        {/* Filters */}
+        <div class="card mb-5 shadow-sm">
+          <div class="card-body">
+            <form onSubmit={handleSubmit}>
+              {/* Location Filter */}
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label">Location</label>
                   <input
                     type="text"
                     name="location"
-                    ref={locationInputRef}
-                    className="form-control"
-                    defaultValue={filters.location}
+                    class="form-control"
+                    value={filters.location}
                     onChange={handleInputChange}
                     required
                   />
+                </div>
 
+                {/* Min Price */}
+                <div class="col-md-6">
+                  <label class="form-label">Min Price</label>
+                  <input
+                    type="number"
+                    name="min_price"
+                    class="form-control"
+                    value={filters.min_price}
+                    onChange={handleInputChange}
+                    min="0"
+                  />
+                </div>
+
+                {/* Max Price */}
+                <div class="col-md-6">
+                  <label class="form-label">Max Price</label>
+                  <input
+                    type="number"
+                    name="max_price"
+                    class="form-control"
+                    value={filters.max_price}
+                    onChange={handleInputChange}
+                    min="0"
+                  />
+                </div>
+
+                {/* Property Type */}
+                <div class="col-md-4">
+                  <label class="form-label">Property Type</label>
                   <select
-                    className="form-select"
-                    style={{ maxWidth: "120px" }}
-                    value={radius}
-                    onChange={(e) => setRadius(e.target.value)}
+                    name="property_type"
+                    class="form-select"
+                    value={filters.property_type}
+                    onChange={handleInputChange}
                   >
-                    <option value="1">1 km</option>
-                    <option value="5">5 km</option>
-                    <option value="10">10 km</option>
-                    <option value="20">20 km</option>
-                    <option value="50">50 km</option>
+                    <option value="">Any</option>
+                    <option value="H">House</option>
+                    <option value="A">Apartment</option>
+                    <option value="C">Condo</option>
+                    <option value="T">Townhouse</option>
+                    <option value="O">Other</option>
                   </select>
+                </div>
+
+                {/* Bedrooms */}
+                <div class="col-md-4">
+                  <label class="form-label">Bedrooms</label>
+                  <input
+                    type="number"
+                    name="bedrooms"
+                    class="form-control"
+                    value={filters.bedrooms}
+                    onChange={handleInputChange}
+                    min="0"
+                  />
+                </div>
+
+                {/* Bathrooms */}
+                <div class="col-md-4">
+                  <label class="form-label">Bathrooms</label>
+                  <input
+                    type="number"
+                    name="bathrooms"
+                    class="form-control"
+                    value={filters.bathrooms}
+                    onChange={handleInputChange}
+                    min="0"
+                  />
                 </div>
               </div>
 
-              {/* Min Price */}
-              <div className="col-md-6">
-                <label className="form-label">Min Price</label>
-                <input
-                  type="number"
-                  name="min_price"
-                  className="form-control"
-                  value={filters.min_price}
-                  onChange={handleInputChange}
-                  min="0"
-                />
-              </div>
-
-              {/* Max Price */}
-              <div className="col-md-6">
-                <label className="form-label">Max Price</label>
-                <input
-                  type="number"
-                  name="max_price"
-                  className="form-control"
-                  value={filters.max_price}
-                  onChange={handleInputChange}
-                  min="0"
-                />
-              </div>
-
-              {/* Property Type */}
-              <div className="col-md-4">
-                <label className="form-label">Property Type</label>
-                <select
-                  name="property_type"
-                  className="form-select"
-                  value={filters.property_type}
-                  onChange={handleInputChange}
+              {/* Buttons */}
+              <div class="d-flex justify-content-end gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">
+                  🔍 Apply Filters
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  onClick={clearFilters}
                 >
-                  <option value="">Any</option>
-                  <option value="H">House</option>
-                  <option value="A">Apartment</option>
-                  <option value="C">Condo</option>
-                  <option value="T">Townhouse</option>
-                  <option value="O">Other</option>
-                </select>
+                  ✨ Clear All
+                </button>
               </div>
+            </form>
 
-              {/* Bedrooms */}
-              <div className="col-md-4">
-                <label className="form-label">Bedrooms</label>
-                <input
-                  type="number"
-                  name="bedrooms"
-                  className="form-control"
-                  value={filters.bedrooms}
-                  onChange={handleInputChange}
-                  min="0"
-                />
-              </div>
-
-              {/* Bathrooms */}
-              <div className="col-md-4">
-                <label className="form-label">Bathrooms</label>
-                <input
-                  type="number"
-                  name="bathrooms"
-                  className="form-control"
-                  value={filters.bathrooms}
-                  onChange={handleInputChange}
-                  min="0"
-                />
-              </div>
-            </div>
-
-            <div className="d-flex justify-content-end gap-2 mt-4">
-              <button type="submit" className="btn btn-primary">
-                🔍 Apply Filters
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={clearFilters}
-              >
-                ✨ Clear All
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
-      </div>
-
       {/* Listings */}
       {listings.length === 0 ? (
         <p className="text-muted text-center">No listings found.</p>
@@ -352,18 +335,20 @@ function Listings() {
                     View Details
                   </button>
 
-                  <button
-                    className="btn btn-outline-success"
-                    onClick={() => handleStartConversation(listing.id)}
-                  >
-                    Contact Owner
-                  </button>
+                    <button
+                      className="btn btn-outline-success"
+                      onClick={() => handleStartConversation(listing.id)}
+                    >
+                      Contact Owner
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
+      <Footer />
     </div>
   );
 }
