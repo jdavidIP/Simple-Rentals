@@ -8,7 +8,7 @@ function Login() {
   return (
   <div> 
     <Header />
-    <FormLogIn />;
+    <FormLogIn />
   </div>
   );
 }
