@@ -10,11 +10,15 @@ function Profile() {
   const [listings, setListings] = useState([]);
   const [reviews, setReviews] = useState([]); // New state for reviews
   const [error, setError] = useState(null);
+  const [isOwner, setIsOwner] = useState(false);
 
   const fetchProfile = async () => {
     try {
       const response = await api.get(`/profile/${id}`);
       setProfile(response.data);
+
+      // Check if the logged-in user is the owner of this profile
+      setIsOwner(response.data.is_owner);
     } catch (err) {
       console.error("Error fetching profile:", err);
       setError("Failed to fetch profile.");
@@ -26,10 +30,28 @@ function Profile() {
       const response = await api.get(`/listings/viewAll`, {
         params: { owner: id },
       });
-      setListings(response.data);
+      const processedListings = response.data.map((listing) => {
+        // Find the primary image
+        const primaryImage = listing.pictures.find((p) => p.is_primary);
+        // If primary image exists, put it first in the array
+        let orderedPictures = listing.pictures;
+        if (primaryImage) {
+          orderedPictures = [
+            primaryImage,
+            ...listing.pictures.filter((p) => p.id !== primaryImage.id),
+          ];
+        }
+        return {
+          ...listing,
+          pictures: orderedPictures,
+          primary_image: primaryImage,
+        };
+      });
+
+      setListings(processedListings);
     } catch (err) {
       console.error("Error fetching listings:", err);
-      setError("Failed to fetch listings.");
+      setError(err.response?.data?.Location || "Failed to fetch Listings.");
     }
   };
 
@@ -113,7 +135,6 @@ function Profile() {
             <p>No listings found.</p>
           )}
         </div>
-
         <div className="reviews-section">
           <h2>Reviews</h2>
           {reviews.length > 0 ? (

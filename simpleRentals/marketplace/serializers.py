@@ -37,9 +37,9 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = MarketplaceUser
         fields = [
-            'id', 'email', 'first_name', 'last_name',
-            'profile_picture', 'phone_number',
-            'facebook_link', 'instagram_link'
+            'id', 'email', 'first_name', 'last_name', 'age', 'sex',
+            'city', 'preferred_location', 'budget_min', 'budget_max', 'profile_picture', 'phone_number',
+            'facebook_link', 'instagram_link', 'receive_email_notifications', 'receive_sms_notifications','terms_accepted'
         ]
 
 
@@ -147,13 +147,15 @@ class UserLogInSerializer(serializers.ModelSerializer):
 class UserEditSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=False, style={'input_type': 'password'})
     password_confirmation = serializers.CharField(write_only=True, required=False, style={'input_type': 'password'})
+    # Accept a boolean for delete_profile_picture
+    delete_profile_picture = serializers.BooleanField(required=False, default=False)
 
     class Meta:
         model = MarketplaceUser
         fields = [
             'id', 'email', 'password', 'password_confirmation', 'first_name', 'last_name', 'age', 'sex',
             'city', 'preferred_location', 'budget_min', 'budget_max', 'profile_picture', 'phone_number',
-            'facebook_link', 'instagram_link', 'terms_accepted'
+            'facebook_link', 'instagram_link', 'terms_accepted', 'delete_profile_picture'
         ]
 
     def validate(self, data):
@@ -166,6 +168,18 @@ class UserEditSerializer(serializers.ModelSerializer):
         return data
 
     def update(self, instance, validated_data):
+        # Handle profile picture deletion
+        delete_picture = validated_data.pop('delete_profile_picture', False)
+        new_picture = validated_data.get('profile_picture', None)
+
+        if delete_picture or new_picture:
+            # Delete the old profile picture file if it exists
+            if instance.profile_picture and hasattr(instance.profile_picture, 'path'):
+                import os
+                if os.path.isfile(instance.profile_picture.path):
+                    os.remove(instance.profile_picture.path)
+                instance.profile_picture = None
+
         password = validated_data.pop('password', None)
         validated_data.pop('password_confirmation', None)
 
@@ -218,7 +232,7 @@ class ListingPostingSerializer(serializers.ModelSerializer):
             'unit_number', 'street_address', 'city', 'postal_code', 'utilities_cost', 'utilities_payable_by_tenant',
             'property_taxes', 'property_taxes_payable_by_tenant', 'condo_fee', 'condo_fee_payable_by_tenant',
             'hoa_fee', 'hoa_fee_payable_by_tenant', 'security_deposit', 'security_deposit_payable_by_tenant',
-            'pictures', 'delete_images'
+            'pictures', 'delete_images', 'latitude', 'longitude'
         ]
 
     def validate(self, data):
