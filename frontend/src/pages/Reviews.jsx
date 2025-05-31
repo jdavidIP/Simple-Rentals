@@ -8,7 +8,7 @@ function Reviews() {
   return (
     <div>
         <Header />
-        <FormReview />;
+        <FormReview />
     </div>
   );
 }
