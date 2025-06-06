@@ -183,22 +183,23 @@ function Listings() {
   return (
     <div>
       <Header />
-      <div class="container py-5">
-        <h2 class="mb-4 text-center">🏘️ Available Listings</h2>
-        {error && <div class="alert alert-danger">{error}</div>}
+      <div className="container py-5">
+        <h2 className="mb-4 text-center">🏘️ Available Listings</h2>
+        {error && <div className="alert alert-danger">{error}</div>}
 
         {/* Filters */}
-        <div class="card mb-5 shadow-sm">
-          <div class="card-body">
+        <div className="card mb-5 shadow-sm">
+          <div className="card-body">
             <form onSubmit={handleSubmit}>
               {/* Location Filter */}
-              <div class="row g-3">
-                <div class="col-12">
-                  <label class="form-label">Location</label>
+              <div className="row g-3">
+                <div className="col-12">
+                  <label className="form-label">Location</label>
                   <input
                     type="text"
                     name="location"
-                    class="form-control"
+                    className="form-control"
+                    ref={locationInputRef}
                     value={filters.location}
                     onChange={handleInputChange}
                     required
@@ -206,12 +207,12 @@ function Listings() {
                 </div>
 
                 {/* Min Price */}
-                <div class="col-md-6">
-                  <label class="form-label">Min Price</label>
+                <div className="col-md-6">
+                  <label className="form-label">Min Price</label>
                   <input
                     type="number"
                     name="min_price"
-                    class="form-control"
+                    className="form-control"
                     value={filters.min_price}
                     onChange={handleInputChange}
                     min="0"
@@ -219,12 +220,12 @@ function Listings() {
                 </div>
 
                 {/* Max Price */}
-                <div class="col-md-6">
-                  <label class="form-label">Max Price</label>
+                <div className="col-md-6">
+                  <label className="form-label">Max Price</label>
                   <input
                     type="number"
                     name="max_price"
-                    class="form-control"
+                    className="form-control"
                     value={filters.max_price}
                     onChange={handleInputChange}
                     min="0"
@@ -232,11 +233,11 @@ function Listings() {
                 </div>
 
                 {/* Property Type */}
-                <div class="col-md-4">
-                  <label class="form-label">Property Type</label>
+                <div className="col-md-4">
+                  <label className="form-label">Property Type</label>
                   <select
                     name="property_type"
-                    class="form-select"
+                    className="form-select"
                     value={filters.property_type}
                     onChange={handleInputChange}
                   >
@@ -250,12 +251,12 @@ function Listings() {
                 </div>
 
                 {/* Bedrooms */}
-                <div class="col-md-4">
-                  <label class="form-label">Bedrooms</label>
+                <div className="col-md-4">
+                  <label className="form-label">Bedrooms</label>
                   <input
                     type="number"
                     name="bedrooms"
-                    class="form-control"
+                    className="form-control"
                     value={filters.bedrooms}
                     onChange={handleInputChange}
                     min="0"
@@ -263,12 +264,12 @@ function Listings() {
                 </div>
 
                 {/* Bathrooms */}
-                <div class="col-md-4">
-                  <label class="form-label">Bathrooms</label>
+                <div className="col-md-4">
+                  <label className="form-label">Bathrooms</label>
                   <input
                     type="number"
                     name="bathrooms"
-                    class="form-control"
+                    className="form-control"
                     value={filters.bathrooms}
                     onChange={handleInputChange}
                     min="0"
@@ -277,13 +278,13 @@ function Listings() {
               </div>
 
               {/* Buttons */}
-              <div class="d-flex justify-content-end gap-2 mt-4">
-                <button type="submit" class="btn btn-primary">
+              <div className="d-flex justify-content-end gap-2 mt-4">
+                <button type="submit" className="btn btn-primary">
                   🔍 Apply Filters
                 </button>
                 <button
                   type="button"
-                  class="btn btn-secondary"
+                  className="btn btn-secondary"
                   onClick={clearFilters}
                 >
                   ✨ Clear All
