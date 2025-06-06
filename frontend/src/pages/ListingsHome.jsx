@@ -105,6 +105,7 @@ function ListingsHome() {
                   type="text"
                   id="city"
                   className="form-control"
+                  ref={locationInputRef}
                   placeholder="e.g. Waterloo, Vancouver, Halifax"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
@@ -125,12 +126,12 @@ function ListingsHome() {
                   <option value="50">50 km</option>
                 </select>
               </div>
-            </div>
 
-            <button type="submit" className="btn btn-primary w-100 mt-2">
-              🔍 Search Listings
-            </button>
-          </form>
+              <button type="submit" className="btn btn-primary w-100 mt-2">
+                🔍 Search Listings
+              </button>
+            </form>
+          </div>
         </div>
       </div>
       <Footer />
