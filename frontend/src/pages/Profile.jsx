@@ -3,9 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../api.js";
 import "../styles/profile.css";
 
-import Header from "../components/header";
-import Footer from "../components/footer";
-
 function Profile() {
   const { id } = useParams();
   const navigate = useNavigate();

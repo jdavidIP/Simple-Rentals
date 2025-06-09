@@ -2,9 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import api from "../api.js";
 import { useNavigate, useLocation } from "react-router-dom";
 
-import Header from "../components/header";
-import Footer from "../components/footer";
-
 function Listings() {
   const location = useLocation();
   const [listings, setListings] = useState(location.state?.listings || []);
