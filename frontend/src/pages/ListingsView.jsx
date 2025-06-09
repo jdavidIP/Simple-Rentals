@@ -87,7 +87,9 @@ function ListingsView() {
             {listing.unit_number && `${listing.unit_number}, `}
             {listing.street_address}, {listing.city}, {listing.postal_code}
           </h5>
-          <h3 className="text-primary fw-bold mt-2">${listing.price} / month</h3>
+          <h3 className="text-primary fw-bold mt-2">
+            ${listing.price} / month
+          </h3>
           {error && <p className="text-danger fw-semibold">{error}</p>}
         </div>
 
@@ -212,6 +214,9 @@ function ListingsView() {
             </div>
             <div className="col-md-4 mb-2">
               <p>
+                <strong>Roommates:</strong> {listing.shareable ? "Yes" : "No"}
+              </p>
+              <p>
                 <strong>Payment Type:</strong> {listing.payment_type}
               </p>
               <p>
@@ -260,7 +265,10 @@ function ListingsView() {
             </li>
             <li>
               <strong>HOA Fee:</strong> ${listing.hoa_fee} (
-              {listing.hoa_fee_payable_by_tenant ? "Paid by Tenant" : "Included"})
+              {listing.hoa_fee_payable_by_tenant
+                ? "Paid by Tenant"
+                : "Included"}
+              )
             </li>
             <li>
               <strong>Security Deposit:</strong> ${listing.security_deposit} (

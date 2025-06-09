@@ -74,6 +74,8 @@ class Listing(models.Model):
     security_deposit = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     security_deposit_payable_by_tenant = models.BooleanField(default=False)
 
+    shareable = models.BooleanField(default=False)
+
     # Foreign Keys
     owner = models.ForeignKey(MarketplaceUser, related_name="listings", on_delete=models.CASCADE)
 

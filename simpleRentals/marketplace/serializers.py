@@ -232,7 +232,7 @@ class ListingPostingSerializer(serializers.ModelSerializer):
             'unit_number', 'street_address', 'city', 'postal_code', 'utilities_cost', 'utilities_payable_by_tenant',
             'property_taxes', 'property_taxes_payable_by_tenant', 'condo_fee', 'condo_fee_payable_by_tenant',
             'hoa_fee', 'hoa_fee_payable_by_tenant', 'security_deposit', 'security_deposit_payable_by_tenant',
-            'pictures', 'delete_images', 'latitude', 'longitude'
+            'pictures', 'delete_images', 'latitude', 'longitude', 'shareable'
         ]
 
     def validate(self, data):
