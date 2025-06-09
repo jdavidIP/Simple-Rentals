@@ -21,76 +21,79 @@ import ConversationWindow from "./pages/ConversationWindow";
 import Profile from "./pages/Profile";
 import Reviews from "./pages/Reviews";
 import ProfileEdit from "./pages/ProfileEdit";
+import Layout from "./components/Layout";
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/logout" element={<Logout />} />
-        <Route path="/listings" element={<ListingsHome />} />
-        <Route path="/listings/results" element={<Listings />} />
-        <Route path="/listings/:id" element={<ListingsView />} />
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/logout" element={<Logout />} />
+          <Route path="/listings" element={<ListingsHome />} />
+          <Route path="/listings/results" element={<Listings />} />
+          <Route path="/listings/:id" element={<ListingsView />} />
 
-        <Route
-          path="/listings/post"
-          element={
-            <ProtectedRoute>
-              <ListingsPost />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/listings/edit/:id"
-          element={
-            <ProtectedRoute>
-              <ListingsEdit />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/conversations"
-          element={
-            <ProtectedRoute>
-              <ConversationList />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="profile/:id"
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="profile/edit/:id"
-          element={
-            <ProtectedRoute>
-              <ProfileEdit />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/conversations/:conversationId"
-          element={
-            <ProtectedRoute>
-              <ConversationWindow />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="profile/:id/reviews/"
-          element={
-            <ProtectedRoute>
-              <Reviews />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="*" element={<NotFound />} />
+          <Route
+            path="/listings/post"
+            element={
+              <ProtectedRoute>
+                <ListingsPost />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/listings/edit/:id"
+            element={
+              <ProtectedRoute>
+                <ListingsEdit />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/conversations"
+            element={
+              <ProtectedRoute>
+                <ConversationList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="profile/:id"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="profile/edit/:id"
+            element={
+              <ProtectedRoute>
+                <ProfileEdit />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/conversations/:conversationId"
+            element={
+              <ProtectedRoute>
+                <ConversationWindow />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="profile/:id/reviews/"
+            element={
+              <ProtectedRoute>
+                <Reviews />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<NotFound />} />
+        </Route>
       </Routes>
     </Router>
   );

@@ -83,7 +83,6 @@ function ListingsHome() {
 
   return (
     <div>
-      <Header />
       <div
         className="d-flex align-items-center justify-content-center min-vh-100"
         style={{
@@ -96,7 +95,9 @@ function ListingsHome() {
           style={{ maxWidth: "40rem", width: "100%" }}
         >
           <div className="card-body">
-            <h2 className="card-title text-center mb-4">🏠 Find Your Next Rental</h2>
+            <h2 className="card-title text-center mb-4">
+              🏠 Find Your Next Rental
+            </h2>
             {error && <div className="alert alert-danger">{error}</div>}
 
             <form onSubmit={handleSubmit}>
@@ -139,7 +140,6 @@ function ListingsHome() {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }

@@ -10,9 +10,7 @@ import Footer from "../components/footer";
 function Reviews() {
   return (
     <div>
-        <Header />
-        <FormReview />
-        <Footer />
+      <FormReview />
     </div>
   );
 }

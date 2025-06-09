@@ -144,7 +144,7 @@ function Listings() {
           });
           setFilters((prev) => ({
             ...prev,
-            location: place.name, 
+            location: place.name,
           }));
           locationInputRef.current.value = place.formatted_address;
         }
@@ -182,7 +182,6 @@ function Listings() {
 
   return (
     <div>
-      <Header />
       <div className="container py-5">
         <h2 className="mb-4 text-center">🏘️ Available Listings</h2>
         {error && (
@@ -370,7 +369,6 @@ function Listings() {
           </div>
         )}
       </div>
-      <Footer />
     </div>
   );
 }

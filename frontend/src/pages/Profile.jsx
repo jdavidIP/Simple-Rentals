@@ -86,7 +86,6 @@ function Profile() {
 
   return (
     <div>
-      <Header />
       <div className="profile-container">
         <div className="profile-header">
           <img
@@ -191,7 +190,6 @@ function Profile() {
           )}
         </div>
       </div>
-      <Footer />
     </div>
   );
 }
