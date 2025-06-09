@@ -16,6 +16,7 @@ api.interceptors.request.use(
       "/listings/edit",
       "/profile/",
       "/profile/reviews/",
+      "/profile/me/",
       "/listing/",
       "/edit-profile/",
       "/listings/delete/",

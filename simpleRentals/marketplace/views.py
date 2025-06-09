@@ -76,6 +76,16 @@ class UserProfileView(generics.RetrieveAPIView): # Working
 
         return Response(data)
 
+class CurrentUserView(generics.RetrieveAPIView):
+    """API view to return the currently logged in user id."""
+
+    def retrieve(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return Response({"id": request.user.id})
+        
+        return Response({"id": None})
+        
+
 class LogoutView(APIView):
     """Custom logout view to blacklist refresh tokens."""
     permission_classes = [IsAuthenticated]

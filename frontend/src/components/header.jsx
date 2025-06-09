@@ -1,6 +1,21 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import api from "../api";
 
 function Header() {
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await api.get("/profile/me/");
+        setUserId(res.data.id);
+      } catch {
+        setUserId(null);
+      }
+    };
+    fetchUser();
+  }, []);
+
   return (
     <nav className="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
       <div className="container">
@@ -26,7 +41,10 @@ function Header() {
               </a>
             </li>
             <li className="nav-item">
-              <a className="nav-link" href="/profile">
+              <a
+                className="nav-link"
+                href={userId ? `/profile/${userId}` : "/login"}
+              >
                 Account
               </a>
             </li>
