@@ -22,6 +22,8 @@ import Profile from "./pages/Profile";
 import Reviews from "./pages/Reviews";
 import ProfileEdit from "./pages/ProfileEdit";
 import Layout from "./components/Layout";
+import RoommatesHome from "./pages/RoommatesHome";
+import RoommatesPost from "./pages/RoommatesPost";
 
 function App() {
   return (
@@ -53,14 +55,6 @@ function App() {
             }
           />
           <Route
-            path="/conversations"
-            element={
-              <ProtectedRoute>
-                <ConversationList />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="profile/:id"
             element={
               <ProtectedRoute>
@@ -77,6 +71,22 @@ function App() {
             }
           />
           <Route
+            path="profile/:id/reviews"
+            element={
+              <ProtectedRoute>
+                <Reviews />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/conversations"
+            element={
+              <ProtectedRoute>
+                <ConversationList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/conversations/:conversationId"
             element={
               <ProtectedRoute>
@@ -84,11 +94,12 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/roommates" element={<RoommatesHome />} />
           <Route
-            path="profile/:id/reviews/"
+            path="/roommates/post"
             element={
               <ProtectedRoute>
-                <Reviews />
+                <RoommatesPost />
               </ProtectedRoute>
             }
           />

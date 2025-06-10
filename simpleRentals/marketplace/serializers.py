@@ -1,7 +1,7 @@
 from django.utils.timezone import now
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from .models import MarketplaceUser, Listing, ListingPicture, Group, Review, Favorites, Conversation, Message
+from .models import MarketplaceUser, Listing, ListingPicture, Group, Review, Favorites, Conversation, Message, RoommateUser
 import os
 
 # Utility functions for image validation and saving
@@ -191,6 +191,37 @@ class UserEditSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+    
+class RoommateUserSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    occupation = serializers.CharField(source='get_occupation_display')
+    gender_preference = serializers.CharField(source='get_gender_preference_display')
+
+    class Meta:
+        model = RoommateUser
+        fields = '__all__'
+
+class RoommateUserRegistrationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RoommateUser
+        fields = [
+            'id', 'description', 'move_in_date', 'stay_length', 'occupation',
+            'roommate_budget', 'smoke_friendly', 'cannabis_friendly', 'pet_friendly',
+            'couple_friendly', 'gender_preference', 'open_to_message'
+        ]
+        extra_kwargs = {
+            'description': {'required': True},
+            'move_in_date': {'required': True},
+            'occupation': {'required': True},
+            'gender_preference': {'required': True},
+        }
+
+    def validate(self, data):
+        # Example: you can add custom validation here if needed
+        return data
+
+    def create(self, validated_data):
+        return RoommateUser.objects.create(**validated_data)
 
 # Listing management serializers
 
@@ -331,8 +362,6 @@ class ReviewSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("You cannot review yourself.")
         return data
 
-
-
 class FavoritesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favorites
@@ -341,7 +370,6 @@ class FavoritesSerializer(serializers.ModelSerializer):
             'user': {'read_only': True},
         }
 
-
 class ConversationSerializer(serializers.ModelSerializer):
     listing = ListingSerializer(read_only=True)  # Include listing details
     last_message = serializers.SerializerMethodField()  # Add the last message in the conversation
@@ -349,7 +377,7 @@ class ConversationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Conversation
-        fields = ['id', 'participants', 'listing', 'last_updated', 'last_message', 'messages']  # ✅ Add 'messages' here
+        fields = ['id', 'participants', 'listing', 'last_updated', 'last_message', 'messages']
 
     def get_last_message(self, obj):
         last_message = obj.get_last_message()
@@ -358,7 +386,6 @@ class ConversationSerializer(serializers.ModelSerializer):
         return None
 
     def get_messages(self, obj):
-        # ✅ Serialize all messages for this conversation
         messages = obj.messages.order_by('timestamp')  # Order by timestamp ascending
         return MessageSerializer(messages, many=True, context=self.context).data
 

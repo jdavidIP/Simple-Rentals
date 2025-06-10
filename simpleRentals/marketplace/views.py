@@ -367,6 +367,56 @@ class ReviewUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
             raise PermissionDenied("You do not have permission to modify this review.")
         return review
 
+### REVIEW SECTION - END ###
+
+
+### ROOMMATE SECTION - START ###
+# API views for roommate management
+
+class RoommateListView(generics.ListAPIView):
+    serializer_class = RoommateUserSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        queryset = RoommateUser.objects.all()
+        filters = self.request.query_params
+
+        gender_preference = filters.get("gender_preference")
+        pet_friendly = filters.get("pet_friendly")
+        smoke_friendly = filters.get("smoke_friendly")
+        cannabis_friendly = filters.get("cannabis_friendly")
+        couple_friendly = filters.get("couple_friendly")
+        occupation = filters.get("occupation")
+        city = filters.get("city")
+        budget = filters.get("roommate_budget")
+
+        if gender_preference:
+            queryset = queryset.filter(gender_preference=gender_preference)
+        if pet_friendly is not None:
+            queryset = queryset.filter(pet_friendly=pet_friendly.lower() in ["true", "1"])
+        if smoke_friendly is not None:
+            queryset = queryset.filter(smoke_friendly=smoke_friendly.lower() in ["true", "1"])
+        if cannabis_friendly is not None:
+            queryset = queryset.filter(cannabis_friendly=cannabis_friendly.lower() in ["true", "1"])
+        if couple_friendly is not None:
+            queryset = queryset.filter(couple_friendly=couple_friendly.lower() in ["true", "1"])
+        if occupation:
+            queryset = queryset.filter(occupation=occupation)
+        if city:
+            queryset = queryset.filter(user__city__icontains=city)
+        if budget:
+            queryset = queryset.filter(roommate_budget=budget)
+
+        return queryset
+
+class CreateRoommateView(generics.CreateAPIView):
+    queryset = RoommateUser.objects.all()
+    serializer_class = RoommateUserRegistrationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        # The `context` is already passed to the serializer by DRF
+        serializer.save(user=self.request.user)
 
 # HOME SECTION - START
 

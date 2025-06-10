@@ -37,7 +37,7 @@ class RoommateUser(models.Model):
     user = models.OneToOneField(MarketplaceUser, on_delete=models.CASCADE, related_name="roommate_profile")
     description = models.TextField()
     move_in_date = models.DateField()
-    stay_length = models.DecimalField(null=True)
+    stay_length = models.IntegerField(null=True)
     occupation = models.CharField(max_length=1, choices=[('S', 'Student'), ('E', 'Employed'), ('N', 'Not Currently Working')])
 
     # Preferences

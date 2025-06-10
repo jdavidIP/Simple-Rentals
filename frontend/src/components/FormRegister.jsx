@@ -310,6 +310,16 @@ function FormRegister({ method = "register", profile }) {
       <div className="mb-3">
         <input
           type="text"
+          name="preferred_location"
+          placeholder="Prefferred Location to live"
+          value={formData.preferred_location}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      <div className="mb-3">
+        <input
+          type="text"
           name="phone_number"
           placeholder="Phone Number (e.g., +1-123-456-7890)"
           value={formData.phone_number}

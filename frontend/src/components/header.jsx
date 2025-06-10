@@ -53,6 +53,11 @@ function Header() {
                 Listings
               </a>
             </li>
+            <li className="nav-item">
+              <a className="nav-link" href="/roommates">
+                Roommates
+              </a>
+            </li>
           </ul>
         </div>
       </div>
