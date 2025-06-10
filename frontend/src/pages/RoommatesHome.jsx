@@ -228,9 +228,9 @@ function Roommates() {
         <div className="row g-4">
           {roommates.map((roommate) => (
             <div key={roommate.id} className="card col-3 m-4 shadow-sm">
-              {roommate.profile_picture ? (
+              {roommate.user.profile_picture ? (
                 <img
-                  src={roommate.profile_picture}
+                  src={roommate.user.profile_picture}
                   alt="Profile"
                   className="card-img-top border-2 border-bottom my-1"
                   style={{ maxHeight: "20rem", objectFit: "cover" }}
