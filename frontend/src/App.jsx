@@ -26,6 +26,7 @@ import RoommatesHome from "./pages/RoommatesHome";
 import RoommatesPost from "./pages/RoommatesPost";
 import Groups from "./pages/Groups";
 import GroupPost from "./pages/GroupsPost";
+import GroupView from "./pages/GroupView";
 
 function App() {
   return (
@@ -69,6 +70,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <GroupPost />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/groups/:id"
+            element={
+              <ProtectedRoute>
+                <GroupView />
               </ProtectedRoute>
             }
           />

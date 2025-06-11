@@ -457,6 +457,32 @@ class GroupPostingView(generics.CreateAPIView):
         # Optionally, add the owner as a member of the group
         group.members.add(roommate_user)
 
+class GroupDetailView(generics.RetrieveAPIView):
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        group = get_object_or_404(Group, id=self.kwargs['pk'])
+        return group
+    
+class GroupJoinView(generics.UpdateAPIView):
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]
+
+    def update(self, request, *args, **kwargs):
+        group = get_object_or_404(Group, id=self.kwargs['pk'])
+        roommate_user = get_object_or_404(RoommateUser, user=request.user)
+
+        # Check if user is already a member
+        if group.members.filter(id=roommate_user.id).exists():
+            return Response({"detail": "You are already a member of this group."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Add user to group
+        group.members.add(roommate_user)
+        group.save()
+
+        serializer = self.get_serializer(group)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 # HOME SECTION - START
 

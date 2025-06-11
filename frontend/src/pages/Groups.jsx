@@ -50,7 +50,12 @@ function Groups() {
       ) : (
         <div className="groups-list">
           {groups.map((group) => (
-            <div className="group-card" key={group.id}>
+            <div
+              className="group-card"
+              key={group.id}
+              style={{ cursor: "pointer" }}
+              onClick={() => navigate(`/groups/${group.id}`)}
+            >
               <h4 className="group-name">{group.name}</h4>
               <p className="group-description">
                 {group.description || "No description provided."}

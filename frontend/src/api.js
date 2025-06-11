@@ -22,6 +22,7 @@ api.interceptors.request.use(
       "/edit-profile/",
       "/listings/delete/",
       "/roommates",
+      "/groups",
     ];
     const url = new URL(config.url, config.baseURL).pathname;
 
