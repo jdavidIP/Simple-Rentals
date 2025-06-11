@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../api";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import "../styles/groups.css";
 
 function GroupView() {
@@ -101,8 +101,10 @@ function GroupView() {
         ) : (
           members.map((member) => (
             <li key={member.id}>
-              {member.user?.first_name} {member.user?.last_name} (
-              {member.user?.email})
+              <Link to={`/profile/${member.user.id}`}>
+                {member.user?.first_name} {member.user?.last_name} (
+                {member.user?.email})
+              </Link>
             </li>
           ))
         )}
