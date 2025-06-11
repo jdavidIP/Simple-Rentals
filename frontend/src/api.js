@@ -18,9 +18,10 @@ api.interceptors.request.use(
       "/profile/reviews/",
       "/profile/me/",
       "/listing/",
+      "/listings",
       "/edit-profile/",
       "/listings/delete/",
-      "/roommates/post",
+      "/roommates",
     ];
     const url = new URL(config.url, config.baseURL).pathname;
 

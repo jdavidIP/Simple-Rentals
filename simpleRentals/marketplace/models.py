@@ -119,6 +119,7 @@ class Group(models.Model):
     name = models.CharField(max_length=100)
     listing = models.ForeignKey(Listing, related_name="groups", on_delete=models.CASCADE)
     members = models.ManyToManyField(RoommateUser, related_name="listing_groups")
+    owner = models.ForeignKey(RoommateUser, related_name="group_owner", on_delete=models.CASCADE)
     description = models.TextField(blank=True, null=True)
     move_in_date = models.DateField()
     move_in_ready = models.BooleanField(default=False)

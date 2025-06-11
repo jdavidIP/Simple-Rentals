@@ -120,6 +120,12 @@ function ListingsView() {
               >
                 Contact Owner
               </button>
+              <button
+                className="btn btn-primary mt-3"
+                onClick={() => navigate(`/listings/${listing.id}/groups`)}
+              >
+                See Groups
+              </button>
             </div>
           </div>
         </div>

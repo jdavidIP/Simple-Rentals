@@ -4,15 +4,16 @@ import api from "../api";
 function Header() {
   const [userId, setUserId] = useState(null);
 
+  const fetchUser = async () => {
+    try {
+      const res = await api.get("/profile/me/");
+      setUserId(res.data.id);
+    } catch {
+      setUserId(null);
+    }
+  };
+
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await api.get("/profile/me/");
-        setUserId(res.data.id);
-      } catch {
-        setUserId(null);
-      }
-    };
     fetchUser();
   }, []);
 

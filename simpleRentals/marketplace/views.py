@@ -264,6 +264,9 @@ class StartConversationView(APIView):
     def post(self, request, pk):
         listing = get_object_or_404(Listing, id=pk)
 
+        if listing.owner == request.user:
+            raise ValidationError("You cannot start a conversation with yourself.")
+        
         # Check if conversation already exists
         conversation = Conversation.objects.filter(participants=request.user, listing=listing).first()
 
@@ -381,6 +384,7 @@ class RoommateListView(generics.ListAPIView):
         queryset = RoommateUser.objects.all()
         filters = self.request.query_params
 
+        name = filters.get("name")
         gender_preference = filters.get("gender_preference")
         pet_friendly = filters.get("pet_friendly")
         smoke_friendly = filters.get("smoke_friendly")
@@ -390,6 +394,15 @@ class RoommateListView(generics.ListAPIView):
         city = filters.get("city")
         budget = filters.get("roommate_budget")
 
+        user = self.request.user
+        if user.is_authenticated:
+            queryset = queryset.exclude(user=user)
+
+        if name:
+            queryset = queryset.filter(
+                Q(user__first_name__icontains=name) |
+                Q(user__last_name__icontains=name)
+            )
         if gender_preference:
             queryset = queryset.filter(gender_preference=gender_preference)
         if pet_friendly is not None:
@@ -417,6 +430,33 @@ class CreateRoommateView(generics.CreateAPIView):
     def perform_create(self, serializer):
         # The `context` is already passed to the serializer by DRF
         serializer.save(user=self.request.user)
+    
+### ROOMMATE SECTION - END ###
+
+
+### GROUP SECTION - START ###
+# API views for group management
+
+class GroupListView(generics.ListAPIView):
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        listing = self.kwargs['pk']
+
+        return Group.objects.filter(listing_id=listing)
+    
+class GroupPostingView(generics.CreateAPIView):
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        # Get the RoommateUser profile for the current user
+        roommate_user = get_object_or_404(RoommateUser, user=self.request.user)
+        group = serializer.save(owner=roommate_user)
+        # Optionally, add the owner as a member of the group
+        group.members.add(roommate_user)
+
 
 # HOME SECTION - START
 

@@ -216,10 +216,6 @@ class RoommateUserRegistrationSerializer(serializers.ModelSerializer):
             'gender_preference': {'required': True},
         }
 
-    def validate(self, data):
-        # Example: you can add custom validation here if needed
-        return data
-
     def create(self, validated_data):
         return RoommateUser.objects.create(**validated_data)
 
@@ -253,7 +249,6 @@ class ListingPostingSerializer(serializers.ModelSerializer):
     delete_images = serializers.ListField(
         child=serializers.IntegerField(), required=False
     )
-
 
     class Meta:
         model = Listing
@@ -316,10 +311,18 @@ class ListingPostingSerializer(serializers.ModelSerializer):
 
 
 class GroupSerializer(serializers.ModelSerializer):
+    # For reading (GET)
+    members = RoommateUserSerializer(many=True, read_only=True)
+    # For writing (POST/PUT)
+    member_ids = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=RoommateUser.objects.all(), write_only=True, source='members'
+    )
+    owner = RoommateUserSerializer(read_only=True)
+
     class Meta:
         model = Group
         fields = [
-            'id', 'name', 'listing', 'members', 'description', 
+            'id', 'name', 'listing', 'members', 'member_ids', 'owner', 'description', 
             'move_in_date', 'move_in_ready', 'group_status'
         ]
         extra_kwargs = {
@@ -328,6 +331,13 @@ class GroupSerializer(serializers.ModelSerializer):
             'move_in_date': {'required': True},
             'group_status': {'required': True},
         }
+
+    def create(self, validated_data):
+        members = validated_data.pop('members', [])
+        group = Group.objects.create(**validated_data)
+        if members:
+            group.members.set(members)
+        return group
 
 
 class ReviewSerializer(serializers.ModelSerializer):

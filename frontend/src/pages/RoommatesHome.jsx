@@ -15,6 +15,7 @@ function Roommates() {
     occupation: "",
   });
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
   const errorRef = useRef(null);
 
   const fetchRoommates = async (customFilters = filters) => {
@@ -245,7 +246,7 @@ function Roommates() {
               )}
               <div className="card-body">
                 <h5 className="card-title mb-2">
-                  {roommate.first_name} {roommate.last_name}
+                  {roommate.user.first_name} {roommate.user.last_name}
                 </h5>
                 <h6 className="text-primary fw-semibold mb-3">
                   Budget: ${roommate.roommate_budget}
