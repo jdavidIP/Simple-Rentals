@@ -36,6 +36,7 @@ urlpatterns = [
     path("profile/me/", views.CurrentUserView.as_view(), name="profile_self"),
     path("reviews/<int:pk>", views.ReviewUpdateDeleteView.as_view(), name="manage_review"), # pk = review id
     path("roommates/", views.RoommateListView.as_view(), name="viewAllRoommates"),
+    path("roommates/<int:pk>", views.RoommateDetailView.as_view(), name="view_roommate"), # pk = roommate id
     path("roommates/post", views.CreateRoommateView.as_view(), name="post_roommate")
 ]
 

@@ -421,6 +421,25 @@ class RoommateListView(generics.ListAPIView):
             queryset = queryset.filter(roommate_budget=budget)
 
         return queryset
+    
+class RoommateDetailView(generics.RetrieveAPIView):
+    serializer_class = RoommateUserSerializer
+    permission_class = [IsAuthenticated]
+
+    def get_object(self):
+        roommate = get_object_or_404(RoommateUser, id=self.kwargs['pk'])
+
+        return roommate
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        data = self.get_serializer(instance).data
+
+        # Determine if the requesting user is the owner
+        is_owner = request.user.is_authenticated and request.user.id == instance.id
+        data['is_owner'] = is_owner
+
+        return Response(data)
 
 class CreateRoommateView(generics.CreateAPIView):
     queryset = RoommateUser.objects.all()

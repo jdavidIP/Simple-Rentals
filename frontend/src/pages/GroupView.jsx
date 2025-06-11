@@ -86,8 +86,7 @@ function GroupView() {
         <strong>Move-in Date:</strong> {group.move_in_date}
       </p>
       <p>
-        <strong>Status:</strong>{" "}
-        {group.group_status === "O" ? "Open" : group.group_status}
+        <strong>Status:</strong> {group.group_status}
       </p>
       <p>
         <strong>Move-in Ready:</strong> {group.move_in_ready ? "Yes" : "No"}
@@ -113,7 +112,7 @@ function GroupView() {
         className="btn btn-primary mt-3"
         onClick={handleJoin}
         disabled={
-          group.group_status !== "O" ||
+          group.group_status !== "Open" ||
           joining ||
           isMember ||
           currentUserId === null
@@ -121,7 +120,7 @@ function GroupView() {
       >
         {isMember
           ? "You are a member"
-          : group.group_status !== "O"
+          : group.group_status !== "Open"
           ? "Group not open"
           : joining
           ? "Joining..."

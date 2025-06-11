@@ -228,7 +228,12 @@ function Roommates() {
       ) : (
         <div className="row g-4">
           {roommates.map((roommate) => (
-            <div key={roommate.id} className="card col-3 m-4 shadow-sm">
+            <div
+              key={roommate.id}
+              className="card col-3 m-4 shadow-sm"
+              style={{ cursor: "pointer" }}
+              onClick={() => navigate(`/roommates/${roommate.id}`)}
+            >
               {roommate.user.profile_picture ? (
                 <img
                   src={roommate.user.profile_picture}
@@ -255,34 +260,7 @@ function Roommates() {
                   <strong>City:</strong> {roommate.user.preferred_location}
                 </p>
                 <p className="mb-2">
-                  <strong>Move-in:</strong> {roommate.move_in_date}
-                </p>
-                <p className="mb-2">
-                  <strong>Occupation:</strong> {roommate.occupation}
-                </p>
-                <p className="mb-2">
-                  <strong>Gender Preference:</strong>{" "}
-                  {roommate.gender_preference}
-                </p>
-                <p className="mb-2">
-                  <strong>Pet Friendly:</strong>{" "}
-                  {roommate.pet_friendly ? "Yes" : "No"}
-                </p>
-                <p className="mb-2">
-                  <strong>Smoke Friendly:</strong>{" "}
-                  {roommate.smoke_friendly ? "Yes" : "No"}
-                </p>
-                <p className="mb-2">
-                  <strong>Cannabis Friendly:</strong>{" "}
-                  {roommate.cannabis_friendly ? "Yes" : "No"}
-                </p>
-                <p className="mb-2">
-                  <strong>Couple Friendly:</strong>{" "}
-                  {roommate.couple_friendly ? "Yes" : "No"}
-                </p>
-                <p className="mb-2">
-                  <strong>Open to Message:</strong>{" "}
-                  {roommate.open_to_message ? "Yes" : "No"}
+                  <strong>Gender:</strong> {roommate.user.sex}
                 </p>
                 <p className="mb-2">
                   <strong>Description:</strong> {roommate.description}

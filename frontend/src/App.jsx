@@ -24,6 +24,7 @@ import ProfileEdit from "./pages/ProfileEdit";
 import Layout from "./components/Layout";
 import RoommatesHome from "./pages/RoommatesHome";
 import RoommatesPost from "./pages/RoommatesPost";
+import RoommatesView from "./pages/RoommatesView";
 import Groups from "./pages/Groups";
 import GroupPost from "./pages/GroupsPost";
 import GroupView from "./pages/GroupView";
@@ -134,6 +135,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <RoommatesPost />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/roommates/:id"
+            element={
+              <ProtectedRoute>
+                <RoommatesView />
               </ProtectedRoute>
             }
           />
