@@ -77,13 +77,12 @@ class UserProfileView(generics.RetrieveAPIView): # Working
         return Response(data)
 
 class CurrentUserView(generics.RetrieveAPIView):
-    """API view to return the currently logged in user id."""
+    """API view to return the currently logged-in user's profile."""
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
 
-    def retrieve(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            return Response({"id": request.user.id})
-        
-        return Response({"id": None})
+    def get_object(self):
+        return self.request.user
         
 
 class LogoutView(APIView):

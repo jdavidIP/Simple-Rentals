@@ -16,6 +16,7 @@ function FormRegister({ method = "register", profile }) {
     sex: profile?.sex || "",
     budget_min: profile?.budget_min || "",
     budget_max: profile?.budget_max || "",
+    yearly_income: profile?.yearly_income || "",
     city: profile?.city || "",
     preferred_location: profile?.preferred_location || "",
     phone_number: profile?.phone_number || "",
@@ -295,6 +296,17 @@ function FormRegister({ method = "register", profile }) {
           min="0"
           step="0.01"
           required
+        />
+      </div>
+      <div className="mb-3">
+        <input
+          type="number"
+          name="yearly_income"
+          placeholder="Yearly Income (Optional)"
+          value={formData.yearly_income}
+          onChange={handleChange}
+          step="0.01"
+          min="0"
         />
       </div>
       <div className="mb-3">
