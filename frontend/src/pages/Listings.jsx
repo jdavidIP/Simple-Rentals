@@ -16,6 +16,7 @@ function Listings() {
   const [latLng, setLatLng] = useState({ lat: null, lng: null });
   const [radius, setRadius] = useState("5"); // Default radius
   const [error, setError] = useState(null);
+  const [userIncome, setUserIncome] = useState(null);
   const navigate = useNavigate();
   const errorRef = useRef(null);
   const locationInputRef = useRef(null);
@@ -83,6 +84,42 @@ function Listings() {
     setLatLng({ lat: null, lng: null });
     setRadius("5");
     fetchListings(cleared);
+  };
+  
+  useEffect(() => {
+    async function fetchUserIncome() {
+      try {
+        const response = await api.get("/profile/me/");
+        console.log("User profile response:", response.data);  // 🧪 Add this
+        const income = parseFloat(response.data.yearly_income);
+        if (!isNaN(income)) {
+          setUserIncome(income);
+        } else {
+          console.warn("No valid income returned");
+        }
+      } catch (error) {
+        console.error("Failed to fetch user income:", error);
+      }
+    }
+
+    fetchUserIncome();
+  }, []);
+
+  const getAffordabilityTag = (price) => {
+    if (!userIncome) {
+      console.log("User income not loaded yet");
+      return null;
+    }
+
+    const monthlyIncome = userIncome / 12;
+
+    if (price > monthlyIncome * 0.4) {
+      return { label: "❌ Too Expensive", color: "#dc3545" };
+    } else if (price <= monthlyIncome * 0.25) {
+      return { label: "💰 Affordable", color: "#0d6efd" };
+    } else {
+      return { label: "✅ Recommended", color: "#198754" };
+    }
   };
 
   useEffect(() => {
@@ -314,7 +351,31 @@ function Listings() {
         ) : (
           <div className="row g-4">
             {listings.map((listing) => (
-              <div key={listing.id} className="card col-3 m-4 shadow-sm">
+              <div key={listing.id} className="card col-3 m-4 shadow-sm position-relative">
+                {/* Affordability Tag */}
+                {userIncome && (() => {
+                  const tag = getAffordabilityTag(listing.price);
+                  return tag ? (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "10px",
+                        right: "10px",
+                        backgroundColor: tag.color,
+                        color: "white",
+                        padding: "5px 10px",
+                        borderRadius: "10px",
+                        fontWeight: "bold",
+                        fontSize: "0.8rem",
+                        zIndex: 10,
+                      }}
+                    >
+                      {tag.label}
+                    </div>
+                  ) : null;
+                })()}
+
+                {/* Image */}
                 {listing.primary_image ? (
                   <img
                     src={listing.primary_image.image}
@@ -331,15 +392,13 @@ function Listings() {
                   />
                 )}
 
+                {/* Body */}
                 <div className="card-body">
                   <h5 className="card-title mb-2">
-                    {listing.bedrooms} bedroom {listing.property_type} in{" "}
-                    {listing.city}
+                    {listing.bedrooms} bedroom {listing.property_type} in {listing.city}
                   </h5>
 
-                  <h6 className="text-primary fw-semibold mb-3">
-                    ${listing.price}
-                  </h6>
+                  <h6 className="text-primary fw-semibold mb-3">${listing.price}</h6>
 
                   <p className="mb-3">
                     <strong>Move-in:</strong> {listing.move_in_date}
