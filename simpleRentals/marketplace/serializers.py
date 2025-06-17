@@ -39,7 +39,8 @@ class UserSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'email', 'first_name', 'last_name', 'age', 'sex',
             'city', 'preferred_location', 'budget_min', 'budget_max', "yearly_income", 'profile_picture', 'phone_number',
-            'facebook_link', 'instagram_link', 'receive_email_notifications', 'receive_sms_notifications','terms_accepted'
+            'facebook_link', 'instagram_link', 'receive_email_notifications', 'receive_sms_notifications','terms_accepted',
+            'roommate_profile'
         ]
 
 

@@ -83,7 +83,6 @@ class CurrentUserView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
-        
 
 class LogoutView(APIView):
     """Custom logout view to blacklist refresh tokens."""
@@ -109,7 +108,7 @@ class LogoutView(APIView):
 ### LISTING SECTION - START ###
 # API views for listing management
     
-class ListingDeleteView(generics.DestroyAPIView): # Not Working yet (needs integration with frontend) - Not tested yet
+class ListingDeleteView(generics.DestroyAPIView): # Working
     """API view to handle listing deletion."""
     serializer_class = ListingSerializer
     permission_classes = [IsAuthenticated]
@@ -125,7 +124,7 @@ class ListingDeleteView(generics.DestroyAPIView): # Not Working yet (needs integ
                     os.remove(picture.image.path)
         instance.delete()
 
-class ListingEditView(generics.UpdateAPIView): # Not Working yet (needs integration with frontend) - Tested locally and works
+class ListingEditView(generics.UpdateAPIView): # Working
     """API view to handle listing editing."""
     serializer_class = ListingPostingSerializer
     permission_classes = [IsAuthenticated]  # Ensure only authenticated users can edit listings
@@ -135,7 +134,7 @@ class ListingEditView(generics.UpdateAPIView): # Not Working yet (needs integrat
         listing = get_object_or_404(Listing, id=self.kwargs['pk'], owner=self.request.user)
         return listing
     
-class ListingDetailView(generics.RetrieveAPIView): # Working (backend only)
+class ListingDetailView(generics.RetrieveAPIView): # Working
     """API view to handle listing details."""
     serializer_class = ListingSerializer
     permission_classes = [AllowAny]
@@ -145,7 +144,7 @@ class ListingDetailView(generics.RetrieveAPIView): # Working (backend only)
         listing = get_object_or_404(Listing, id=self.kwargs['pk'])
         return listing
 
-class ListingPostingView(generics.CreateAPIView): # Not Working yet (needs integration with frontend) - Not tested yet
+class ListingPostingView(generics.CreateAPIView): # Working
     """API view to handle listing posting."""
     serializer_class = ListingPostingSerializer
     permission_classes = [IsAuthenticated]
@@ -231,7 +230,7 @@ class ListingListView(generics.ListAPIView):
 ### CONVERSATION SECTION - START ###
 # API views for conversation management
 
-class ConversationListView(generics.ListAPIView): # Not Working yet (needs integration with frontend) - Tested locally and works
+class ConversationListView(generics.ListAPIView): # Working
     """API view to handle conversation list."""
     serializer_class = ConversationSerializer
     permission_classes = [IsAuthenticated] 
@@ -240,7 +239,7 @@ class ConversationListView(generics.ListAPIView): # Not Working yet (needs integ
         user = self.request.user
         return Conversation.objects.filter(participants=user).order_by('-last_updated')
     
-class ConversationDetailView(generics.RetrieveAPIView): # Not Working yet (needs integration with frontend) - Tested locally and works
+class ConversationDetailView(generics.RetrieveAPIView): # Working
     """API view to retrieve conversation details."""
     serializer_class = ConversationSerializer
     permission_classes = [IsAuthenticated]
@@ -287,7 +286,7 @@ class StartConversationView(APIView):
         serializer = ConversationSerializer(conversation, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-class SendMessageView(generics.CreateAPIView): # Not Working yet (needs integration with frontend) - Not tested yet
+class SendMessageView(generics.CreateAPIView): # Working
     """API view to send a message in a conversation."""
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
@@ -501,6 +500,16 @@ class GroupJoinView(generics.UpdateAPIView):
 
         serializer = self.get_serializer(group)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class GroupEditView(generics.UpdateAPIView):
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        group = get_object_or_404(Group, id=self.kwargs['pk'], owner=self.request.user)
+
+        return group
+
 
 # HOME SECTION - START
 

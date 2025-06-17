@@ -11,6 +11,7 @@ function Profile() {
   const [reviews, setReviews] = useState([]); // New state for reviews
   const [error, setError] = useState(null);
   const [isOwner, setIsOwner] = useState(false);
+  const [roommateId, setRoommateId] = useState(false);
 
   const fetchProfile = async () => {
     try {
@@ -19,6 +20,7 @@ function Profile() {
 
       // Check if the logged-in user is the owner of this profile
       setIsOwner(response.data.is_owner);
+      setRoommateId(response.data.roommate_profile);
     } catch (err) {
       console.error("Error fetching profile:", err);
       setError("Failed to fetch profile.");
@@ -115,6 +117,15 @@ function Profile() {
               className="btn btn-primary"
             >
               Edit Profile
+            </button>
+          )}
+
+          {roommateId && (
+            <button
+              onClick={() => navigate(`/roommates/${profile.roommate_profile}`)}
+              className="btn btn-primary"
+            >
+              See Roommate Profile
             </button>
           )}
         </div>
