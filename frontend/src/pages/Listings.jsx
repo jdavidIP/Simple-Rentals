@@ -93,7 +93,6 @@ function Listings() {
     async function fetchUserIncome() {
       try {
         const response = await api.get("/profile/me/");
-        console.log("User profile response:", response.data);  // 🧪 Add this
         const income = parseFloat(response.data.yearly_income);
         if (!isNaN(income)) {
           setUserIncome(income);

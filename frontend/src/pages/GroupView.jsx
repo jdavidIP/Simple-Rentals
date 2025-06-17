@@ -11,40 +11,44 @@ function GroupView() {
   const [error, setError] = useState(null);
   const [joining, setJoining] = useState(false);
   const [application, setApplication] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [listingOwnerId, setListingOwnerId] = useState(null);
+  const [listingPrice, setListingPrice] = useState(null);
 
   const fetchGroup = async () => {
     try {
       const res = await api.get(`/groups/${id}`);
       setGroup(res.data);
       setMembers(res.data.members || []);
+
+      const listingRes = await api.get(`/listings/${res.data.listing}`);
+      setListingPrice(listingRes.data.price);
+      setListingOwnerId(listingRes.data.owner?.id);
     } catch (err) {
       setError("Failed to fetch group details.");
     }
   };
+
   const fetchCurrentUser = async () => {
     try {
       const res = await api.get("/profile/me/");
-      setCurrentUserId(res.data.id);
+      setCurrentUser(res.data);
     } catch {
-      setCurrentUserId(null);
+      setCurrentUser(null);
     }
   };
 
-  // Fetch group details and current user id
   useEffect(() => {
     fetchGroup();
     fetchCurrentUser();
   }, [id]);
 
-  // Join group handler
   const handleJoin = async (e) => {
     e.preventDefault();
     setJoining(true);
     setError(null);
     try {
       await api.patch(`/groups/${id}/join`);
-      // Optionally, refetch group details to update members
       const res = await api.get(`/groups/${id}`);
       setGroup(res.data);
       setMembers(res.data.members || []);
@@ -62,9 +66,7 @@ function GroupView() {
     setError(null);
 
     try {
-      const payload = {
-        group_status: "S",
-      };
+      const payload = { group_status: "S" };
       await api.patch(`/groups/edit/${id}`, payload);
       const res = await api.get(`/groups/${id}`);
       setGroup(res.data);
@@ -74,11 +76,54 @@ function GroupView() {
     }
   };
 
-  // Check if user is already a member
   const isMember =
-    currentUserId && members.some((m) => m.user.id === currentUserId);
+    currentUser && members.some((m) => m.user.id === currentUser.id);
 
-  const isOwner = group && currentUserId == group.owner.user.id;
+  const isOwner =
+    group && currentUser && currentUser.id === group.owner.user.id;
+
+  const isListingOwner =
+    currentUser && listingOwnerId && currentUser.id === listingOwnerId;
+
+  const getFitRanking = (income) => {
+    if (income == null) {
+      return {
+        label: "Unknown Fit",
+        color: "#6c757d",
+        percent: null,
+        icon: "❓",
+      };
+    }
+
+    if (!listingPrice || !income) return null;
+
+    const monthlyIncome = income / 12;
+    const rentRatio = listingPrice / monthlyIncome;
+    const percent = (rentRatio * 100).toFixed(1);
+
+    if (rentRatio > 0.5) {
+      return {
+        label: "Bad Fit",
+        color: "#dc3545",
+        percent,
+        icon: "❌",
+      };
+    } else if (rentRatio < 0.3) {
+      return {
+        label: "Good Fit",
+        color: "#198754",
+        percent,
+        icon: "✅",
+      };
+    } else {
+      return {
+        label: "Okay Fit",
+        color: "#ffc107",
+        percent,
+        icon: "🟡",
+      };
+    }
+  };
 
   if (error) {
     return (
@@ -119,14 +164,35 @@ function GroupView() {
         {members.length === 0 ? (
           <li>No members yet.</li>
         ) : (
-          members.map((member) => (
-            <li key={member.id}>
-              <Link to={`/profile/${member.user.id}`}>
-                {member.user?.first_name} {member.user?.last_name} (
-                {member.user?.email})
-              </Link>
-            </li>
-          ))
+          members.map((member) => {
+            const fit = isListingOwner
+              ? getFitRanking(member.user?.yearly_income)
+              : null;
+            return (
+              <li key={member.id}>
+                <Link to={`/profile/${member.user.id}`}>
+                  {member.user?.first_name} {member.user?.last_name} (
+                  {member.user?.email})
+                </Link>
+                {fit && (
+                  <span
+                    className="ms-2"
+                    style={{
+                      padding: "4px 8px",
+                      borderRadius: "8px",
+                      backgroundColor: fit.color,
+                      color: "#fff",
+                      fontSize: "0.8rem",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {fit.icon} {fit.label}
+                    {fit.percent !== null && ` — ${fit.percent}% income`}
+                  </span>
+                )}
+              </li>
+            );
+          })
         )}
       </ul>
       <button
@@ -136,7 +202,7 @@ function GroupView() {
           group.group_status !== "O" ||
           joining ||
           isMember ||
-          currentUserId === null
+          currentUser === null
         }
       >
         {isOwner
@@ -176,7 +242,6 @@ function GroupView() {
       >
         Back
       </button>
-      <></>
     </div>
   );
 }
