@@ -11,6 +11,7 @@ function Profile() {
   const [reviews, setReviews] = useState([]); // New state for reviews
   const [error, setError] = useState(null);
   const [isOwner, setIsOwner] = useState(false);
+  const [roommateId, setRoommateId] = useState(false);
 
   const fetchProfile = async () => {
     try {
@@ -19,6 +20,7 @@ function Profile() {
 
       // Check if the logged-in user is the owner of this profile
       setIsOwner(response.data.is_owner);
+      setRoommateId(response.data.roommate_profile);
     } catch (err) {
       console.error("Error fetching profile:", err);
       setError("Failed to fetch profile.");
@@ -83,7 +85,6 @@ function Profile() {
 
   return (
     <div>
-      <Header />
       <div className="profile-container">
         <div className="profile-header">
           <img
@@ -94,12 +95,39 @@ function Profile() {
           <h1>{`${profile.first_name} ${profile.last_name}`}</h1>
           <p>{profile.email}</p>
           <p>{profile.phone_number}</p>
-          <button
-            onClick={() => navigate(`/profile/${id}/reviews`)}
-            class="btn btn-primary"
-          >
-            Write a Review
-          </button>
+          {isOwner ? (
+            <button
+              onClick={() => navigate(`/listings/post`)}
+              className="btn btn-primary"
+            >
+              Create a Listing
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate(`/profile/${id}/reviews`)}
+              className="btn btn-primary"
+            >
+              Write a Review
+            </button>
+          )}
+
+          {isOwner && (
+            <button
+              onClick={() => navigate(`/profile/edit/${id}`)}
+              className="btn btn-primary"
+            >
+              Edit Profile
+            </button>
+          )}
+
+          {roommateId && (
+            <button
+              onClick={() => navigate(`/roommates/${profile.roommate_profile}`)}
+              className="btn btn-primary"
+            >
+              See Roommate Profile
+            </button>
+          )}
         </div>
 
         <div className="listings-section">
@@ -128,6 +156,14 @@ function Profile() {
                   >
                     View More
                   </button>
+                  {isOwner && (
+                    <button
+                      className="edit-button"
+                      onClick={() => navigate(`/listings/edit/${listing.id}`)}
+                    >
+                      Edit Listing
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -135,6 +171,7 @@ function Profile() {
             <p>No listings found.</p>
           )}
         </div>
+
         <div className="reviews-section">
           <h2>Reviews</h2>
           {reviews.length > 0 ? (

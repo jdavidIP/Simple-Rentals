@@ -19,6 +19,7 @@ function Listings() {
   const [latLng, setLatLng] = useState({ lat: null, lng: null });
   const [radius, setRadius] = useState("5"); // Default radius
   const [error, setError] = useState(null);
+  const [userIncome, setUserIncome] = useState(null);
   const navigate = useNavigate();
   const errorRef = useRef(null);
   const locationInputRef = useRef(null);
@@ -87,6 +88,42 @@ function Listings() {
     setRadius("5");
     fetchListings(cleared);
   };
+  
+  useEffect(() => {
+    async function fetchUserIncome() {
+      try {
+        const response = await api.get("/profile/me/");
+        console.log("User profile response:", response.data);  // 🧪 Add this
+        const income = parseFloat(response.data.yearly_income);
+        if (!isNaN(income)) {
+          setUserIncome(income);
+        } else {
+          console.warn("No valid income returned");
+        }
+      } catch (error) {
+        console.error("Failed to fetch user income:", error);
+      }
+    }
+
+    fetchUserIncome();
+  }, []);
+
+  const getAffordabilityTag = (price) => {
+    if (!userIncome) {
+      console.log("User income not loaded yet");
+      return null;
+    }
+
+    const monthlyIncome = userIncome / 12;
+
+    if (price > monthlyIncome * 0.4) {
+      return { label: "❌ Too Expensive", color: "#dc3545" };
+    } else if (price <= monthlyIncome * 0.25) {
+      return { label: "💰 Affordable", color: "#0d6efd" };
+    } else {
+      return { label: "✅ Recommended", color: "#198754" };
+    }
+  };
 
   useEffect(() => {
     if (!location.state?.listings) {
@@ -144,7 +181,7 @@ function Listings() {
           });
           setFilters((prev) => ({
             ...prev,
-            location: place.name, 
+            location: place.name,
           }));
           locationInputRef.current.value = place.formatted_address;
         }
@@ -182,28 +219,46 @@ function Listings() {
 
   return (
     <div>
-      <Header />
       <div className="container py-5">
         <h2 className="mb-4 text-center">🏘️ Available Listings</h2>
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error && (
+          <div ref={errorRef} className="alert alert-danger">
+            {error}
+          </div>
+        )}
 
         {/* Filters */}
         <div className="card mb-5 shadow-sm">
           <div className="card-body">
             <form onSubmit={handleSubmit}>
-              {/* Location Filter */}
               <div className="row g-3">
+                {/* Location & Radius */}
                 <div className="col-12">
-                  <label className="form-label">Location</label>
-                  <input
-                    type="text"
-                    name="location"
-                    className="form-control"
-                    ref={locationInputRef}
-                    value={filters.location}
-                    onChange={handleInputChange}
-                    required
-                  />
+                  <label className="form-label">Location & Radius</label>
+                  <div className="input-group">
+                    <input
+                      type="text"
+                      name="location"
+                      ref={locationInputRef}
+                      className="form-control"
+                      defaultValue={filters.location}
+                      onChange={handleInputChange}
+                      required
+                    />
+
+                    <select
+                      className="form-select"
+                      style={{ maxWidth: "120px" }}
+                      value={radius}
+                      onChange={(e) => setRadius(e.target.value)}
+                    >
+                      <option value="1">1 km</option>
+                      <option value="5">5 km</option>
+                      <option value="10">10 km</option>
+                      <option value="20">20 km</option>
+                      <option value="50">50 km</option>
+                    </select>
+                  </div>
                 </div>
 
                 {/* Min Price */}
@@ -291,53 +346,75 @@ function Listings() {
                 </button>
               </div>
             </form>
-
           </div>
         </div>
-      {/* Listings */}
-      {listings.length === 0 ? (
-        <p className="text-muted text-center">No listings found.</p>
-      ) : (
-        <div className="row g-4">
-          {listings.map((listing) => (
-            <div key={listing.id} className="card col-3 m-4 shadow-sm">
-              {listing.primary_image ? (
-                <img
-                  src={listing.primary_image.image}
-                  alt="Listing"
-                  className="card-img-top border-2 border-bottom my-1"
-                  style={{ maxHeight: "20rem", objectFit: "cover" }}
-                />
-              ) : (
-                <img
-                  src="/static/img/placeholder.jpg"
-                  alt="No Image Available"
-                  className="card-img-top my-1"
-                  style={{ maxHeight: "20rem", objectFit: "cover" }}
-                />
-              )}
 
-              <div className="card-body">
-                <h5 className="card-title mb-2">
-                  {listing.bedrooms} bedroom {listing.property_type} in{" "}
-                  {listing.city}
-                </h5>
+        {/* Listings */}
+        {listings.length === 0 ? (
+          <p className="text-muted text-center">No listings found.</p>
+        ) : (
+          <div className="row g-4">
+            {listings.map((listing) => (
+              <div key={listing.id} className="card col-3 m-4 shadow-sm position-relative">
+                {/* Affordability Tag */}
+                {userIncome && (() => {
+                  const tag = getAffordabilityTag(listing.price);
+                  return tag ? (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "10px",
+                        right: "10px",
+                        backgroundColor: tag.color,
+                        color: "white",
+                        padding: "5px 10px",
+                        borderRadius: "10px",
+                        fontWeight: "bold",
+                        fontSize: "0.8rem",
+                        zIndex: 10,
+                      }}
+                    >
+                      {tag.label}
+                    </div>
+                  ) : null;
+                })()}
 
-                <h6 className="text-primary fw-semibold mb-3">
-                  ${listing.price}
-                </h6>
+                {/* Image */}
+                {listing.primary_image ? (
+                  <img
+                    src={listing.primary_image.image}
+                    alt="Listing"
+                    className="card-img-top border-2 border-bottom my-1"
+                    style={{ maxHeight: "20rem", objectFit: "cover" }}
+                  />
+                ) : (
+                  <img
+                    src="/static/img/placeholder.jpg"
+                    alt="No Image Available"
+                    className="card-img-top my-1"
+                    style={{ maxHeight: "20rem", objectFit: "cover" }}
+                  />
+                )}
 
-                <p className="mb-3">
-                  <strong>Move-in:</strong> {listing.move_in_date}
-                </p>
+                {/* Body */}
+                <div className="card-body">
+                  <h5 className="card-title mb-2">
+                    {listing.bedrooms} bedroom {listing.property_type} in {listing.city}
+                  </h5>
 
-                <div className="d-flex justify-content-evenly">
-                  <button
-                    className="btn btn-outline-primary"
-                    onClick={() => navigate(`/listings/${listing.id}`)}
-                  >
-                    View Details
-                  </button>
+                  <h6 className="text-primary fw-semibold mb-3">${listing.price}</h6>
+
+                  <p className="mb-3">
+                    <strong>Move-in:</strong> {listing.move_in_date}
+                  </p>
+
+                  <div className="d-flex justify-content-evenly">
+                    <button
+                      className="btn btn-outline-primary"
+                      onClick={() => navigate(`/listings/${listing.id}`)}
+                    >
+                      View Details
+                    </button>
 
                     <button
                       className="btn btn-outline-success"
@@ -352,7 +429,6 @@ function Listings() {
           </div>
         )}
       </div>
-      <Footer />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 function ListingsView() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [userIncome, setUserIncome] = useState(null);
   const [listing, setListing] = useState();
   const [error, setError] = useState(null);
 
@@ -38,7 +39,19 @@ function ListingsView() {
 
   useEffect(() => {
     fetchListing();
+    fetchUserIncome();
   }, [id]);
+
+  const fetchUserIncome = async () => {
+    try {
+      const response = await api.get("/profile/me/");
+      if (response.data.yearly_income) {
+        setUserIncome(parseFloat(response.data.yearly_income));
+      }
+    } catch (err) {
+      console.warn("User income not loaded");
+    }
+  };
 
   if (!listing) {
     return <div className="text-center fs-4 mt-5">Loading listing...</div>;
@@ -75,6 +88,17 @@ function ListingsView() {
   };
   const owner = listing.owner;
 
+  const getAffordability = () => {
+    if (!userIncome || !listing?.price) return null;
+
+    const monthlyIncome = userIncome / 12;
+    const rentRatio = listing.price / monthlyIncome;
+
+    if (rentRatio > 0.5) return { icon: "❌", label: "Too Expensive" };
+    if (rentRatio < 0.3) return { icon: "💰", label: "Affordable" };
+    return { icon: "✅", label: "Recommended" };
+  };
+
   return (
     <div>
       <div className="container my-5 p-4 bg-white rounded shadow">
@@ -87,7 +111,19 @@ function ListingsView() {
             {listing.unit_number && `${listing.unit_number}, `}
             {listing.street_address}, {listing.city}, {listing.postal_code}
           </h5>
-          <h3 className="text-primary fw-bold mt-2">${listing.price} / month</h3>
+          <h3 className="text-primary fw-bold mt-2">
+            ${listing.price} / month
+          </h3>
+          {userIncome && (() => {
+            const affordability = getAffordability();
+            return affordability ? (
+              <div className="mt-1">
+                <span className="fw-semibold">
+                  {affordability.icon} {affordability.label}
+                </span>
+              </div>
+            ) : null;
+          })()}
           {error && <p className="text-danger fw-semibold">{error}</p>}
         </div>
 
@@ -117,6 +153,12 @@ function ListingsView() {
                 onClick={() => handleStartConversation(listing.id)}
               >
                 Contact Owner
+              </button>
+              <button
+                className="btn btn-primary mt-3"
+                onClick={() => navigate(`/listings/${listing.id}/groups`)}
+              >
+                See Groups
               </button>
             </div>
           </div>
@@ -212,6 +254,9 @@ function ListingsView() {
             </div>
             <div className="col-md-4 mb-2">
               <p>
+                <strong>Roommates:</strong> {listing.shareable ? "Yes" : "No"}
+              </p>
+              <p>
                 <strong>Payment Type:</strong> {listing.payment_type}
               </p>
               <p>
@@ -260,7 +305,10 @@ function ListingsView() {
             </li>
             <li>
               <strong>HOA Fee:</strong> ${listing.hoa_fee} (
-              {listing.hoa_fee_payable_by_tenant ? "Paid by Tenant" : "Included"})
+              {listing.hoa_fee_payable_by_tenant
+                ? "Paid by Tenant"
+                : "Included"}
+              )
             </li>
             <li>
               <strong>Security Deposit:</strong> ${listing.security_deposit} (

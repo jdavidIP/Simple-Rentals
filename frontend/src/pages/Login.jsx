@@ -9,10 +9,9 @@ import Footer from "../components/footer";
 
 function Login() {
   return (
-  <div> 
-    <Header />
-    <FormLogIn />
-  </div>
+    <div>
+      <FormLogIn />
+    </div>
   );
 }
 

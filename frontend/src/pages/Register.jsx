@@ -7,7 +7,6 @@ import Footer from "../components/footer";
 function Register() {
   return (
     <div>
-      <Header />
       <FormRegister />
     </div>
   );

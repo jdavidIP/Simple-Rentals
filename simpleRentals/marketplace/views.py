@@ -76,6 +76,14 @@ class UserProfileView(generics.RetrieveAPIView): # Working
 
         return Response(data)
 
+class CurrentUserView(generics.RetrieveAPIView):
+    """API view to return the currently logged-in user's profile."""
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
 class LogoutView(APIView):
     """Custom logout view to blacklist refresh tokens."""
     permission_classes = [IsAuthenticated]
@@ -100,7 +108,7 @@ class LogoutView(APIView):
 ### LISTING SECTION - START ###
 # API views for listing management
     
-class ListingDeleteView(generics.DestroyAPIView): # Not Working yet (needs integration with frontend) - Not tested yet
+class ListingDeleteView(generics.DestroyAPIView): # Working
     """API view to handle listing deletion."""
     serializer_class = ListingSerializer
     permission_classes = [IsAuthenticated]
@@ -116,7 +124,7 @@ class ListingDeleteView(generics.DestroyAPIView): # Not Working yet (needs integ
                     os.remove(picture.image.path)
         instance.delete()
 
-class ListingEditView(generics.UpdateAPIView): # Not Working yet (needs integration with frontend) - Tested locally and works
+class ListingEditView(generics.UpdateAPIView): # Working
     """API view to handle listing editing."""
     serializer_class = ListingPostingSerializer
     permission_classes = [IsAuthenticated]  # Ensure only authenticated users can edit listings
@@ -126,7 +134,7 @@ class ListingEditView(generics.UpdateAPIView): # Not Working yet (needs integrat
         listing = get_object_or_404(Listing, id=self.kwargs['pk'], owner=self.request.user)
         return listing
     
-class ListingDetailView(generics.RetrieveAPIView): # Working (backend only)
+class ListingDetailView(generics.RetrieveAPIView): # Working
     """API view to handle listing details."""
     serializer_class = ListingSerializer
     permission_classes = [AllowAny]
@@ -136,7 +144,7 @@ class ListingDetailView(generics.RetrieveAPIView): # Working (backend only)
         listing = get_object_or_404(Listing, id=self.kwargs['pk'])
         return listing
 
-class ListingPostingView(generics.CreateAPIView): # Not Working yet (needs integration with frontend) - Not tested yet
+class ListingPostingView(generics.CreateAPIView): # Working
     """API view to handle listing posting."""
     serializer_class = ListingPostingSerializer
     permission_classes = [IsAuthenticated]
@@ -222,7 +230,7 @@ class ListingListView(generics.ListAPIView):
 ### CONVERSATION SECTION - START ###
 # API views for conversation management
 
-class ConversationListView(generics.ListAPIView): # Not Working yet (needs integration with frontend) - Tested locally and works
+class ConversationListView(generics.ListAPIView): # Working
     """API view to handle conversation list."""
     serializer_class = ConversationSerializer
     permission_classes = [IsAuthenticated] 
@@ -231,7 +239,7 @@ class ConversationListView(generics.ListAPIView): # Not Working yet (needs integ
         user = self.request.user
         return Conversation.objects.filter(participants=user).order_by('-last_updated')
     
-class ConversationDetailView(generics.RetrieveAPIView): # Not Working yet (needs integration with frontend) - Tested locally and works
+class ConversationDetailView(generics.RetrieveAPIView): # Working
     """API view to retrieve conversation details."""
     serializer_class = ConversationSerializer
     permission_classes = [IsAuthenticated]
@@ -254,6 +262,9 @@ class StartConversationView(APIView):
     def post(self, request, pk):
         listing = get_object_or_404(Listing, id=pk)
 
+        if listing.owner == request.user:
+            raise ValidationError("You cannot start a conversation with yourself.")
+        
         # Check if conversation already exists
         conversation = Conversation.objects.filter(participants=request.user, listing=listing).first()
 
@@ -275,7 +286,7 @@ class StartConversationView(APIView):
         serializer = ConversationSerializer(conversation, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-class SendMessageView(generics.CreateAPIView): # Not Working yet (needs integration with frontend) - Not tested yet
+class SendMessageView(generics.CreateAPIView): # Working
     """API view to send a message in a conversation."""
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
@@ -356,6 +367,149 @@ class ReviewUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
         if review.reviewer != self.request.user:
             raise PermissionDenied("You do not have permission to modify this review.")
         return review
+
+### REVIEW SECTION - END ###
+
+
+### ROOMMATE SECTION - START ###
+# API views for roommate management
+
+class RoommateListView(generics.ListAPIView):
+    serializer_class = RoommateUserSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        queryset = RoommateUser.objects.all()
+        filters = self.request.query_params
+
+        name = filters.get("name")
+        gender_preference = filters.get("gender_preference")
+        pet_friendly = filters.get("pet_friendly")
+        smoke_friendly = filters.get("smoke_friendly")
+        cannabis_friendly = filters.get("cannabis_friendly")
+        couple_friendly = filters.get("couple_friendly")
+        occupation = filters.get("occupation")
+        city = filters.get("city")
+        budget = filters.get("roommate_budget")
+
+        user = self.request.user
+        if user.is_authenticated:
+            queryset = queryset.exclude(user=user)
+
+        if name:
+            queryset = queryset.filter(
+                Q(user__first_name__icontains=name) |
+                Q(user__last_name__icontains=name)
+            )
+        if gender_preference:
+            queryset = queryset.filter(gender_preference=gender_preference)
+        if pet_friendly is not None:
+            queryset = queryset.filter(pet_friendly=pet_friendly.lower() in ["true", "1"])
+        if smoke_friendly is not None:
+            queryset = queryset.filter(smoke_friendly=smoke_friendly.lower() in ["true", "1"])
+        if cannabis_friendly is not None:
+            queryset = queryset.filter(cannabis_friendly=cannabis_friendly.lower() in ["true", "1"])
+        if couple_friendly is not None:
+            queryset = queryset.filter(couple_friendly=couple_friendly.lower() in ["true", "1"])
+        if occupation:
+            queryset = queryset.filter(occupation=occupation)
+        if city:
+            queryset = queryset.filter(user__city__icontains=city)
+        if budget:
+            queryset = queryset.filter(roommate_budget=budget)
+
+        return queryset
+    
+class RoommateDetailView(generics.RetrieveAPIView):
+    serializer_class = RoommateUserSerializer
+    permission_class = [IsAuthenticated]
+
+    def get_object(self):
+        roommate = get_object_or_404(RoommateUser, id=self.kwargs['pk'])
+
+        return roommate
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        data = self.get_serializer(instance).data
+
+        # Determine if the requesting user is the owner
+        is_owner = request.user.is_authenticated and request.user.id == instance.id
+        data['is_owner'] = is_owner
+
+        return Response(data)
+
+class CreateRoommateView(generics.CreateAPIView):
+    queryset = RoommateUser.objects.all()
+    serializer_class = RoommateUserRegistrationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        # The `context` is already passed to the serializer by DRF
+        serializer.save(user=self.request.user)
+    
+### ROOMMATE SECTION - END ###
+
+
+### GROUP SECTION - START ###
+# API views for group management
+
+class GroupListView(generics.ListAPIView):
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        listing = self.kwargs['pk']
+
+        return Group.objects.filter(listing_id=listing)
+    
+class GroupPostingView(generics.CreateAPIView):
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        # Get the RoommateUser profile for the current user
+        roommate_user = get_object_or_404(RoommateUser, user=self.request.user)
+        group = serializer.save(owner=roommate_user)
+        # Optionally, add the owner as a member of the group
+        group.members.add(roommate_user)
+
+class GroupDetailView(generics.RetrieveAPIView):
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        group = get_object_or_404(Group, id=self.kwargs['pk'])
+        return group
+    
+class GroupJoinView(generics.UpdateAPIView):
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]
+
+    def update(self, request, *args, **kwargs):
+        group = get_object_or_404(Group, id=self.kwargs['pk'])
+        roommate_user = get_object_or_404(RoommateUser, user=request.user)
+
+        # Check if user is already a member
+        if group.members.filter(id=roommate_user.id).exists():
+            return Response({"detail": "You are already a member of this group."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Add user to group
+        group.members.add(roommate_user)
+        group.save()
+
+        serializer = self.get_serializer(group)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class GroupEditView(generics.UpdateAPIView):
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        roommate_user = get_object_or_404(RoommateUser, user=self.request.user)
+        group = get_object_or_404(Group, id=self.kwargs['pk'], owner=roommate_user)
+
+        return group
 
 
 # HOME SECTION - START

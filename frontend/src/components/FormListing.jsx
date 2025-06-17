@@ -39,6 +39,7 @@ function FormListing({ method, listing }) {
     pictures: [],
     front_image: null,
     delete_images: [],
+    shareable: listing?.shareable || false,
   });
   const [existingImages, setExistingImages] = useState(listing?.pictures || []);
   const [error, setError] = useState(null);
@@ -65,28 +66,39 @@ function FormListing({ method, listing }) {
         { types: ["geocode"] }
       );
 
-    autocomplete.addListener("place_changed", () => {
-      const place = autocomplete.getPlace();
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
 
-      if (place.geometry) {
-        const streetNumber = place.address_components?.find(c => c.types.includes("street_number"))?.long_name || "";
-        const route = place.address_components?.find(c => c.types.includes("route"))?.long_name || "";
+        if (place.geometry) {
+          const streetNumber =
+            place.address_components?.find((c) =>
+              c.types.includes("street_number")
+            )?.long_name || "";
+          const route =
+            place.address_components?.find((c) => c.types.includes("route"))
+              ?.long_name || "";
 
-        const streetAddress = [streetNumber, route].filter(Boolean).join(" ");
+          const streetAddress = [streetNumber, route].filter(Boolean).join(" ");
 
-        setFormData((prev) => ({
-          ...prev,
-          street_address: streetAddress || prev.street_address,
-          city: place.address_components?.find(c => c.types.includes("locality"))?.long_name || prev.city,
-          postal_code: place.address_components?.find(c => c.types.includes("postal_code"))?.long_name || prev.postal_code,
-        }));
+          setFormData((prev) => ({
+            ...prev,
+            street_address: streetAddress || prev.street_address,
+            city:
+              place.address_components?.find((c) =>
+                c.types.includes("locality")
+              )?.long_name || prev.city,
+            postal_code:
+              place.address_components?.find((c) =>
+                c.types.includes("postal_code")
+              )?.long_name || prev.postal_code,
+          }));
 
-        setLatLng({
-          lat: place.geometry.location.lat(),
-          lng: place.geometry.location.lng(),
-        });
-      }
-    });
+          setLatLng({
+            lat: place.geometry.location.lat(),
+            lng: place.geometry.location.lng(),
+          });
+        }
+      });
     };
   }, []);
 
@@ -129,6 +141,23 @@ function FormListing({ method, listing }) {
     );
   };
 
+  const handleDelete = async (e) => {
+    e.preventDefault();
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this listing? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+    try {
+      await api.delete(`/listings/delete/${listing.id}`);
+      navigate("/listings");
+    } catch (err) {
+      setError("Failed to delete listing.");
+    }
+  };
+
   const validateImages = () => {
     const totalImages =
       formData.pictures.length +
@@ -164,7 +193,8 @@ function FormListing({ method, listing }) {
     try {
       const data = new FormData();
 
-      if (formData.front_image) data.append("front_image", formData.front_image);
+      if (formData.front_image)
+        data.append("front_image", formData.front_image);
       formData.pictures.forEach((file) => data.append("pictures", file));
       formData.delete_images.forEach((id) => data.append("delete_images", id));
 
@@ -429,6 +459,18 @@ function FormListing({ method, listing }) {
         ></textarea>
       </div>
 
+      <div className="mb-3">
+        <label>
+          <input
+            type="checkbox"
+            name="shareable"
+            checked={formData.shareable}
+            onChange={handleChange}
+          />
+          Are roommates allowed?
+        </label>
+      </div>
+
       {/* Front Image */}
       <div className="mb-3">
         <label htmlFor="front_image">Front Image</label>
@@ -461,6 +503,11 @@ function FormListing({ method, listing }) {
       <button type="submit" className="btn btn-primary">
         {method === "post" ? "Create Listing" : "Save Changes"}
       </button>
+      {method === "edit" && (
+        <button type="delete" className="btn btn-danger" onClick={handleDelete}>
+          Delete Listing
+        </button>
+      )}
     </form>
   );
 }

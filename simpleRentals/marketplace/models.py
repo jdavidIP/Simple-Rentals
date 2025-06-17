@@ -21,6 +21,7 @@ class MarketplaceUser(AbstractUser):
     )
     budget_min = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     budget_max = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    yearly_income = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
     phone_number = models.CharField(max_length=15, null=True, blank=True)
     phone_verified = models.BooleanField(default=False)
@@ -31,6 +32,23 @@ class MarketplaceUser(AbstractUser):
     receive_sms_notifications = models.BooleanField(default=False)
     facebook_link = models.URLField(null=True, blank=True)
     instagram_link = models.URLField(null=True, blank=True)
+
+class RoommateUser(models.Model):
+    # Basic details
+    user = models.OneToOneField(MarketplaceUser, on_delete=models.CASCADE, related_name="roommate_profile")
+    description = models.TextField()
+    move_in_date = models.DateField()
+    stay_length = models.IntegerField(null=True)
+    occupation = models.CharField(max_length=1, choices=[('S', 'Student'), ('E', 'Employed'), ('N', 'Not Currently Working')])
+
+    # Preferences
+    roommate_budget = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    smoke_friendly = models.BooleanField(default=False)
+    cannabis_friendly = models.BooleanField(default=False)
+    pet_friendly = models.BooleanField(default=False)
+    couple_friendly = models.BooleanField(default=False)
+    gender_preference = models.CharField(max_length=1, choices=[('F', 'Female'), ('M', 'Male'), ('O', 'Open')])
+    open_to_message = models.BooleanField(default=True)
 
 class Listing(models.Model):
     # Basic Details
@@ -74,6 +92,8 @@ class Listing(models.Model):
     security_deposit = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     security_deposit_payable_by_tenant = models.BooleanField(default=False)
 
+    shareable = models.BooleanField(default=False)
+
     # Foreign Keys
     owner = models.ForeignKey(MarketplaceUser, related_name="listings", on_delete=models.CASCADE)
 
@@ -99,11 +119,12 @@ class ListingPicture(models.Model):
 class Group(models.Model):
     name = models.CharField(max_length=100)
     listing = models.ForeignKey(Listing, related_name="groups", on_delete=models.CASCADE)
-    members = models.ManyToManyField(MarketplaceUser, related_name="listing_groups")
+    members = models.ManyToManyField(RoommateUser, related_name="listing_groups")
+    owner = models.ForeignKey(RoommateUser, related_name="group_owner", on_delete=models.CASCADE)
     description = models.TextField(blank=True, null=True)
     move_in_date = models.DateField()
     move_in_ready = models.BooleanField(default=False)
-    group_status = models.CharField(max_length=1, choices=[('O', 'Open'), ('F', 'Filled'), ('S', 'Sent'), ('U', 'Under Review'), ('R', 'Rejected'), ('I', 'Approved - Invited')], default='O')
+    group_status = models.CharField(max_length=1, choices=[('O', 'Open'), ('P', 'Private'), ('F', 'Filled'), ('S', 'Sent'), ('U', 'Under Review'), ('R', 'Rejected'), ('I', 'Approved - Invited')], default='O')
 
 class Review(models.Model):
     reviewer = models.ForeignKey(MarketplaceUser, related_name='given_reviews', on_delete=models.CASCADE)

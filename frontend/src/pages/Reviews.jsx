@@ -7,8 +7,7 @@ import FormReview from "../components/FormReview.jsx";
 function Reviews() {
   return (
     <div>
-        <Header />
-        <FormReview />
+      <FormReview />
     </div>
   );
 }

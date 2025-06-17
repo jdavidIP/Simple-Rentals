@@ -1,7 +1,7 @@
 from django.utils.timezone import now
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from .models import MarketplaceUser, Listing, ListingPicture, Group, Review, Favorites, Conversation, Message
+from .models import MarketplaceUser, Listing, ListingPicture, Group, Review, Favorites, Conversation, Message, RoommateUser
 import os
 
 # Utility functions for image validation and saving
@@ -38,8 +38,9 @@ class UserSerializer(serializers.ModelSerializer):
         model = MarketplaceUser
         fields = [
             'id', 'email', 'first_name', 'last_name', 'age', 'sex',
-            'city', 'preferred_location', 'budget_min', 'budget_max', 'profile_picture', 'phone_number',
-            'facebook_link', 'instagram_link', 'receive_email_notifications', 'receive_sms_notifications','terms_accepted'
+            'city', 'preferred_location', 'budget_min', 'budget_max', "yearly_income", 'profile_picture', 'phone_number',
+            'facebook_link', 'instagram_link', 'receive_email_notifications', 'receive_sms_notifications','terms_accepted',
+            'roommate_profile'
         ]
 
 
@@ -87,7 +88,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         model = MarketplaceUser
         fields = [
             'id', 'email', 'password', 'password_confirmation', 'first_name', 'last_name', 'age', 'sex',
-            'city', 'preferred_location', 'budget_min', 'budget_max', 'profile_picture', 'phone_number',
+            'city', 'preferred_location', 'budget_min', 'budget_max', "yearly_income", 'profile_picture', 'phone_number',
             'facebook_link', 'instagram_link', 'receive_email_notifications', 'receive_sms_notifications','terms_accepted'
         ]
         extra_kwargs = {
@@ -154,7 +155,7 @@ class UserEditSerializer(serializers.ModelSerializer):
         model = MarketplaceUser
         fields = [
             'id', 'email', 'password', 'password_confirmation', 'first_name', 'last_name', 'age', 'sex',
-            'city', 'preferred_location', 'budget_min', 'budget_max', 'profile_picture', 'phone_number',
+            'city', 'preferred_location', 'budget_min', 'budget_max', "yearly_income", 'profile_picture', 'phone_number',
             'facebook_link', 'instagram_link', 'terms_accepted', 'delete_profile_picture'
         ]
 
@@ -191,6 +192,33 @@ class UserEditSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+    
+class RoommateUserSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    occupation = serializers.CharField(source='get_occupation_display')
+    gender_preference = serializers.CharField(source='get_gender_preference_display')
+
+    class Meta:
+        model = RoommateUser
+        fields = '__all__'
+
+class RoommateUserRegistrationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RoommateUser
+        fields = [
+            'id', 'description', 'move_in_date', 'stay_length', 'occupation',
+            'roommate_budget', 'smoke_friendly', 'cannabis_friendly', 'pet_friendly',
+            'couple_friendly', 'gender_preference', 'open_to_message'
+        ]
+        extra_kwargs = {
+            'description': {'required': True},
+            'move_in_date': {'required': True},
+            'occupation': {'required': True},
+            'gender_preference': {'required': True},
+        }
+
+    def create(self, validated_data):
+        return RoommateUser.objects.create(**validated_data)
 
 # Listing management serializers
 
@@ -223,7 +251,6 @@ class ListingPostingSerializer(serializers.ModelSerializer):
         child=serializers.IntegerField(), required=False
     )
 
-
     class Meta:
         model = Listing
         fields = [
@@ -232,7 +259,7 @@ class ListingPostingSerializer(serializers.ModelSerializer):
             'unit_number', 'street_address', 'city', 'postal_code', 'utilities_cost', 'utilities_payable_by_tenant',
             'property_taxes', 'property_taxes_payable_by_tenant', 'condo_fee', 'condo_fee_payable_by_tenant',
             'hoa_fee', 'hoa_fee_payable_by_tenant', 'security_deposit', 'security_deposit_payable_by_tenant',
-            'pictures', 'delete_images', 'latitude', 'longitude'
+            'pictures', 'delete_images', 'latitude', 'longitude', 'shareable'
         ]
 
     def validate(self, data):
@@ -285,10 +312,18 @@ class ListingPostingSerializer(serializers.ModelSerializer):
 
 
 class GroupSerializer(serializers.ModelSerializer):
+    # For reading (GET)
+    members = RoommateUserSerializer(many=True, read_only=True)
+    # For writing (POST/PUT)
+    member_ids = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=RoommateUser.objects.all(), write_only=True, source='members'
+    )
+    owner = RoommateUserSerializer(read_only=True)
+
     class Meta:
         model = Group
         fields = [
-            'id', 'name', 'listing', 'members', 'description', 
+            'id', 'name', 'listing', 'members', 'member_ids', 'owner', 'description', 
             'move_in_date', 'move_in_ready', 'group_status'
         ]
         extra_kwargs = {
@@ -297,6 +332,13 @@ class GroupSerializer(serializers.ModelSerializer):
             'move_in_date': {'required': True},
             'group_status': {'required': True},
         }
+
+    def create(self, validated_data):
+        members = validated_data.pop('members', [])
+        group = Group.objects.create(**validated_data)
+        if members:
+            group.members.set(members)
+        return group
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -331,8 +373,6 @@ class ReviewSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("You cannot review yourself.")
         return data
 
-
-
 class FavoritesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favorites
@@ -341,7 +381,6 @@ class FavoritesSerializer(serializers.ModelSerializer):
             'user': {'read_only': True},
         }
 
-
 class ConversationSerializer(serializers.ModelSerializer):
     listing = ListingSerializer(read_only=True)  # Include listing details
     last_message = serializers.SerializerMethodField()  # Add the last message in the conversation
@@ -349,7 +388,7 @@ class ConversationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Conversation
-        fields = ['id', 'participants', 'listing', 'last_updated', 'last_message', 'messages']  # ✅ Add 'messages' here
+        fields = ['id', 'participants', 'listing', 'last_updated', 'last_message', 'messages']
 
     def get_last_message(self, obj):
         last_message = obj.get_last_message()
@@ -358,7 +397,6 @@ class ConversationSerializer(serializers.ModelSerializer):
         return None
 
     def get_messages(self, obj):
-        # ✅ Serialize all messages for this conversation
         messages = obj.messages.order_by('timestamp')  # Order by timestamp ascending
         return MessageSerializer(messages, many=True, context=self.context).data
 
