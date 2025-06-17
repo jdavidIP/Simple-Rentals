@@ -10,6 +10,7 @@ function GroupView() {
   const [members, setMembers] = useState([]);
   const [error, setError] = useState(null);
   const [joining, setJoining] = useState(false);
+  const [application, setApplication] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
 
   const fetchGroup = async () => {
@@ -37,13 +38,14 @@ function GroupView() {
   }, [id]);
 
   // Join group handler
-  const handleJoin = async () => {
+  const handleJoin = async (e) => {
+    e.preventDefault();
     setJoining(true);
     setError(null);
     try {
-      await api.post(`/groups/${id}/join/`);
+      await api.patch(`/groups/${id}/join`);
       // Optionally, refetch group details to update members
-      const res = await api.get(`/groups/${id}/`);
+      const res = await api.get(`/groups/${id}`);
       setGroup(res.data);
       setMembers(res.data.members || []);
     } catch (err) {
@@ -53,6 +55,23 @@ function GroupView() {
       );
     }
     setJoining(false);
+  };
+
+  const handleApplication = async () => {
+    setApplication(true);
+    setError(null);
+
+    try {
+      const payload = {
+        group_status: "S",
+      };
+      await api.patch(`/groups/edit/${id}`, payload);
+      const res = await api.get(`/groups/${id}`);
+      setGroup(res.data);
+    } catch (err) {
+      console.error("Error sending application: ", err);
+      setError("Failed to send application.");
+    }
   };
 
   // Check if user is already a member
@@ -114,7 +133,7 @@ function GroupView() {
         className="btn btn-primary mt-3"
         onClick={handleJoin}
         disabled={
-          group.group_status !== "Open" ||
+          group.group_status !== "O" ||
           joining ||
           isMember ||
           currentUserId === null
@@ -124,12 +143,25 @@ function GroupView() {
           ? "You are the owner"
           : isMember
           ? "You are a member"
-          : group.group_status !== "Open"
+          : group.group_status !== "O"
           ? "Group not open"
           : joining
           ? "Joining..."
           : "Join Group"}
       </button>
+      {isOwner && (
+        <button
+          onClick={handleApplication}
+          className="btn btn-primary mt-3 ms-2"
+          disabled={
+            group.group_status !== "O" &&
+            group.group_status !== "P" &&
+            group.group_status !== "F"
+          }
+        >
+          Apply
+        </button>
+      )}
       {isOwner && (
         <button
           onClick={() => navigate(`/groups/edit/${id}`)}
