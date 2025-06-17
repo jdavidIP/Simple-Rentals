@@ -506,7 +506,8 @@ class GroupEditView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        group = get_object_or_404(Group, id=self.kwargs['pk'], owner=self.request.user)
+        roommate_user = get_object_or_404(RoommateUser, user=self.request.user)
+        group = get_object_or_404(Group, id=self.kwargs['pk'], owner=roommate_user)
 
         return group
 

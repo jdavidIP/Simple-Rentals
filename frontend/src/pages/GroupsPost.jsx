@@ -3,7 +3,7 @@ import api from "../api.js";
 import FormGroup from "../components/FormGroup";
 
 function GroupPost() {
-  return <FormGroup />;
+  return <FormGroup method="post" />;
 }
 
 export default GroupPost;

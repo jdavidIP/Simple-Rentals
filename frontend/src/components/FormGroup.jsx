@@ -1,30 +1,45 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, useRef, useDebugValue } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import api from "../api";
+import api from "../api.js";
+import "../styles/forms.css";
 
-function FormGroup() {
-  const { id } = useParams(); // listing id
+function FormGroup({ method, group }) {
+  const { id } = useParams(); // listing id for POST, group id for EDIT
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    move_in_date: "",
-    move_in_ready: false,
-    group_status: "O",
-    member_ids: [],
+    name: group?.name || "",
+    description: group?.description || "",
+    move_in_date: group?.move_in_date || "",
+    move_in_ready: group?.move_in_ready || false,
+    group_status: group?.group_status || "O",
+    member_ids: group?.members ? group.members.map((m) => m.id) : [],
   });
   const [searchName, setSearchName] = useState("");
   const [allRoommates, setAllRoommates] = useState([]);
   const [selectedToAdd, setSelectedToAdd] = useState([]);
   const [error, setError] = useState(null);
+  const [currentRoommateId, setCurrentRoommateId] = useState(null);
   const errorRef = useRef(null);
 
-  // Handle error scroll
+  useEffect(() => {
+    fetchCurrentRoommate();
+  });
+
   useEffect(() => {
     if (error && errorRef.current) {
       errorRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [error]);
+
+  const fetchCurrentRoommate = async () => {
+    try {
+      const response = await api.get("/profile/me/");
+      setCurrentRoommateId(response.data.roommate_profile);
+    } catch (err) {
+      console.error("Error fetching current user: ", err);
+      setError("Failed to fetch user.");
+    }
+  };
 
   // Fetch roommates by name
   const handleSearch = async (e) => {
@@ -69,23 +84,44 @@ function FormGroup() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    if (type === "checkbox" && name === "move_in_ready") {
-      setFormData((prev) => ({ ...prev, move_in_ready: checked }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    if (!formData.name.trim()) {
+      setError(["Group name is required."]);
+      return;
+    }
+    if (!formData.move_in_date) {
+      setError(["Move-in date is required."]);
+      return;
+    }
+    if (formData.member_ids.length === 0) {
+      setError(["Please add at least one member."]);
+      return;
+    }
     try {
       const payload = {
-        ...formData,
-        listing: id,
+        name: formData.name,
+        description: formData.description,
+        move_in_date: formData.move_in_date,
+        move_in_ready: formData.move_in_ready,
+        group_status: formData.group_status,
+        member_ids: formData.member_ids,
       };
-      await api.post("/listings/" + id + "/groups/post", payload);
-      navigate(`/listings/${id}/groups`);
+      if (method === "post") {
+        payload.listing = id;
+        await api.post(`/listings/${id}/groups/post`, payload);
+        navigate(`/listings/${id}/groups`);
+      } else if (method === "edit") {
+        await api.patch(`/groups/edit/${id}`, payload);
+        navigate(`/groups/${id}`);
+      }
     } catch (err) {
       if (err.response && err.response.data) {
         setError(
@@ -94,14 +130,26 @@ function FormGroup() {
             : Object.values(err.response.data).flat()
         );
       } else {
-        setError(["Failed to create group."]);
+        setError(["Failed to submit group."]);
       }
     }
   };
 
+  const handleRemoveMember = (memberId) => {
+    setFormData((prev) => ({
+      ...prev,
+      member_ids: prev.member_ids.filter((id) => id !== memberId),
+    }));
+  };
+
   // Helper to show added members' info
   const getMemberInfo = (memberId) => {
-    const roommate = allRoommates.find((r) => r.id === memberId);
+    // Try to find in allRoommates (from search)
+    let roommate = allRoommates.find((r) => r.id === memberId);
+    // If not found, try to find in group.members (for edit mode)
+    if (!roommate && group?.members) {
+      roommate = group.members.find((m) => m.id === memberId);
+    }
     if (roommate) {
       return `${roommate.user?.first_name} ${roommate.user?.last_name} (${roommate.user?.email})`;
     }
@@ -114,7 +162,7 @@ function FormGroup() {
       onSubmit={handleSubmit}
       style={{ maxWidth: 600, margin: "2rem auto" }}
     >
-      <h2>Create a Group</h2>
+      <h2>{method === "edit" ? "Edit Group" : "Create a Group"}</h2>
       {error && (
         <div className="alert alert-danger" ref={errorRef}>
           {error.map((msg, idx) => (
@@ -238,14 +286,29 @@ function FormGroup() {
           <label className="form-label">Added Members</label>
           <ul>
             {formData.member_ids.map((memberId) => (
-              <li key={memberId}>{getMemberInfo(memberId)}</li>
+              <li
+                key={memberId}
+                style={{ display: "flex", alignItems: "center", gap: "10px" }}
+              >
+                {getMemberInfo(memberId)}
+                {memberId != currentRoommateId && (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-danger"
+                    style={{ marginLeft: "10px" }}
+                    onClick={() => handleRemoveMember(memberId)}
+                  >
+                    Remove
+                  </button>
+                )}
+              </li>
             ))}
           </ul>
         </div>
       )}
 
       <button type="submit" className="btn btn-primary">
-        Create Group
+        {method === "edit" ? "Save Changes" : "Create Group"}
       </button>
     </form>
   );

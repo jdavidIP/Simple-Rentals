@@ -12,26 +12,26 @@ function GroupView() {
   const [joining, setJoining] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
 
+  const fetchGroup = async () => {
+    try {
+      const res = await api.get(`/groups/${id}`);
+      setGroup(res.data);
+      setMembers(res.data.members || []);
+    } catch (err) {
+      setError("Failed to fetch group details.");
+    }
+  };
+  const fetchCurrentUser = async () => {
+    try {
+      const res = await api.get("/profile/me/");
+      setCurrentUserId(res.data.id);
+    } catch {
+      setCurrentUserId(null);
+    }
+  };
+
   // Fetch group details and current user id
   useEffect(() => {
-    const fetchGroup = async () => {
-      try {
-        const res = await api.get(`/groups/${id}`);
-        setGroup(res.data);
-        setMembers(res.data.members || []);
-      } catch (err) {
-        setError("Failed to fetch group details.");
-      }
-    };
-    const fetchCurrentUser = async () => {
-      try {
-        // Adjust endpoint if your current user endpoint is different
-        const res = await api.get("/profile/me/");
-        setCurrentUserId(res.data.id);
-      } catch {
-        setCurrentUserId(null);
-      }
-    };
     fetchGroup();
     fetchCurrentUser();
   }, [id]);
@@ -58,6 +58,8 @@ function GroupView() {
   // Check if user is already a member
   const isMember =
     currentUserId && members.some((m) => m.user.id === currentUserId);
+
+  const isOwner = group && currentUserId == group.owner.user.id;
 
   if (error) {
     return (
@@ -118,7 +120,9 @@ function GroupView() {
           currentUserId === null
         }
       >
-        {isMember
+        {isOwner
+          ? "You are the owner"
+          : isMember
           ? "You are a member"
           : group.group_status !== "Open"
           ? "Group not open"
@@ -126,12 +130,21 @@ function GroupView() {
           ? "Joining..."
           : "Join Group"}
       </button>
+      {isOwner && (
+        <button
+          onClick={() => navigate(`/groups/edit/${id}`)}
+          className="btn btn-secondary mt-3 ms-2"
+        >
+          Edit Group
+        </button>
+      )}
       <button
         className="btn btn-secondary mt-3 ms-2"
-        onClick={() => navigate(-1)}
+        onClick={() => navigate(`/listings/${group.listing}/groups`)}
       >
         Back
       </button>
+      <></>
     </div>
   );
 }
