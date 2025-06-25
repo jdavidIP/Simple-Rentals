@@ -25,6 +25,7 @@ function FormLogIn() {
 
       localStorage.setItem(ACCESS_TOKEN, response.data.access);
       localStorage.setItem(REFRESH_TOKEN, response.data.refresh);
+      window.dispatchEvent(new Event("user-logged-in"));
       navigate("/listings");
     } catch (err) {
       console.error("Error during login:", err);

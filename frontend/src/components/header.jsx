@@ -15,6 +15,10 @@ function Header() {
 
   useEffect(() => {
     fetchUser();
+
+    const handler = () => fetchUser();
+    window.addEventListener("user-logged-in", handler);
+    return () => window.removeEventListener("user-logged-in", handler);
   }, []);
 
   return (
