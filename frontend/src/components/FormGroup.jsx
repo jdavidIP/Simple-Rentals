@@ -88,10 +88,6 @@ function FormGroup({ method, group }) {
       setError(["Move-in date is required."]);
       return;
     }
-    if (formData.member_ids.length === 0) {
-      setError(["Please add at least one member."]);
-      return;
-    }
     try {
       const payload = {
         name: formData.name,
@@ -278,7 +274,7 @@ function FormGroup({ method, group }) {
                 style={{ display: "flex", alignItems: "center", gap: "10px" }}
               >
                 {getMemberInfo(memberId)}
-                {memberId != profile.roommate_profile.id && (
+                {memberId != profile.roommate_profile && (
                   <button
                     type="button"
                     className="btn btn-sm btn-danger"
