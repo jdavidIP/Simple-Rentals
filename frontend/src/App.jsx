@@ -29,136 +29,139 @@ import Groups from "./pages/Groups";
 import GroupPost from "./pages/GroupsPost";
 import GroupView from "./pages/GroupView";
 import GroupEdit from "./pages/GroupEdit";
+import { ProfileProvider } from "./contexts/ProfileContext";
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/logout" element={<Logout />} />
-          <Route path="/listings" element={<ListingsHome />} />
-          <Route path="/listings/results" element={<Listings />} />
-          <Route path="/listings/:id" element={<ListingsView />} />
+    <ProfileProvider>
+      <Router>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/logout" element={<Logout />} />
+            <Route path="/listings" element={<ListingsHome />} />
+            <Route path="/listings/results" element={<Listings />} />
+            <Route path="/listings/:id" element={<ListingsView />} />
 
-          <Route
-            path="/listings/post"
-            element={
-              <ProtectedRoute>
-                <ListingsPost />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/listings/edit/:id"
-            element={
-              <ProtectedRoute>
-                <ListingsEdit />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/listings/:id/groups"
-            element={
-              <ProtectedRoute>
-                <Groups />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/listings/:id/groups/post"
-            element={
-              <ProtectedRoute>
-                <GroupPost />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/groups/:id"
-            element={
-              <ProtectedRoute>
-                <GroupView />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/groups/edit/:id"
-            element={
-              <ProtectedRoute>
-                <GroupEdit />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile/:id"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile/edit/:id"
-            element={
-              <ProtectedRoute>
-                <ProfileEdit />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile/:id/reviews"
-            element={
-              <ProtectedRoute>
-                <Reviews />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/conversations"
-            element={
-              <ProtectedRoute>
-                <ConversationList />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/conversations/:conversationId"
-            element={
-              <ProtectedRoute>
-                <ConversationWindow />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/roommates"
-            element={
-              <ProtectedRoute>
-                <RoommatesHome />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/roommates/post"
-            element={
-              <ProtectedRoute>
-                <RoommatesPost />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/roommates/:id"
-            element={
-              <ProtectedRoute>
-                <RoommatesView />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="*" element={<NotFound />} />
-        </Route>
-      </Routes>
-    </Router>
+            <Route
+              path="/listings/post"
+              element={
+                <ProtectedRoute>
+                  <ListingsPost />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/listings/edit/:id"
+              element={
+                <ProtectedRoute>
+                  <ListingsEdit />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/listings/:id/groups"
+              element={
+                <ProtectedRoute>
+                  <Groups />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/listings/:id/groups/post"
+              element={
+                <ProtectedRoute>
+                  <GroupPost />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/groups/:id"
+              element={
+                <ProtectedRoute>
+                  <GroupView />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/groups/edit/:id"
+              element={
+                <ProtectedRoute>
+                  <GroupEdit />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile/:id"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile/edit/:id"
+              element={
+                <ProtectedRoute>
+                  <ProfileEdit />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile/:id/reviews"
+              element={
+                <ProtectedRoute>
+                  <Reviews />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/conversations"
+              element={
+                <ProtectedRoute>
+                  <ConversationList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/conversations/:conversationId"
+              element={
+                <ProtectedRoute>
+                  <ConversationWindow />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/roommates"
+              element={
+                <ProtectedRoute>
+                  <RoommatesHome />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/roommates/post"
+              element={
+                <ProtectedRoute>
+                  <RoommatesPost />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/roommates/:id"
+              element={
+                <ProtectedRoute>
+                  <RoommatesView />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
+      </Router>
+    </ProfileProvider>
   );
 }
 

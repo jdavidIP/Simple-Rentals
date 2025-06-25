@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import api from "../api";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import "../styles/groups.css";
+import { useProfileContext } from "../contexts/ProfileContext";
 
 function GroupView() {
   const { id } = useParams(); // group id
@@ -11,9 +12,9 @@ function GroupView() {
   const [error, setError] = useState(null);
   const [joining, setJoining] = useState(false);
   const [application, setApplication] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
   const [listingOwnerId, setListingOwnerId] = useState(null);
   const [listingPrice, setListingPrice] = useState(null);
+  const { profile } = useProfileContext();
 
   const fetchGroup = async () => {
     try {
@@ -29,18 +30,8 @@ function GroupView() {
     }
   };
 
-  const fetchCurrentUser = async () => {
-    try {
-      const res = await api.get("/profile/me/");
-      setCurrentUser(res.data);
-    } catch {
-      setCurrentUser(null);
-    }
-  };
-
   useEffect(() => {
     fetchGroup();
-    fetchCurrentUser();
   }, [id]);
 
   const handleJoin = async (e) => {
@@ -76,14 +67,12 @@ function GroupView() {
     }
   };
 
-  const isMember =
-    currentUser && members.some((m) => m.user.id === currentUser.id);
+  const isMember = profile && members.some((m) => m.user.id === profile.id);
 
-  const isOwner =
-    group && currentUser && currentUser.id === group.owner.user.id;
+  const isOwner = group && profile && profile.id === group.owner.user.id;
 
   const isListingOwner =
-    currentUser && listingOwnerId && currentUser.id === listingOwnerId;
+    profile && listingOwnerId && profile.id === listingOwnerId;
 
   const getFitRanking = (income) => {
     if (income == null) {
@@ -202,7 +191,8 @@ function GroupView() {
           group.group_status !== "O" ||
           joining ||
           isMember ||
-          currentUser === null
+          profile === null ||
+          isListingOwner
         }
       >
         {isOwner
@@ -213,6 +203,8 @@ function GroupView() {
           ? "Group not open"
           : joining
           ? "Joining..."
+          : isListingOwner
+          ? "Listing is yours"
           : "Join Group"}
       </button>
       {isOwner && (
