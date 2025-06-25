@@ -22,13 +22,13 @@ import os
 ### USER AUTHENTICATION SECTION - START ###
 # API views for user authentication and registration
 
-class CreateUserView(generics.CreateAPIView): # Working
+class CreateUserView(generics.CreateAPIView):
     """API view to handle user registration."""
     queryset = MarketplaceUser.objects.all()
     serializer_class = UserRegistrationSerializer
     permission_classes = [AllowAny]
 
-class LogInView(generics.CreateAPIView): # Working 
+class LogInView(generics.CreateAPIView):
     """API view to handle user login."""
     serializer_class = UserLogInSerializer
     permission_classes = [AllowAny]
@@ -49,7 +49,7 @@ class LogInView(generics.CreateAPIView): # Working
             "refresh": str(refresh),
         }, status=200)
 
-class UserEditView(generics.UpdateAPIView): # Not Functional yet (needs integration with frontend) - Tested locally and works
+class UserEditView(generics.UpdateAPIView): 
     """API view to handle user profile editing."""
     serializer_class = UserEditSerializer
     permission_classes = [IsAuthenticated]
@@ -57,7 +57,7 @@ class UserEditView(generics.UpdateAPIView): # Not Functional yet (needs integrat
     def get_object(self):
         return self.request.user
     
-class UserProfileView(generics.RetrieveAPIView): # Working
+class UserProfileView(generics.RetrieveAPIView):
     """API view to handle user profile retrieval."""
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
@@ -104,8 +104,7 @@ class LogoutView(APIView):
 ### LISTING SECTION - START ###
 # API views for listing management
     
-class ListingDeleteView(generics.DestroyAPIView): # Working
-    """API view to handle listing deletion."""
+class ListingDeleteView(generics.DestroyAPIView):
     serializer_class = ListingSerializer
     permission_classes = [IsAuthenticated]
 
@@ -120,7 +119,7 @@ class ListingDeleteView(generics.DestroyAPIView): # Working
                     os.remove(picture.image.path)
         instance.delete()
 
-class ListingEditView(generics.UpdateAPIView): # Working
+class ListingEditView(generics.UpdateAPIView):
     """API view to handle listing editing."""
     serializer_class = ListingPostingSerializer
     permission_classes = [IsAuthenticated]  # Ensure only authenticated users can edit listings
@@ -130,7 +129,7 @@ class ListingEditView(generics.UpdateAPIView): # Working
         listing = get_object_or_404(Listing, id=self.kwargs['pk'], owner=self.request.user)
         return listing
     
-class ListingDetailView(generics.RetrieveAPIView): # Working
+class ListingDetailView(generics.RetrieveAPIView):
     """API view to handle listing details."""
     serializer_class = ListingSerializer
     permission_classes = [AllowAny]
@@ -140,7 +139,7 @@ class ListingDetailView(generics.RetrieveAPIView): # Working
         listing = get_object_or_404(Listing, id=self.kwargs['pk'])
         return listing
 
-class ListingPostingView(generics.CreateAPIView): # Working
+class ListingPostingView(generics.CreateAPIView):
     """API view to handle listing posting."""
     serializer_class = ListingPostingSerializer
     permission_classes = [IsAuthenticated]
@@ -226,7 +225,7 @@ class ListingListView(generics.ListAPIView):
 ### CONVERSATION SECTION - START ###
 # API views for conversation management
 
-class ConversationListView(generics.ListAPIView): # Working
+class ConversationListView(generics.ListAPIView):
     """API view to handle conversation list."""
     serializer_class = ConversationSerializer
     permission_classes = [IsAuthenticated] 
@@ -235,7 +234,7 @@ class ConversationListView(generics.ListAPIView): # Working
         user = self.request.user
         return Conversation.objects.filter(participants=user).order_by('-last_updated')
     
-class ConversationDetailView(generics.RetrieveAPIView): # Working
+class ConversationDetailView(generics.RetrieveAPIView):
     """API view to retrieve conversation details."""
     serializer_class = ConversationSerializer
     permission_classes = [IsAuthenticated]
@@ -282,7 +281,7 @@ class StartConversationView(APIView):
         serializer = ConversationSerializer(conversation, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-class SendMessageView(generics.CreateAPIView): # Working
+class SendMessageView(generics.CreateAPIView):
     """API view to send a message in a conversation."""
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
@@ -306,7 +305,7 @@ class SendMessageView(generics.CreateAPIView): # Working
 ### REVIEW SECTION - START ###
 # API views for Review management
 
-class ReviewListView(generics.ListAPIView):  # Use ListAPIView to return multiple reviews
+class ReviewListView(generics.ListAPIView):
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated]
 
@@ -428,10 +427,6 @@ class RoommateDetailView(generics.RetrieveAPIView):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         data = self.get_serializer(instance).data
-
-        # Determine if the requesting user is the owner
-        is_owner = request.user.is_authenticated and request.user.id == instance.id
-        data['is_owner'] = is_owner
 
         return Response(data)
 

@@ -14,9 +14,9 @@ function FormRegister({ method = "register", profile }) {
     last_name: profile?.last_name || "",
     age: profile?.age || "",
     sex: profile?.sex || "",
-    budget_min: profile?.budget_min || "",
-    budget_max: profile?.budget_max || "",
-    yearly_income: profile?.yearly_income || "",
+    budget_min: profile?.budget_min || null,
+    budget_max: profile?.budget_max || null,
+    yearly_income: profile?.yearly_income || null,
     city: profile?.city || "",
     preferred_location: profile?.preferred_location || "",
     phone_number: profile?.phone_number || "",
@@ -84,9 +84,15 @@ function FormRegister({ method = "register", profile }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (formData.budget_min === "") {
-      formData.budget_min = 0;
-    }
+    const cleanFormData = {
+      ...formData,
+      budget_min: formData.budget_min === "" ? null : formData.budget_min,
+      budget_max: formData.budget_max === "" ? null : formData.budget_max,
+      yearly_income:
+        formData.yearly_income === "" ? null : formData.yearly_income,
+    };
+
+    console.log(cleanFormData.yearly_income);
 
     if (formData.password !== formData.password_confirmation) {
       setError(["Passwords do not match"]);
@@ -100,7 +106,7 @@ function FormRegister({ method = "register", profile }) {
 
     try {
       const data = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
+      Object.entries(cleanFormData).forEach(([key, value]) => {
         // Don't send empty password fields on edit
         if (
           method === "edit" &&
@@ -114,8 +120,9 @@ function FormRegister({ method = "register", profile }) {
           if (value instanceof File) {
             data.append("profile_picture", value);
           }
-        } else {
-          data.append(key, value);
+        } else if (value !== undefined) {
+          // If value is null, append as empty string to signal clearing the field
+          data.append(key, value === null ? "" : value);
         }
       });
 

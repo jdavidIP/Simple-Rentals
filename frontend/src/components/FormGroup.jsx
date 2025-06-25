@@ -230,6 +230,7 @@ function FormGroup({ method, group }) {
           </button>
         </div>
       </div>
+
       {allRoommates.length > 0 && (
         <div className="mb-3">
           <label className="form-label">Select Members</label>
