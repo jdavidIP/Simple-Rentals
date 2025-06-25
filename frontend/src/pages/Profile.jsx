@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api.js";
 import "../styles/profile.css";
+import { useProfileContext } from "../contexts/ProfileContext.jsx";
 
 function Profile() {
   const { id } = useParams();
@@ -10,16 +11,13 @@ function Profile() {
   const [listings, setListings] = useState([]);
   const [reviews, setReviews] = useState([]); // New state for reviews
   const [error, setError] = useState(null);
-  const [isOwner, setIsOwner] = useState(false);
   const [roommateId, setRoommateId] = useState(false);
+  const { isProfileSelf } = useProfileContext();
 
   const fetchProfile = async () => {
     try {
       const response = await api.get(`/profile/${id}`);
       setProfile(response.data);
-
-      // Check if the logged-in user is the owner of this profile
-      setIsOwner(response.data.is_owner);
       setRoommateId(response.data.roommate_profile);
     } catch (err) {
       console.error("Error fetching profile:", err);
@@ -95,7 +93,7 @@ function Profile() {
           <h1>{`${profile.first_name} ${profile.last_name}`}</h1>
           <p>{profile.email}</p>
           <p>{profile.phone_number}</p>
-          {isOwner ? (
+          {isProfileSelf(profile.id) ? (
             <button
               onClick={() => navigate(`/listings/post`)}
               className="btn btn-primary"
@@ -111,7 +109,7 @@ function Profile() {
             </button>
           )}
 
-          {isOwner && (
+          {isProfileSelf(profile.id) && (
             <button
               onClick={() => navigate(`/profile/edit/${id}`)}
               className="btn btn-primary"
@@ -156,7 +154,7 @@ function Profile() {
                   >
                     View More
                   </button>
-                  {isOwner && (
+                  {isProfileSelf(profile.id) && (
                     <button
                       className="edit-button"
                       onClick={() => navigate(`/listings/edit/${listing.id}`)}

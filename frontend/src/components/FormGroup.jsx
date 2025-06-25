@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useDebugValue } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api.js";
 import "../styles/forms.css";
+import { useProfileContext } from "../contexts/ProfileContext.jsx";
 
 function FormGroup({ method, group }) {
   const { id } = useParams(); // listing id for POST, group id for EDIT
@@ -18,28 +19,14 @@ function FormGroup({ method, group }) {
   const [allRoommates, setAllRoommates] = useState([]);
   const [selectedToAdd, setSelectedToAdd] = useState([]);
   const [error, setError] = useState(null);
-  const [currentRoommateId, setCurrentRoommateId] = useState(null);
+  const { profile } = useProfileContext();
   const errorRef = useRef(null);
-
-  useEffect(() => {
-    fetchCurrentRoommate();
-  });
 
   useEffect(() => {
     if (error && errorRef.current) {
       errorRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [error]);
-
-  const fetchCurrentRoommate = async () => {
-    try {
-      const response = await api.get("/profile/me/");
-      setCurrentRoommateId(response.data.roommate_profile);
-    } catch (err) {
-      console.error("Error fetching current user: ", err);
-      setError("Failed to fetch user.");
-    }
-  };
 
   // Fetch roommates by name
   const handleSearch = async (e) => {
@@ -291,7 +278,7 @@ function FormGroup({ method, group }) {
                 style={{ display: "flex", alignItems: "center", gap: "10px" }}
               >
                 {getMemberInfo(memberId)}
-                {memberId != currentRoommateId && (
+                {memberId != profile.roommate_profile.id && (
                   <button
                     type="button"
                     className="btn btn-sm btn-danger"

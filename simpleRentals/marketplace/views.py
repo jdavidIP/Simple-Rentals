@@ -70,10 +70,6 @@ class UserProfileView(generics.RetrieveAPIView): # Working
         instance = self.get_object()
         data = self.get_serializer(instance).data
 
-        # Determine if the requesting user is the owner
-        is_owner = request.user.is_authenticated and request.user.id == instance.id
-        data['is_owner'] = is_owner
-
         return Response(data)
 
 class CurrentUserView(generics.RetrieveAPIView):
