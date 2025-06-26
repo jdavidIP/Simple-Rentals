@@ -299,6 +299,17 @@ class SendMessageView(generics.CreateAPIView):
         # Mark all unread messages as read after sending a message
         conversation.messages.filter(read=False).exclude(sender=self.request.user).update(read=True)
 
+class UnreadMessagesListView(generics.ListAPIView):
+    serializer_class = MessageSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Message.objects.filter(
+            read=False,
+            conversation__participants=user
+        ).exclude(sender=user).order_by('-timestamp')
+
 ### CONVERSATION SECTION - END ###
 
 

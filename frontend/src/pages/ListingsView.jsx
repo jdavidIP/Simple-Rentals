@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../api.js";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { useProfileContext } from "../contexts/ProfileContext.jsx";
 
 function ListingsView() {
   const { id } = useParams();
@@ -8,6 +9,7 @@ function ListingsView() {
   const [userIncome, setUserIncome] = useState(null);
   const [listing, setListing] = useState();
   const [error, setError] = useState(null);
+  const { profile, isProfileSelf } = useProfileContext();
 
   const fetchListing = async () => {
     try {
@@ -39,19 +41,13 @@ function ListingsView() {
 
   useEffect(() => {
     fetchListing();
-    fetchUserIncome();
   }, [id]);
 
-  const fetchUserIncome = async () => {
-    try {
-      const response = await api.get("/profile/me/");
-      if (response.data.yearly_income) {
-        setUserIncome(parseFloat(response.data.yearly_income));
-      }
-    } catch (err) {
-      console.warn("User income not loaded");
+  useEffect(() => {
+    if (profile) {
+      setUserIncome(profile.yearly_income);
     }
-  };
+  }, [profile]);
 
   if (!listing) {
     return <div className="text-center fs-4 mt-5">Loading listing...</div>;
@@ -114,16 +110,17 @@ function ListingsView() {
           <h3 className="text-primary fw-bold mt-2">
             ${listing.price} / month
           </h3>
-          {userIncome && (() => {
-            const affordability = getAffordability();
-            return affordability ? (
-              <div className="mt-1">
-                <span className="fw-semibold">
-                  {affordability.icon} {affordability.label}
-                </span>
-              </div>
-            ) : null;
-          })()}
+          {userIncome &&
+            (() => {
+              const affordability = getAffordability();
+              return affordability ? (
+                <div className="mt-1">
+                  <span className="fw-semibold">
+                    {affordability.icon} {affordability.label}
+                  </span>
+                </div>
+              ) : null;
+            })()}
           {error && <p className="text-danger fw-semibold">{error}</p>}
         </div>
 
@@ -148,12 +145,21 @@ function ListingsView() {
                   {owner.first_name} {owner.last_name}
                 </Link>
               </p>
-              <button
-                className="btn btn-primary mt-3"
-                onClick={() => handleStartConversation(listing.id)}
-              >
-                Contact Owner
-              </button>
+              {isProfileSelf(owner.id) ? (
+                <button
+                  className="btn btn-primary mt-3"
+                  onClick={() => navigate(`/conversations`)}
+                >
+                  See Conversations
+                </button>
+              ) : (
+                <button
+                  className="btn btn-primary mt-3"
+                  onClick={() => handleStartConversation(listing.id)}
+                >
+                  Contact Owner
+                </button>
+              )}
               <button
                 className="btn btn-primary mt-3"
                 onClick={() => navigate(`/listings/${listing.id}/groups`)}

@@ -21,6 +21,7 @@ urlpatterns = [
     path('conversations/<int:pk>/', views.ConversationDetailView.as_view(), name='conversation_detail'), # pk = conversation id
     path('listing/<int:pk>/start_conversation/', views.StartConversationView.as_view(), name='start_conversation'), # pk = listing id
     path('conversations/<int:pk>/send_message/', views.SendMessageView.as_view(), name='send_message'), # pk = conversation id
+    path("messages", views.UnreadMessagesListView.as_view(), name="unread_messgaes"),
     path("listings/", views.listings_home, name="listings_home"),
     path("listings/viewAll", views.ListingListView.as_view(), name="viewAllListings"),
     path("listings/add", views.ListingPostingView.as_view(), name="post_listing"),

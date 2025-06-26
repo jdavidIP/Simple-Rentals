@@ -9,13 +9,36 @@ export const useProfileContext = () => {
 
 export const ProfileProvider = ({ children }) => {
   const [profile, setProfile] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [applications, setApplications] = useState([]);
 
   const fetchUser = async () => {
     try {
-      const res = await api.get("/profile/me/");
-      setProfile(res.data);
-    } catch {
+      const response = await api.get("/profile/me/");
+      setProfile(response.data);
+    } catch (err) {
+      console.error("Failed to fetch user.", err);
       setProfile(null);
+    }
+  };
+
+  const fetchMessages = async () => {
+    try {
+      const response = await api.get("/messages");
+      setMessages(response.data);
+    } catch (err) {
+      console.error("Failed to fetch messages.", err);
+      setMessages(null);
+    }
+  };
+
+  const fetchApplications = async () => {
+    try {
+      const response = await api.get("/applications");
+      setApplications(response.data);
+    } catch (err) {
+      console.error("Failed to fetch applications.", err);
+      setApplications(null);
     }
   };
 
@@ -26,6 +49,11 @@ export const ProfileProvider = ({ children }) => {
     window.addEventListener("user-logged-in", handler);
     return () => window.removeEventListener("user-logged-in", handler);
   }, []);
+
+  useEffect(() => {
+    fetchMessages();
+    //fetchApplications();
+  }, [profile]);
 
   const isProfileSelf = (id) => {
     return id === profile.id;

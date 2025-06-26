@@ -414,13 +414,6 @@ class MessageSerializer(serializers.ModelSerializer):
             'read': {'read_only': True},
         }
 
-    def to_representation(self, instance):
-        # Automatically mark messages as read when retrieved
-        if not instance.read and instance.sender != self.context['request'].user:
-            instance.read = True
-            instance.save(update_fields=['read'])
-        return super().to_representation(instance)
-
     def create(self, validated_data):
         validated_data['sender'] = self.context['request'].user
         return super().create(validated_data)
