@@ -431,13 +431,21 @@ class RoommateDetailView(generics.RetrieveAPIView):
         return Response(data)
 
 class CreateRoommateView(generics.CreateAPIView):
-    queryset = RoommateUser.objects.all()
     serializer_class = RoommateUserRegistrationSerializer
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
         # The `context` is already passed to the serializer by DRF
         serializer.save(user=self.request.user)
+
+class RoommateEditView(generics.UpdateAPIView):
+    serializer_class = RoommateUserRegistrationSerializer
+    permission_class = [IsAuthenticated]
+
+    def get_object(self):
+        roommate_user = get_object_or_404(RoommateUser, user=self.request.user)
+
+        return roommate_user
     
 ### ROOMMATE SECTION - END ###
 

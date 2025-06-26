@@ -1,21 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import api from "../api.js";
 import { useNavigate } from "react-router-dom";
 import "../styles/forms.css";
 
-function FormRoommate() {
+function FormRoommate({ method = "post", roommate }) {
   const [formData, setFormData] = useState({
-    description: "",
-    move_in_date: "",
-    stay_length: "",
-    occupation: "",
-    roommate_budget: "",
-    smoke_friendly: false,
-    cannabis_friendly: false,
-    pet_friendly: false,
-    couple_friendly: false,
-    gender_preference: "O",
-    open_to_message: true,
+    description: roommate?.description || "",
+    move_in_date: roommate?.move_in_date || "",
+    stay_length: roommate?.stay_length || "",
+    occupation: roommate?.occupation[0] || "",
+    roommate_budget: roommate?.roommate_budget || "",
+    smoke_friendly: roommate?.smoke_friendly || false,
+    cannabis_friendly: roommate?.cannabis_friendly || false,
+    pet_friendly: roommate?.pet_friendly || false,
+    couple_friendly: roommate?.couple_friendly || false,
+    gender_preference: roommate?.gender_preference[0] || "O",
+    open_to_message: roommate?.open_to_message ?? true,
   });
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -32,30 +32,46 @@ function FormRoommate() {
     e.preventDefault();
     setError(null);
 
+    console.log(formData);
+
+    // Clean up numeric fields (convert "" to null)
+    const cleanFormData = {
+      ...formData,
+      roommate_budget:
+        formData.roommate_budget === "" ? null : formData.roommate_budget,
+      stay_length: formData.stay_length === "" ? null : formData.stay_length,
+    };
+
     try {
-      const payload = {
-        ...formData,
-        smoke_friendly: !!formData.smoke_friendly,
-        cannabis_friendly: !!formData.cannabis_friendly,
-        pet_friendly: !!formData.pet_friendly,
-        couple_friendly: !!formData.couple_friendly,
-        open_to_message: !!formData.open_to_message,
-      };
-      await api.post("/roommates/post", payload);
-      navigate("/roommates");
+      if (method === "edit" && roommate?.id) {
+        // PATCH only changed fields
+        await api.patch(`/roommates/edit/${roommate.id}`, cleanFormData);
+        navigate(`/roommates/${roommate.id}`);
+      } else {
+        await api.post("/roommates/post", cleanFormData);
+        navigate("/roommates");
+      }
     } catch (err) {
       if (err.response && err.response.data) {
         const errorMessages = Object.values(err.response.data).flat();
         setError(errorMessages);
       } else {
-        setError(["Failed to register roommate profile."]);
+        setError([
+          method === "edit"
+            ? "Failed to update roommate profile."
+            : "Failed to register roommate profile.",
+        ]);
       }
     }
   };
 
   return (
     <form className="form-container" onSubmit={handleSubmit}>
-      <h1>Roommate Profile Registration</h1>
+      <h1>
+        {method === "edit"
+          ? "Edit Roommate Profile"
+          : "Roommate Profile Registration"}
+      </h1>
       {error && (
         <ul>
           {error.map((msg, idx) => (
@@ -97,7 +113,7 @@ function FormRoommate() {
         <label>Occupation</label>
         <select
           name="occupation"
-          value={formData.occupation}
+          value={formData.occupation[0]}
           onChange={handleChange}
           required
         >
@@ -122,7 +138,7 @@ function FormRoommate() {
         <label>Gender Preference</label>
         <select
           name="gender_preference"
-          value={formData.gender_preference}
+          value={formData.gender_preference[0]}
           onChange={handleChange}
           required
         >
@@ -178,7 +194,9 @@ function FormRoommate() {
           Open to Message
         </label>
       </div>
-      <button type="submit">Register Roommate Profile</button>
+      <button type="submit">
+        {method === "edit" ? "Save Changes" : "Register Roommate Profile"}
+      </button>
     </form>
   );
 }

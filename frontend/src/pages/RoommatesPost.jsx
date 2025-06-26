@@ -1,8 +1,8 @@
 import React from "react";
 import FormRoommates from "../components/FormRoommate.jsx";
 
-function ListingRoommate() {
-  return <FormRoommates />;
+function RoommatesPost() {
+  return <FormRoommates method="post" />;
 }
 
-export default ListingRoommate;
+export default RoommatesPost;

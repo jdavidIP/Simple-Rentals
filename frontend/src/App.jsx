@@ -30,6 +30,7 @@ import GroupPost from "./pages/GroupsPost";
 import GroupView from "./pages/GroupView";
 import GroupEdit from "./pages/GroupEdit";
 import { ProfileProvider } from "./contexts/ProfileContext";
+import RoommatesEdit from "./pages/RoommatesEdit";
 
 function App() {
   return (
@@ -146,6 +147,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <RoommatesPost />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/roommates/edit/:id"
+              element={
+                <ProtectedRoute>
+                  <RoommatesEdit />
                 </ProtectedRoute>
               }
             />
