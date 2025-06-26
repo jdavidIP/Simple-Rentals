@@ -1,21 +1,9 @@
 import React, { useEffect, useState } from "react";
 import api from "../api";
+import { useProfileContext } from "../contexts/ProfileContext";
 
 function Header() {
-  const [userId, setUserId] = useState(null);
-
-  const fetchUser = async () => {
-    try {
-      const res = await api.get("/profile/me/");
-      setUserId(res.data.id);
-    } catch {
-      setUserId(null);
-    }
-  };
-
-  useEffect(() => {
-    fetchUser();
-  }, []);
+  const { profile } = useProfileContext();
 
   return (
     <nav className="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
@@ -44,7 +32,7 @@ function Header() {
             <li className="nav-item">
               <a
                 className="nav-link"
-                href={userId ? `/profile/${userId}` : "/login"}
+                href={profile ? `/profile/${profile.id}` : "/login"}
               >
                 Account
               </a>

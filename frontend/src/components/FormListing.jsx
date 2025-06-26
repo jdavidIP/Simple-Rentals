@@ -425,6 +425,42 @@ function FormListing({ method, listing }) {
       </div>
 
       <div className="mb-3">
+        <label htmlFor="ac">
+          <input
+            type="checkbox"
+            name="ac"
+            checked={formData.ac}
+            onChange={handleChange}
+          />
+          Air Conditioning
+        </label>
+      </div>
+
+      <div className="mb-3">
+        <label htmlFor="heating">
+          <input
+            type="checkbox"
+            name="heating"
+            checked={formData.heating}
+            onChange={handleChange}
+          />
+          Heating
+        </label>
+      </div>
+
+      <div className="mb-3">
+        <label htmlFor="pet_friendly">
+          <input
+            type="checkbox"
+            name="pet_friendly"
+            checked={formData.pet_friendly}
+            onChange={handleChange}
+          />
+          Pet Friendly
+        </label>
+      </div>
+
+      <div className="mb-3">
         <label htmlFor="parking_spaces">Parking Spaces</label>
         <input
           type="number"
@@ -456,6 +492,16 @@ function FormListing({ method, listing }) {
           value={formData.description}
           onChange={handleChange}
           required
+        ></textarea>
+      </div>
+
+      <div className="mb-3">
+        <label htmlFor="extra_amenities">Extra Amenities</label>
+        <textarea
+          id="extra_amenities"
+          name="extra_amenities"
+          value={formData.extra_amenities}
+          onChange={handleChange}
         ></textarea>
       </div>
 
