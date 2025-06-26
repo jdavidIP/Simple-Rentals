@@ -385,7 +385,8 @@ class RoommateListView(generics.ListAPIView):
         couple_friendly = filters.get("couple_friendly")
         occupation = filters.get("occupation")
         city = filters.get("city")
-        budget = filters.get("roommate_budget")
+        budget_min = filters.get("budget_min")
+        budget_max = filters.get("budget_max")
 
         user = self.request.user
         if user.is_authenticated:
@@ -410,8 +411,10 @@ class RoommateListView(generics.ListAPIView):
             queryset = queryset.filter(occupation=occupation)
         if city:
             queryset = queryset.filter(user__city__icontains=city)
-        if budget:
-            queryset = queryset.filter(roommate_budget=budget)
+        if budget_min:
+            queryset = queryset.filter(roommate_budget__gte=budget_min)
+        if budget_max:
+            queryset = queryset.filter(roommate_budget__lte=budget_max)
 
         return queryset
     

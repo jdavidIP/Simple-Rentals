@@ -6,7 +6,8 @@ function Roommates() {
   const [roommates, setRoommates] = useState([]);
   const [filters, setFilters] = useState({
     city: "",
-    roommate_budget: "",
+    budget_min: "",
+    budget_max: "",
     gender_preference: "",
     pet_friendly: "",
     smoke_friendly: "",
@@ -22,8 +23,10 @@ function Roommates() {
     try {
       const params = {};
       if (customFilters.city) params.city = customFilters.city;
-      if (customFilters.roommate_budget)
-        params.roommate_budget = customFilters.roommate_budget;
+      if (customFilters.budget_min)
+        params.budget_min = customFilters.budget_min;
+      if (customFilters.budget_max)
+        params.budget_max = customFilters.budget_max;
       if (customFilters.gender_preference)
         params.gender_preference = customFilters.gender_preference;
       if (customFilters.pet_friendly)
@@ -67,7 +70,8 @@ function Roommates() {
   const clearFilters = () => {
     const cleared = {
       city: "",
-      roommate_budget: "",
+      budget_min: "",
+      budget_max: "",
       gender_preference: "",
       pet_friendly: "",
       smoke_friendly: "",
@@ -109,13 +113,24 @@ function Roommates() {
                   onChange={handleInputChange}
                 />
               </div>
-              <div className="col-md-4">
-                <label className="form-label">Budget</label>
+              <div className="col-md-2">
+                <label className="form-label">Budget Min</label>
                 <input
                   type="number"
-                  name="roommate_budget"
+                  name="budget_min"
                   className="form-control"
-                  value={filters.roommate_budget}
+                  value={filters.budget_min}
+                  onChange={handleInputChange}
+                  min="0"
+                />
+              </div>
+              <div className="col-md-2">
+                <label className="form-label">Budget Max</label>
+                <input
+                  type="number"
+                  name="budget_max"
+                  className="form-control"
+                  value={filters.budget_max}
                   onChange={handleInputChange}
                   min="0"
                 />
