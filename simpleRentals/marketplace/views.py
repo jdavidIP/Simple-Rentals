@@ -524,6 +524,17 @@ class GroupEditView(generics.UpdateAPIView):
 
         return group
 
+class ApplicationListView(generics.ListAPIView):
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        # Return groups with status 'O' (Open) and where the user is the owner of the listing
+        return Group.objects.filter(
+            group_status='S',
+            listing__owner=user
+        )
 
 # HOME SECTION - START
 

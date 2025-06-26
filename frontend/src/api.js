@@ -24,6 +24,7 @@ api.interceptors.request.use(
       "/roommates",
       "/groups",
       "/messages",
+      "/applications",
     ];
     const url = new URL(config.url, config.baseURL).pathname;
 

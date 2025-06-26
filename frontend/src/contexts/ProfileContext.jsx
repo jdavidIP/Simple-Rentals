@@ -52,7 +52,7 @@ export const ProfileProvider = ({ children }) => {
 
   useEffect(() => {
     fetchMessages();
-    //fetchApplications();
+    fetchApplications();
   }, [profile]);
 
   const isProfileSelf = (id) => {

@@ -33,6 +33,7 @@ urlpatterns = [
     path("groups/<int:pk>", views.GroupDetailView.as_view(), name="view_group"), # pk - group id
     path("groups/edit/<int:pk>", views.GroupEditView.as_view(), name="edit_group"), # pk - group id
     path("groups/<int:pk>/join", views.GroupJoinView.as_view(), name="join_group"), # pk - group id
+    path("applications", views.ApplicationListView.as_view(), name="get_applications"),
     path("profile/reviews", views.ReviewListView.as_view(), name="view_reviews"),
     path("profile/reviews/<int:pk>", views.ReviewPosting.as_view(), name="post_review"), # pk = reviewee id
     path("profile/me/", views.CurrentUserView.as_view(), name="profile_self"),
