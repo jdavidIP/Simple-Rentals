@@ -14,7 +14,7 @@ export const ProfileProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const response = await api.get("/profile/me/");
+      const response = await api.get("/profile/me");
       setProfile(response.data);
     } catch (err) {
       console.error("Failed to fetch user.", err);
@@ -28,7 +28,7 @@ export const ProfileProvider = ({ children }) => {
       setMessages(response.data);
     } catch (err) {
       console.error("Failed to fetch messages.", err);
-      setMessages(null);
+      setMessages([]);
     }
   };
 
@@ -38,7 +38,7 @@ export const ProfileProvider = ({ children }) => {
       setApplications(response.data);
     } catch (err) {
       console.error("Failed to fetch applications.", err);
-      setApplications(null);
+      setApplications([]);
     }
   };
 
@@ -51,16 +51,20 @@ export const ProfileProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    fetchMessages();
-    fetchApplications();
+    if (profile) {
+      fetchMessages();
+      fetchApplications();
+    }
   }, [profile]);
 
   const isProfileSelf = (id) => {
-    return id === profile.id;
+    return profile && id === profile.id;
   };
 
   const value = {
     profile,
+    applications,
+    messages,
     isProfileSelf,
   };
 

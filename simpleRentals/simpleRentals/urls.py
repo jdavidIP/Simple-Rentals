@@ -36,7 +36,7 @@ urlpatterns = [
     path("applications", views.ApplicationListView.as_view(), name="get_applications"),
     path("profile/reviews", views.ReviewListView.as_view(), name="view_reviews"),
     path("profile/reviews/<int:pk>", views.ReviewPosting.as_view(), name="post_review"), # pk = reviewee id
-    path("profile/me/", views.CurrentUserView.as_view(), name="profile_self"),
+    path("profile/me", views.CurrentUserView.as_view(), name="profile_self"),
     path("reviews/<int:pk>", views.ReviewUpdateDeleteView.as_view(), name="manage_review"), # pk = review id
     path("roommates/", views.RoommateListView.as_view(), name="viewAllRoommates"),
     path("roommates/<int:pk>", views.RoommateDetailView.as_view(), name="view_roommate"), # pk = roommate id
