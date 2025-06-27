@@ -146,12 +146,12 @@ function Header() {
                     {applicationPreviews.map((app) => (
                       <a
                         key={app.id}
-                        href={`/applications/${app.id}`}
+                        href={`/groups/${app.id}`}
                         className="dropdown-item"
                         style={{ whiteSpace: "normal" }}
                       >
                         <div>
-                          <strong>Group:</strong> {app.group?.name || "N/A"}
+                          <strong>Group:</strong> {app.name || "N/A"}
                         </div>
                         <div className="text-muted small">
                           {app.description

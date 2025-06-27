@@ -530,12 +530,13 @@ class ApplicationListView(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        # Return groups with status 'O' (Open) and where the user is the owner of the listing
-        return Group.objects.filter(
-            group_status='S',
-            listing__owner=user
-        )
-
+        # Groups with status 'S' where user is the listing owner
+        q1 = Q(group_status='S', listing__owner=user)
+        # Groups with status 'R' or 'I' where user is a member
+        q2 = Q(group_status__in=['R', 'I'], members__user=user)
+        return Group.objects.filter(q1 | q2).distinct()
+    
+    
 # HOME SECTION - START
 
 # Home page - displays the home page

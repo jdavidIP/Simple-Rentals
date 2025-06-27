@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
 import "../styles/groups.css";
 import { useProfileContext } from "../contexts/ProfileContext";
+import GroupCard from "../components/GroupCard";
 
 function Groups() {
   const { id } = useParams();
@@ -43,6 +44,8 @@ function Groups() {
     }
   }, [error]);
 
+  if (!ownerId || !groups) return <p>Loading...</p>;
+
   return (
     <div className="groups-container">
       <h2 className="groups-title">Groups for this Listing</h2>
@@ -66,30 +69,7 @@ function Groups() {
       ) : (
         <div className="groups-list">
           {groups.map((group) => (
-            <div
-              className="group-card"
-              key={group.id}
-              style={{ cursor: "pointer" }}
-              onClick={() => navigate(`/groups/${group.id}`)}
-            >
-              <h4 className="group-name">{group.name}</h4>
-              <p className="group-description">
-                {group.description || "No description provided."}
-              </p>
-              <p>
-                <strong>Move-in Date:</strong> {group.move_in_date}
-              </p>
-              <p>
-                <strong>Status:</strong> {group.group_status}
-              </p>
-              <p>
-                <strong>Move-in Ready:</strong>{" "}
-                {group.move_in_ready ? "Yes" : "No"}
-              </p>
-              <p>
-                <strong>Members:</strong> {group.members.length}
-              </p>
-            </div>
+            <GroupCard key={group.id} group={group} />
           ))}
         </div>
       )}

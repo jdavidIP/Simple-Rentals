@@ -12,6 +12,7 @@ function GroupView() {
   const [error, setError] = useState(null);
   const [joining, setJoining] = useState(false);
   const [application, setApplication] = useState(false);
+  const [listing, setListing] = useState(null);
   const [listingOwnerId, setListingOwnerId] = useState(null);
   const [listingPrice, setListingPrice] = useState(null);
   const { profile } = useProfileContext();
@@ -23,6 +24,7 @@ function GroupView() {
       setMembers(res.data.members || []);
 
       const listingRes = await api.get(`/listings/${res.data.listing}`);
+      setListing(listingRes.data);
       setListingPrice(listingRes.data.price);
       setListingOwnerId(listingRes.data.owner?.id);
     } catch (err) {
@@ -84,7 +86,7 @@ function GroupView() {
       };
     }
 
-    if (!listingPrice || !income) return null;
+    if (!listingPrice || !income || !listing) return null;
 
     const monthlyIncome = income / 12;
     const rentRatio = listingPrice / monthlyIncome;
@@ -133,6 +135,17 @@ function GroupView() {
   return (
     <div className="groups-container">
       <h2 className="groups-title">{group.name}</h2>
+      <p>
+        <strong>Listing:</strong>{" "}
+        {listing ? (
+          <Link to={`/listings/${group.listing}`}>
+            {listing.unit_number && `${listing.unit_number}, `}
+            {listing.street_address}, {listing.city}, {listing.postal_code}
+          </Link>
+        ) : (
+          "Loading listing..."
+        )}
+      </p>
       <p>
         <strong>Description:</strong>{" "}
         {group.description || "No description provided."}
