@@ -15,7 +15,7 @@ function GroupView() {
   const [listing, setListing] = useState(null);
   const [listingOwnerId, setListingOwnerId] = useState(null);
   const [listingPrice, setListingPrice] = useState(null);
-  const { profile } = useProfileContext();
+  const { profile, isProfileSelf } = useProfileContext();
 
   const fetchGroup = async () => {
     try {
@@ -86,7 +86,7 @@ function GroupView() {
       };
     }
 
-    if (!listingPrice || !income || !listing) return null;
+    if (!listingPrice || !income || !listing) return <p>Loading...</p>;
 
     const monthlyIncome = income / 12;
     const rentRatio = listingPrice / monthlyIncome;
@@ -128,6 +128,14 @@ function GroupView() {
     return (
       <div className="groups-container">
         <p>Loading group details...</p>
+      </div>
+    );
+  }
+
+  if (!listing) {
+    return (
+      <div className="groups-container">
+        <p>Loading listing details...</p>
       </div>
     );
   }
@@ -241,12 +249,30 @@ function GroupView() {
           Edit Group
         </button>
       )}
-      <button
-        className="btn btn-secondary mt-3 ms-2"
-        onClick={() => navigate(`/listings/${group.listing}/groups`)}
-      >
-        Back
-      </button>
+
+      {isProfileSelf(listing.owner.id) ? (
+        <>
+          <button
+            className="btn btn-secondary mt-3 ms-2"
+            onClick={() => navigate(`/listings/${group.listing}/groups`)}
+          >
+            See Groups for this Listing
+          </button>
+          <button
+            className="btn btn-secondary mt-3 ms-2"
+            onClick={() => navigate(`/applications`)}
+          >
+            See All Applications
+          </button>
+        </>
+      ) : (
+        <button
+          className="btn btn-secondary mt-3 ms-2"
+          onClick={() => navigate(`/listings/${group.listing}/groups`)}
+        >
+          Back
+        </button>
+      )}
     </div>
   );
 }

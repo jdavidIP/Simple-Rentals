@@ -536,6 +536,15 @@ class ApplicationListView(generics.ListAPIView):
         q2 = Q(group_status__in=['R', 'I'], members__user=user)
         return Group.objects.filter(q1 | q2).distinct()
     
+class ApplicationManagementListView(generics.ListAPIView):
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        return Group.objects.filter(group_status__in=['S', 'U', 'I'], listing__owner=user).distinct()
+    
     
 # HOME SECTION - START
 

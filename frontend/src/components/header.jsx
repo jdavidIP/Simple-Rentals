@@ -168,7 +168,10 @@ function Header() {
                   >
                     View all messages
                   </a>
-                  <a href="/" className="dropdown-item text-primary">
+                  <a
+                    href="/applications"
+                    className="dropdown-item text-primary"
+                  >
                     View all applications
                   </a>
                 </div>
