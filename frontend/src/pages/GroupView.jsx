@@ -54,6 +54,30 @@ function GroupView() {
     setJoining(false);
   };
 
+  const handleLeave = async (e) => {
+    e.preventDefault();
+    setError(null);
+
+    if (
+      !window.confirm(
+        isOwner
+          ? "Are you sure you want to delete this group? This action cannot be undone."
+          : "Are you sure you want to leave this group? You might not be allowed to rejoin."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      isOwner
+        ? await api.delete(`/groups/delete/${id}`)
+        : await api.patch(`/groups/${id}/leave`);
+      navigate(`/listings/${listing.id}/groups`);
+    } catch (err) {
+      setError("Failed to leave / delete group.", err);
+    }
+  };
+
   const handleApplication = async () => {
     setApplication(true);
     setError(null);
@@ -207,19 +231,18 @@ function GroupView() {
       </ul>
       <button
         className="btn btn-primary mt-3"
-        onClick={handleJoin}
+        onClick={isMember ? handleLeave : handleJoin}
         disabled={
-          group.group_status !== "O" ||
+          (group.group_status !== "O" && !isMember) ||
           joining ||
-          isMember ||
           profile === null ||
           isListingOwner
         }
       >
         {isOwner
-          ? "You are the owner"
+          ? "Delete Group"
           : isMember
-          ? "You are a member"
+          ? "Leave Group"
           : group.group_status !== "O"
           ? "Group not open"
           : joining
@@ -229,25 +252,25 @@ function GroupView() {
           : "Join Group"}
       </button>
       {isOwner && (
-        <button
-          onClick={handleApplication}
-          className="btn btn-primary mt-3 ms-2"
-          disabled={
-            group.group_status !== "O" &&
-            group.group_status !== "P" &&
-            group.group_status !== "F"
-          }
-        >
-          Apply
-        </button>
-      )}
-      {isOwner && (
-        <button
-          onClick={() => navigate(`/groups/edit/${id}`)}
-          className="btn btn-secondary mt-3 ms-2"
-        >
-          Edit Group
-        </button>
+        <>
+          <button
+            onClick={handleApplication}
+            className="btn btn-primary mt-3 ms-2"
+            disabled={
+              group.group_status !== "O" &&
+              group.group_status !== "P" &&
+              group.group_status !== "F"
+            }
+          >
+            Apply
+          </button>
+          <button
+            onClick={() => navigate(`/groups/edit/${id}`)}
+            className="btn btn-secondary mt-3 ms-2"
+          >
+            Edit Group
+          </button>
+        </>
       )}
 
       {isProfileSelf(listing.owner.id) ? (

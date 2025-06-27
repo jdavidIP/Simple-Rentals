@@ -55,7 +55,7 @@ export const ProfileProvider = ({ children }) => {
       fetchMessages();
       fetchApplications();
     }
-  }, [profile]);
+  }, [profile, messages, applications]);
 
   const isProfileSelf = (id) => {
     return profile && id === profile.id;

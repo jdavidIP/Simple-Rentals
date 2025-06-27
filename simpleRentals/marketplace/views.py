@@ -513,6 +513,23 @@ class GroupJoinView(generics.UpdateAPIView):
 
         serializer = self.get_serializer(group)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class GroupLeaveView(generics.UpdateAPIView):
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]
+
+    def update(self, request, *args, **kwargs):
+        group = get_object_or_404(Group, id=self.kwargs['pk'])
+        roommate_user = get_object_or_404(RoommateUser, user=request.user)
+
+        if not group.members.filter(id=roommate_user.id).exists():
+            return Response({"detail": "You are not a member of this group."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Remove user from group members
+        group.members.remove(roommate_user)
+        group.save()
+        serializer = self.get_serializer(group)
+        return Response({"detail": "You have left the group.", "group": serializer.data}, status=status.HTTP_200_OK)
     
 class GroupEditView(generics.UpdateAPIView):
     serializer_class = GroupSerializer
@@ -533,6 +550,15 @@ class GroupEditView(generics.UpdateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         return super().update(request, *args, **kwargs)
+    
+class GroupDeleteView(generics.DestroyAPIView):
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        roommate_user = get_object_or_404(RoommateUser, user=self.request.user)
+        group = get_object_or_404(Group, id=self.kwargs['pk'], owner=roommate_user)
+        return group
     
 class GroupManageView(generics.UpdateAPIView):
     serializer_class = GroupSerializer
