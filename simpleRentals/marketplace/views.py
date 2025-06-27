@@ -602,10 +602,25 @@ class ApplicationManagementListView(generics.ListAPIView):
     serializer_class = GroupSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
+    def list(self, request, *args, **kwargs):
         user = self.request.user
+        # Groups with status S, U, or I where user is the listing owner
+        landlord_qs = Group.objects.filter(
+            group_status__in=['S', 'U', 'I'],
+            listing__owner=user
+        ).distinct()
+        # All groups where user is a member
+        member_qs = Group.objects.filter(
+            members__user=user
+        ).distinct()
 
-        return Group.objects.filter(group_status__in=['S', 'U', 'I'], listing__owner=user).distinct()
+        landlord_data = self.get_serializer(landlord_qs, many=True).data
+        member_data = self.get_serializer(member_qs, many=True).data
+
+        return Response({
+            "landlord": landlord_data,
+            "member": member_data
+        })
     
     
 # HOME SECTION - START

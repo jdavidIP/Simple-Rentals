@@ -302,7 +302,7 @@ function GroupView() {
       ) : (
         <button
           className="btn btn-secondary mt-3 ms-2"
-          onClick={() => navigate(`/listings/${group.listing}/groups`)}
+          onClick={() => navigate(-1)}
         >
           Back
         </button>
