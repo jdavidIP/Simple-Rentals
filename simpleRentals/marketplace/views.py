@@ -551,6 +551,13 @@ class GroupManageView(generics.UpdateAPIView):
                 {"error": "You can only set status to Under Review, Rejected, or Invited."},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
+        # If setting this group to Invited, set all other groups for this listing to Rejected
+        if new_status == 'I':
+            Group.objects.filter(
+                listing=group.listing
+            ).exclude(id=group.id).update(group_status='R')
+        
         return super().update(request, *args, **kwargs)
 
 class ApplicationListView(generics.ListAPIView):
