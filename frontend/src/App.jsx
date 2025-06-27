@@ -32,6 +32,7 @@ import GroupEdit from "./pages/GroupEdit";
 import { ProfileProvider } from "./contexts/ProfileContext";
 import RoommatesEdit from "./pages/RoommatesEdit";
 import Applications from "./pages/Applications";
+import GroupManage from "./pages/GroupManage";
 
 function App() {
   return (
@@ -92,6 +93,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <GroupEdit />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/groups/manage/:id"
+              element={
+                <ProtectedRoute>
+                  <GroupManage />
                 </ProtectedRoute>
               }
             />

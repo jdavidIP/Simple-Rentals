@@ -264,6 +264,17 @@ function GroupView() {
           >
             See All Applications
           </button>
+          <button
+            onClick={() => navigate(`/groups/manage/${group.id}`)}
+            className="btn btn-secondary mt-3 ms-2"
+            disabled={
+              group.group_status === "O" ||
+              group.group_status === "P" ||
+              group.group_status === "F"
+            }
+          >
+            Manage Application
+          </button>
         </>
       ) : (
         <button

@@ -521,8 +521,37 @@ class GroupEditView(generics.UpdateAPIView):
     def get_object(self):
         roommate_user = get_object_or_404(RoommateUser, user=self.request.user)
         group = get_object_or_404(Group, id=self.kwargs['pk'], owner=roommate_user)
-
         return group
+
+    def update(self, request, *args, **kwargs):
+        allowed_statuses = ['O', 'P', 'F', 'S']
+        group = self.get_object()
+        new_status = request.data.get('group_status')
+        if new_status and new_status not in allowed_statuses:
+            return Response(
+                {"error": "You can only set status to Open, Private, Filled, or Sent."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return super().update(request, *args, **kwargs)
+    
+class GroupManageView(generics.UpdateAPIView):
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        group = get_object_or_404(Group, id=self.kwargs['pk'], listing__owner=self.request.user)
+        return group
+
+    def update(self, request, *args, **kwargs):
+        allowed_statuses = ['U', 'R', 'I']
+        group = self.get_object()
+        new_status = request.data.get('group_status')
+        if new_status and new_status not in allowed_statuses:
+            return Response(
+                {"error": "You can only set status to Under Review, Rejected, or Invited."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return super().update(request, *args, **kwargs)
 
 class ApplicationListView(generics.ListAPIView):
     serializer_class = GroupSerializer

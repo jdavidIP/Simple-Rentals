@@ -32,6 +32,7 @@ urlpatterns = [
     path("listings/<int:pk>/groups/post", views.GroupPostingView.as_view(), name="viewAllGroups"), # pk - listing id
     path("groups/<int:pk>", views.GroupDetailView.as_view(), name="view_group"), # pk - group id
     path("groups/edit/<int:pk>", views.GroupEditView.as_view(), name="edit_group"), # pk - group id
+    path("groups/manage/<int:pk>", views.GroupManageView.as_view(), name="manage_group"), # pk - group id
     path("groups/<int:pk>/join", views.GroupJoinView.as_view(), name="join_group"), # pk - group id
     path("applications", views.ApplicationListView.as_view(), name="get_applications"),
     path("applications/management", views.ApplicationManagementListView.as_view(), name="manage_applications"),
