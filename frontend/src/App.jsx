@@ -33,6 +33,7 @@ import { ProfileProvider } from "./contexts/ProfileContext";
 import RoommatesEdit from "./pages/RoommatesEdit";
 import Applications from "./pages/Applications";
 import GroupManage from "./pages/GroupManage";
+import Invitations from "./pages/Invitations";
 
 function App() {
   return (
@@ -101,6 +102,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <GroupManage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/groups/invitations"
+              element={
+                <ProtectedRoute>
+                  <Invitations />
                 </ProtectedRoute>
               }
             />

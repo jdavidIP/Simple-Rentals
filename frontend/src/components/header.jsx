@@ -194,7 +194,7 @@ function Header() {
                     {receivedUnresponded.slice(0, 3).map((inv) => (
                       <a
                         key={inv.id}
-                        href={`/groups/${inv.group}`}
+                        href="/groups/invitations"
                         className="dropdown-item"
                         style={{ whiteSpace: "normal" }}
                       >
@@ -218,7 +218,7 @@ function Header() {
                     {sentResponded.slice(0, 3).map((inv) => (
                       <a
                         key={inv.id}
-                        href={`/groups/${inv.group}`}
+                        href="/groups/invitations"
                         className="dropdown-item"
                         style={{ whiteSpace: "normal" }}
                       >
