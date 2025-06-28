@@ -41,7 +41,11 @@ function Applications() {
 
   return (
     <div className="groups-container">
-      <h2 className="groups-title">Applications Management</h2>
+      <h2 className="groups-title">
+        {activeTab === "landlord"
+          ? "Applications Management"
+          : "Group Management"}
+      </h2>
       {error && <div className="alert alert-danger">{error}</div>}
 
       <ul className="nav nav-tabs mb-4">

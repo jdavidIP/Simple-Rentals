@@ -158,3 +158,17 @@ class Message(models.Model):
         super().save(*args, **kwargs)
         self.conversation.last_updated = self.timestamp
         self.conversation.save()
+
+class GroupInvitation(models.Model):
+    group = models.ForeignKey(Group, related_name="invitations", on_delete=models.CASCADE)
+    invited_user = models.ForeignKey(RoommateUser, related_name="group_invitations", on_delete=models.CASCADE)
+    invited_by = models.ForeignKey(RoommateUser, related_name="sent_group_invitations", on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    accepted = models.BooleanField(null=True, blank=True)  # None = pending, True = accepted, False = declined
+    responded_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('group', 'invited_user')
+
+    def __str__(self):
+        return f"Invitation to {self.invited_user.user.email} for group {self.group.name}"

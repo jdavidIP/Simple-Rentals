@@ -299,6 +299,16 @@ class SendMessageView(generics.CreateAPIView):
         # Mark all unread messages as read after sending a message
         conversation.messages.filter(read=False).exclude(sender=self.request.user).update(read=True)
 
+class MessageEditView(generics.UpdateAPIView):
+    serializer_class = MessageSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        message = get_object_or_404(Message, id=self.kwargs['pk'])
+        if message.sender != self.request.user:
+            raise PermissionDenied("You do not have permission to edit this message.")
+        return message
+
 class UnreadMessagesListView(generics.ListAPIView):
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
@@ -622,7 +632,61 @@ class ApplicationManagementListView(generics.ListAPIView):
             "member": member_data
         })
     
-    
+
+### GROUP INVITATION SECTION - START ###
+class GroupInvitationRetrieveView(generics.RetrieveAPIView):
+    queryset = GroupInvitation.objects.all()
+    serializer_class = GroupInvitationSerializer
+    permission_classes = [IsAuthenticated]
+
+class GroupInvitationListView(generics.ListAPIView):
+    serializer_class = GroupInvitationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request, *args, **kwargs):
+        roommate_user = RoommateUser.objects.filter(user=request.user).first()
+        if not roommate_user:
+            return Response({"detail": "No roommate profile found."}, status=404)
+        received = GroupInvitation.objects.filter(invited_user=roommate_user)
+        sent = GroupInvitation.objects.filter(invited_by=roommate_user)
+        data = {
+            "received": GroupInvitationSerializer(received, many=True).data,
+            "sent": GroupInvitationSerializer(sent, many=True).data,
+        }
+        return Response(data)
+
+class GroupInvitationCreateView(generics.CreateAPIView):
+    queryset = GroupInvitation.objects.all()
+    serializer_class = GroupInvitationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        roommate_user = get_object_or_404(RoommateUser, user=self.request.user)
+        invited_roommate = get_object_or_404(RoommateUser, id=self.request.data.get("invited_user"))
+        group = get_object_or_404(Group, id=self.kwargs['pk'], owner=roommate_user)
+        serializer.save(invited_by=roommate_user, group=group, invited_user=invited_roommate)
+
+class GroupInvitationUpdateView(generics.UpdateAPIView):
+    queryset = GroupInvitation.objects.all()
+    serializer_class = GroupInvitationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        accepted = request.data.get("accepted", None)
+        if accepted is not None:
+            instance.accepted = accepted
+            instance.responded_at = now()
+            instance.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        return super().update(request, *args, **kwargs)
+
+class GroupInvitationDeleteView(generics.DestroyAPIView):
+    queryset = GroupInvitation.objects.all()
+    serializer_class = GroupInvitationSerializer
+    permission_classes = [IsAuthenticated]
+
 # HOME SECTION - START
 
 # Home page - displays the home page

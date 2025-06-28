@@ -69,7 +69,7 @@ function ListingsView() {
 
       // If not, create a new conversation
       const response = await api.post(
-        `/listing/${listingId}/start_conversation/`,
+        `/listing/${listingId}/start_conversation`,
         {}
       );
       const conversationId = response.data.id;

@@ -11,6 +11,7 @@ export const ProfileProvider = ({ children }) => {
   const [profile, setProfile] = useState(null);
   const [messages, setMessages] = useState([]);
   const [applications, setApplications] = useState([]);
+  const [invitations, setInvitations] = useState([]);
 
   const fetchUser = async () => {
     try {
@@ -42,6 +43,16 @@ export const ProfileProvider = ({ children }) => {
     }
   };
 
+  const fetchInvitations = async () => {
+    try {
+      const response = await api.get("/groups/invitations");
+      setInvitations(response.data);
+    } catch (err) {
+      console.error("Failed to fecth invitations.", err);
+      setInvitations([]);
+    }
+  };
+
   useEffect(() => {
     fetchUser();
     // Listen for login event
@@ -54,6 +65,7 @@ export const ProfileProvider = ({ children }) => {
     if (profile) {
       fetchMessages();
       fetchApplications();
+      fetchInvitations();
     }
   }, [profile]);
 
@@ -65,6 +77,7 @@ export const ProfileProvider = ({ children }) => {
     profile,
     applications,
     messages,
+    invitations,
     isProfileSelf,
   };
 

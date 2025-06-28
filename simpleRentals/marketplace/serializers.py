@@ -1,7 +1,7 @@
 from django.utils.timezone import now
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from .models import MarketplaceUser, Listing, ListingPicture, Group, Review, Favorites, Conversation, Message, RoommateUser
+from .models import MarketplaceUser, Listing, ListingPicture, Group, Review, Favorites, Conversation, Message, RoommateUser, GroupInvitation
 import os
 
 # Utility functions for image validation and saving
@@ -339,7 +339,29 @@ class GroupSerializer(serializers.ModelSerializer):
         if members:
             group.members.set(members)
         return group
+    
+class GroupInvitationSerializer(serializers.ModelSerializer):
+    group = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all())
+    invited_user = serializers.PrimaryKeyRelatedField(queryset=RoommateUser.objects.all())
+    invited_by = serializers.PrimaryKeyRelatedField(read_only=True)
+    group_name = serializers.CharField(source='group.name', read_only=True)
+    invited_user_email = serializers.EmailField(source='invited_user.user.email', read_only=True)
+    invited_by_email = serializers.EmailField(source='invited_by.user.email', read_only=True)
 
+    class Meta:
+        model = GroupInvitation
+        fields = [
+            'id', 'group', 'group_name', 'invited_user', 'invited_user_email',
+            'invited_by', 'invited_by_email', 'created_at', 'accepted', 'responded_at'
+        ]
+        read_only_fields = ['created_at', 'responded_at', 'invited_by']
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            roommate_user = RoommateUser.objects.get(user=request.user)
+            validated_data['invited_by'] = roommate_user
+        return super().create(validated_data)
 
 class ReviewSerializer(serializers.ModelSerializer):
     rating = serializers.ChoiceField(choices=[(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')])

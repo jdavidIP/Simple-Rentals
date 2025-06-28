@@ -19,9 +19,10 @@ urlpatterns = [
     path("", views.home, name="home"),
     path('conversations/', views.ConversationListView.as_view(), name='conversation_list'),
     path('conversations/<int:pk>/', views.ConversationDetailView.as_view(), name='conversation_detail'), # pk = conversation id
-    path('listing/<int:pk>/start_conversation/', views.StartConversationView.as_view(), name='start_conversation'), # pk = listing id
+    path('listing/<int:pk>/start_conversation', views.StartConversationView.as_view(), name='start_conversation'), # pk = listing id
     path('conversations/<int:pk>/send_message/', views.SendMessageView.as_view(), name='send_message'), # pk = conversation id
-    path("messages", views.UnreadMessagesListView.as_view(), name="unread_messgaes"),
+    path("messages", views.UnreadMessagesListView.as_view(), name="unread_messages"),
+    path("messages/<int:pk>", views.MessageEditView.as_view(), name="edit_messages"),
     path("listings/", views.listings_home, name="listings_home"),
     path("listings/viewAll", views.ListingListView.as_view(), name="viewAllListings"),
     path("listings/add", views.ListingPostingView.as_view(), name="post_listing"),
@@ -35,7 +36,12 @@ urlpatterns = [
     path("groups/delete/<int:pk>", views.GroupDeleteView.as_view(), name="delete_group"), # pk - group id
     path("groups/manage/<int:pk>", views.GroupManageView.as_view(), name="manage_group"), # pk - group id
     path("groups/<int:pk>/join", views.GroupJoinView.as_view(), name="join_group"), # pk - group id
-    path("groups/<int:pk>/leave", views.GroupLeaveView.as_view(), name="leave_group"), # pk - group id
+    path("groups/<int:pk>/leave", views.GroupLeaveView.as_view(), name="leave_group"), # pk - group id,
+    path("groups/<int:pk>/invite", views.GroupInvitationCreateView.as_view(), name="invite_group"), # pk - group id
+    path("groups/invitations/<int:pk>", views.GroupInvitationRetrieveView.as_view(), name="group-invitation-detail"), # pk - invitation id
+    path("groups/invitations", views.GroupInvitationListView.as_view(), name="group-invitation-list"),
+    path("groups/invitations/<int:pk>/delete", views.GroupInvitationDeleteView.as_view(), name="group-invitation-delete"), # pk - invitation id
+    path("groups/invitations/<int:pk>/update", views.GroupInvitationUpdateView.as_view(), name="group-invitation-update"), # pk - invitation id
     path("applications", views.ApplicationListView.as_view(), name="get_applications"),
     path("applications/management", views.ApplicationManagementListView.as_view(), name="manage_applications"),
     path("profile/reviews", views.ReviewListView.as_view(), name="view_reviews"),

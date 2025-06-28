@@ -19,7 +19,7 @@ function ListingCard({ listing, income }) {
       }
 
       const response = await api.post(
-        `/listing/${listingId}/start_conversation/`,
+        `/listing/${listingId}/start_conversation`,
         {}
       );
 

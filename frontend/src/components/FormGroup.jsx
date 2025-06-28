@@ -18,9 +18,11 @@ function FormGroup({ method, group }) {
   const [searchName, setSearchName] = useState("");
   const [allRoommates, setAllRoommates] = useState([]);
   const [selectedToAdd, setSelectedToAdd] = useState([]);
+  const [invited, setInvited] = useState([]);
   const [error, setError] = useState(null);
   const { profile } = useProfileContext();
   const errorRef = useRef(null);
+  const canInvite = method === "edit" && group && group.id;
 
   useEffect(() => {
     if (error && errorRef.current) {
@@ -62,10 +64,10 @@ function FormGroup({ method, group }) {
 
   // Add selected members to the group
   const handleAdd = () => {
-    setFormData((prev) => ({
+    setInvited((prev) => [
       ...prev,
-      member_ids: Array.from(new Set([...prev.member_ids, ...selectedToAdd])),
-    }));
+      ...selectedToAdd.filter((id) => !prev.includes(id)),
+    ]);
     setSelectedToAdd([]);
   };
 
@@ -97,6 +99,16 @@ function FormGroup({ method, group }) {
         group_status: formData.group_status,
         member_ids: formData.member_ids,
       };
+
+      if (canInvite && invited.length !== 0) {
+        for (const roommateId of invited) {
+          await api.post(`/groups/${id}/invite`, {
+            group: group.id,
+            invited_user: roommateId,
+          });
+        }
+      }
+
       if (method === "post") {
         payload.listing = id;
         await api.post(`/listings/${id}/groups/post`, payload);
@@ -123,6 +135,8 @@ function FormGroup({ method, group }) {
       ...prev,
       member_ids: prev.member_ids.filter((id) => id !== memberId),
     }));
+
+    setInvited((prev) => prev.filter((id) => id !== memberId));
   };
 
   // Helper to show added members' info
@@ -132,6 +146,12 @@ function FormGroup({ method, group }) {
     // If not found, try to find in group.members (for edit mode)
     if (!roommate && group?.members) {
       roommate = group.members.find((m) => m.id === memberId);
+    }
+    // If not found, try to find in invited (for newly invited users)
+    if (!roommate && invited.length > 0) {
+      roommate = allRoommates.find(
+        (r) => invited.includes(r.id) && r.id === memberId
+      );
     }
     if (roommate) {
       return `${roommate.user?.first_name} ${roommate.user?.last_name} (${roommate.user?.email})`;
@@ -211,84 +231,92 @@ function FormGroup({ method, group }) {
       </div>
 
       {/* Name search and member selection */}
-      <div className="mb-3">
-        <label className="form-label">Search Roommates by Name</label>
-        <div style={{ display: "flex", gap: "10px" }}>
-          <input
-            type="text"
-            className="form-control"
-            value={searchName}
-            onChange={(e) => setSearchName(e.target.value)}
-            placeholder="Enter name to search"
-          />
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={handleSearch}
-          >
-            Search
-          </button>
-        </div>
-      </div>
-
-      {allRoommates.length > 0 && (
-        <div className="mb-3">
-          <label className="form-label">Select Members</label>
-          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-            <select
-              name="members"
-              className="form-select"
-              multiple
-              value={selectedToAdd}
-              onChange={handleSelectChange}
-              style={{ flex: 1 }}
-            >
-              {allRoommates.map((roommate) => (
-                <option key={roommate.id} value={roommate.id}>
-                  {roommate.user?.first_name} {roommate.user?.last_name} (
-                  {roommate.user?.email})
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={handleAdd}
-              disabled={selectedToAdd.length === 0}
-            >
-              Add
-            </button>
-          </div>
-          <small className="text-muted">
-            Select roommates and click "Add" to include them in the group.
-          </small>
-        </div>
-      )}
-
-      {formData.member_ids.length > 0 && (
-        <div className="mb-3">
-          <label className="form-label">Added Members</label>
-          <ul>
-            {formData.member_ids.map((memberId) => (
-              <li
-                key={memberId}
-                style={{ display: "flex", alignItems: "center", gap: "10px" }}
+      {canInvite && (
+        <>
+          <div className="mb-3">
+            <label className="form-label">Search Roommates by Name</label>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <input
+                type="text"
+                className="form-control"
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
+                placeholder="Enter name to search"
+              />
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={handleSearch}
               >
-                {getMemberInfo(memberId)}
-                {memberId != profile.roommate_profile && (
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-danger"
-                    style={{ marginLeft: "10px" }}
-                    onClick={() => handleRemoveMember(memberId)}
+                Search
+              </button>
+            </div>
+          </div>
+          {allRoommates.length > 0 && (
+            <div className="mb-3">
+              <label className="form-label">Select Members</label>
+              <div
+                style={{ display: "flex", gap: "10px", alignItems: "center" }}
+              >
+                <select
+                  name="members"
+                  className="form-select"
+                  multiple
+                  value={selectedToAdd}
+                  onChange={handleSelectChange}
+                  style={{ flex: 1 }}
+                >
+                  {allRoommates.map((roommate) => (
+                    <option key={roommate.id} value={roommate.id}>
+                      {roommate.user?.first_name} {roommate.user?.last_name} (
+                      {roommate.user?.email})
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={handleAdd}
+                  disabled={selectedToAdd.length === 0}
+                >
+                  Add
+                </button>
+              </div>
+              <small className="text-muted">
+                Select roommates and click "Add" to include them in the group.
+              </small>
+            </div>
+          )}
+          {formData.member_ids.length > 0 && (
+            <div className="mb-3">
+              <label className="form-label">Added Members</label>
+              <ul>
+                {formData.member_ids.map((memberId) => (
+                  <li
+                    key={memberId}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                    }}
                   >
-                    Remove
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
+                    {getMemberInfo(memberId)}
+                    {memberId != profile.roommate_profile && (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-danger"
+                        style={{ marginLeft: "10px" }}
+                        onClick={() => handleRemoveMember(memberId)}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}{" "}
+        </>
       )}
 
       <button type="submit" className="btn btn-primary">

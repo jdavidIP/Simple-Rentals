@@ -3,7 +3,12 @@ import api from "../api";
 import { useProfileContext } from "../contexts/ProfileContext";
 
 function Header() {
-  const { profile, messages = [], applications = [] } = useProfileContext();
+  const {
+    profile,
+    messages = [],
+    applications = [],
+    invitations = {},
+  } = useProfileContext();
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -19,12 +24,29 @@ function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showDropdown]);
 
+  // Split invitations into received/sent and unresponded/responded
+  const receivedInvitations = Array.isArray(invitations.received)
+    ? invitations.received
+    : [];
+  const sentInvitations = Array.isArray(invitations.sent)
+    ? invitations.sent
+    : [];
+
+  const receivedUnresponded = receivedInvitations.filter(
+    (inv) => inv.accepted === null
+  );
+  const sentResponded = sentInvitations.filter((inv) => inv.accepted !== null);
+
   // Count unread messages and unchecked applications
   const unreadMessages = messages.length;
   const uncheckedApplications = applications.filter(
     (app) => !app.checked
   ).length;
-  const totalNotifications = unreadMessages + uncheckedApplications;
+  const totalNotifications =
+    unreadMessages +
+    uncheckedApplications +
+    receivedUnresponded.length +
+    sentResponded.length;
 
   // Show a preview (up to 3) for each
   const messagePreviews = messages.slice(0, 3);
@@ -162,6 +184,58 @@ function Header() {
                     ))}
                   </div>
                   <div className="dropdown-divider"></div>
+                  <div>
+                    <strong>Received Invitations (Unresponded)</strong>
+                    {receivedUnresponded.length === 0 && (
+                      <div className="text-muted small px-3">
+                        No unresponded invitations
+                      </div>
+                    )}
+                    {receivedUnresponded.slice(0, 3).map((inv) => (
+                      <a
+                        key={inv.id}
+                        href={`/groups/${inv.group}`}
+                        className="dropdown-item"
+                        style={{ whiteSpace: "normal" }}
+                      >
+                        <div>
+                          <strong>From:</strong> {inv.invited_by_email}
+                        </div>
+                        <div>
+                          <strong>Group:</strong> {inv.group_name}
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                  <div className="dropdown-divider"></div>
+                  <div>
+                    <strong>Sent Invitations (Responded)</strong>
+                    {sentResponded.length === 0 && (
+                      <div className="text-muted small px-3">
+                        No responded invitations
+                      </div>
+                    )}
+                    {sentResponded.slice(0, 3).map((inv) => (
+                      <a
+                        key={inv.id}
+                        href={`/groups/${inv.group}`}
+                        className="dropdown-item"
+                        style={{ whiteSpace: "normal" }}
+                      >
+                        <div>
+                          <strong>To:</strong> {inv.invited_user_email}
+                        </div>
+                        <div>
+                          <strong>Group:</strong> {inv.group_name}
+                        </div>
+                        <div>
+                          <strong>Status:</strong>{" "}
+                          {inv.accepted ? "Accepted" : "Declined"}
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                  <div className="dropdown-divider"></div>
                   <a
                     href="/conversations"
                     className="dropdown-item text-primary"
@@ -172,7 +246,13 @@ function Header() {
                     href="/applications"
                     className="dropdown-item text-primary"
                   >
-                    View all applications
+                    View all groups
+                  </a>
+                  <a
+                    href="/groups/invitations"
+                    className="dropdown-item text-primary"
+                  >
+                    View all invitations
                   </a>
                 </div>
               )}
