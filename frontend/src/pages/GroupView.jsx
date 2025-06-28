@@ -251,27 +251,30 @@ function GroupView() {
           ? "Listing is yours"
           : "Join Group"}
       </button>
-      {isOwner && (
-        <>
-          <button
-            onClick={handleApplication}
-            className="btn btn-primary mt-3 ms-2"
-            disabled={
-              group.group_status !== "O" &&
-              group.group_status !== "P" &&
-              group.group_status !== "F"
-            }
-          >
-            Apply
-          </button>
-          <button
-            onClick={() => navigate(`/groups/edit/${id}`)}
-            className="btn btn-secondary mt-3 ms-2"
-          >
-            Edit Group
-          </button>
-        </>
-      )}
+      {isOwner &&
+        (group.group_status === "O" ||
+          group.group_status === "P" ||
+          group.group_status === "F") && (
+          <>
+            <button
+              onClick={handleApplication}
+              className="btn btn-primary mt-3 ms-2"
+              disabled={
+                group.group_status !== "O" &&
+                group.group_status !== "P" &&
+                group.group_status !== "F"
+              }
+            >
+              Apply
+            </button>
+            <button
+              onClick={() => navigate(`/groups/edit/${id}`)}
+              className="btn btn-secondary mt-3 ms-2"
+            >
+              Edit Group
+            </button>
+          </>
+        )}
 
       {isProfileSelf(listing.owner.id) ? (
         <>

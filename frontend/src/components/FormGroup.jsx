@@ -287,13 +287,14 @@ function FormGroup({ method, group }) {
               </small>
             </div>
           )}
-          {formData.member_ids.length > 0 && (
+          {formData.member_ids.length > 0 || invited.length > 0 ? (
             <div className="mb-3">
               <label className="form-label">Added Members</label>
               <ul>
+                {/* Existing group members */}
                 {formData.member_ids.map((memberId) => (
                   <li
-                    key={memberId}
+                    key={`member-${memberId}`}
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -313,9 +314,34 @@ function FormGroup({ method, group }) {
                     )}
                   </li>
                 ))}
+                {/* Invited (to be invited) users */}
+                {invited.map((invitedId) => (
+                  <li
+                    key={`invited-${invitedId}`}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                    }}
+                  >
+                    {getMemberInfo(invitedId)}
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-warning"
+                      style={{ marginLeft: "10px" }}
+                      onClick={() =>
+                        setInvited((prev) =>
+                          prev.filter((id) => id !== invitedId)
+                        )
+                      }
+                    >
+                      Cancel Invite
+                    </button>
+                  </li>
+                ))}
               </ul>
             </div>
-          )}{" "}
+          ) : null}
         </>
       )}
 
