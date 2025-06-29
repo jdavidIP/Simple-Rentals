@@ -2,31 +2,31 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import api from "../api";
 import "../styles/Chat.css";
+import { useProfileContext } from "../contexts/ProfileContext";
 
-function ConversationWindow({ isAuthorized, currentUserId })  {
+function ConversationWindow() {
   const { conversationId } = useParams();
   const [conversation, setConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const { isProfileSelf } = useProfileContext();
+
+  const fetchConversation = async () => {
+    try {
+      const response = await api.get(`/conversations/${conversationId}/`);
+      setConversation(response.data);
+      setMessages(response.data.messages || []);
+    } catch (error) {
+      console.error("Error fetching conversation:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (!isAuthorized) return;
-
-    const fetchConversation = async () => {
-      try {
-        const response = await api.get(`/conversations/${conversationId}/`);
-        setConversation(response.data);
-        setMessages(response.data.messages || []);
-      } catch (error) {
-        console.error("Error fetching conversation:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchConversation();
-  }, [conversationId, isAuthorized]);
+  }, [conversationId]);
 
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
@@ -51,20 +51,29 @@ function ConversationWindow({ isAuthorized, currentUserId })  {
     <div className="chat-container">
       <h2>Conversation</h2>
       {conversation && (
-        <p className="chat-listing"><strong>Listing:</strong> {conversation.listing.street_address}</p>
+        <p className="chat-listing">
+          <strong>Listing:</strong> {conversation.listing.street_address}
+        </p>
       )}
       <div className="chat-messages">
-      {messages.map((msg) => {
-        const isMine = msg.sender.id === currentUserId;
-        return (
-          <div key={msg.id} className={`chat-message ${isMine ? 'mine' : 'theirs'}`}>
-            <div className="chat-bubble">
-              <p><strong>{msg.sender.first_name}:</strong> {msg.content}</p>
-              <small className="chat-timestamp">{new Date(msg.timestamp).toLocaleString()}</small>
+        {messages.map((msg) => {
+          const isMine = isProfileSelf(msg.sender.id);
+          return (
+            <div
+              key={msg.id}
+              className={`chat-message ${isMine ? "mine" : "theirs"}`}
+            >
+              <div className="chat-bubble">
+                <p>
+                  <strong>{msg.sender.first_name}:</strong> {msg.content}
+                </p>
+                <small className="chat-timestamp">
+                  {new Date(msg.timestamp).toLocaleString()}
+                </small>
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
       </div>
       <div className="chat-input-section">
         <textarea
@@ -74,7 +83,9 @@ function ConversationWindow({ isAuthorized, currentUserId })  {
           placeholder="Type your message..."
           className="chat-textarea"
         />
-        <button className="chat-send-button" onClick={handleSendMessage}>Send</button>
+        <button className="chat-send-button" onClick={handleSendMessage}>
+          Send
+        </button>
       </div>
     </div>
   );
