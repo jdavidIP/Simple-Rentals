@@ -1,21 +1,25 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import api from "../api";
+import { useProfileContext } from "../contexts/ProfileContext";
 
 function RoommatesView() {
-  const { id } = useParams();
+  const { id } = useParams(); // roommate user id
   const [roommate, setRoommate] = useState(null);
   const [error, setError] = useState(null);
+  const { profile, isRoommateSelf } = useProfileContext();
+  const navigate = useNavigate();
+
+  const fetchRoommate = async () => {
+    try {
+      const response = await api.get(`/roommates/${id}`);
+      setRoommate(response.data);
+    } catch (err) {
+      setError("Failed to fetch profile.");
+    }
+  };
 
   useEffect(() => {
-    const fetchRoommate = async () => {
-      try {
-        const response = await api.get(`/roommates/${id}`);
-        setRoommate(response.data);
-      } catch (err) {
-        setError("Failed to fetch profile.");
-      }
-    };
     fetchRoommate();
   }, [id]);
 
@@ -23,7 +27,7 @@ function RoommatesView() {
     return <p className="error">{error}</p>;
   }
 
-  if (!roommate) {
+  if (!roommate || !id || !profile) {
     return <p>Loading...</p>;
   }
 
@@ -99,6 +103,14 @@ function RoommatesView() {
           <p>
             <strong>Preferred Location:</strong> {user?.preferred_location}
           </p>
+          {isRoommateSelf(id) && (
+            <button
+              onClick={() => navigate(`/roommates/edit/${id}`)}
+              className="btn btn-primary"
+            >
+              Edit Roommate Profile
+            </button>
+          )}
         </div>
       </div>
     </div>

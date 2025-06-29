@@ -11,7 +11,6 @@ function GroupView() {
   const [members, setMembers] = useState([]);
   const [error, setError] = useState(null);
   const [joining, setJoining] = useState(false);
-  const [application, setApplication] = useState(false);
   const [listing, setListing] = useState(null);
   const [listingOwnerId, setListingOwnerId] = useState(null);
   const [listingPrice, setListingPrice] = useState(null);
@@ -79,9 +78,7 @@ function GroupView() {
   };
 
   const handleApplication = async () => {
-    setApplication(true);
     setError(null);
-
     try {
       const payload = { group_status: "S" };
       await api.patch(`/groups/edit/${id}`, payload);

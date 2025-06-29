@@ -73,12 +73,17 @@ export const ProfileProvider = ({ children }) => {
     return profile && id === profile.id;
   };
 
+  const isRoommateSelf = (id) => {
+    return profile && profile.roommate_profile == id;
+  };
+
   const value = {
     profile,
     applications,
     messages,
     invitations,
     isProfileSelf,
+    isRoommateSelf,
   };
 
   return (
