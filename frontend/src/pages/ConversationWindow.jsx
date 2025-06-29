@@ -51,9 +51,25 @@ function ConversationWindow() {
     <div className="chat-container">
       <h2>Conversation</h2>
       {conversation && (
-        <p className="chat-listing">
-          <strong>Listing:</strong> {conversation.listing.street_address}
-        </p>
+        <>
+          <p className="chat-listing">
+            <strong>Listing:</strong> {conversation.listing.street_address}
+          </p>
+          <div className="chat-members mb-3">
+            <strong>Members:</strong>{" "}
+            {conversation.participants &&
+            conversation.participants.length > 0 ? (
+              conversation.participants.map((user, idx) => (
+                <span key={user.id}>
+                  {user.first_name} {user.last_name}
+                  {idx < conversation.participants.length - 1 ? ", " : ""}
+                </span>
+              ))
+            ) : (
+              <span>No members</span>
+            )}
+          </div>
+        </>
       )}
       <div className="chat-messages">
         {messages.map((msg) => {

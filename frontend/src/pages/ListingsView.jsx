@@ -55,10 +55,15 @@ function ListingsView() {
 
   const handleStartConversation = async (listingId) => {
     try {
-      // Check if conversation already exists
+      // Check if conversation already exists between the user and the listing owner for this listing
       const existingConversations = await api.get("/conversations/");
       const existingConversation = existingConversations.data.find(
-        (conv) => String(conv.listing.id) === String(listingId)
+        (conv) =>
+          String(conv.listing.id) === String(listingId) &&
+          conv.participants &&
+          conv.participants.length === 2 &&
+          conv.participants.some((p) => p === profile.id) &&
+          conv.participants.some((p) => p === listing.owner.id)
       );
 
       if (existingConversation) {
@@ -75,11 +80,11 @@ function ListingsView() {
       const conversationId = response.data.id;
       navigate(`/conversations/${conversationId}`);
     } catch (err) {
-      if (err.response.statusText === "Unauthorized") {
-        setError("Log In to start a conversation with the owner.");
-      } else {
-        setError("An unexpected error occurred. Please try again.");
-      }
+      setError(
+        err?.response?.data?.detail ||
+          err?.response?.data?.error ||
+          "Failed to start conversation."
+      );
     }
   };
   const owner = listing.owner;

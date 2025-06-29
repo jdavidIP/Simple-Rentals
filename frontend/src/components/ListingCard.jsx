@@ -1,36 +1,46 @@
 import { useNavigate } from "react-router-dom";
 import { useProfileContext } from "../contexts/ProfileContext";
 import api from "../api";
+import { useState } from "react";
 
 function ListingCard({ listing, income }) {
   const navigate = useNavigate();
-  const { isProfileSelf } = useProfileContext();
+  const { isProfileSelf, profile } = useProfileContext();
+  const [error, setError] = useState(null);
 
   const handleStartConversation = async (listingId) => {
     try {
+      // Check if conversation already exists between the user and the listing owner for this listing
       const existingConversations = await api.get("/conversations/");
       const existingConversation = existingConversations.data.find(
-        (conv) => String(conv.listing.id) === String(listingId)
+        (conv) =>
+          String(conv.listing.id) === String(listingId) &&
+          conv.participants &&
+          conv.participants.length === 2 &&
+          conv.participants.some((p) => p === profile.id) &&
+          conv.participants.some((p) => p === listing.owner.id)
       );
 
       if (existingConversation) {
+        console.log("Existing conversation found:", existingConversation.id);
         navigate(`/conversations/${existingConversation.id}`);
         return;
       }
 
+      // If not, create a new conversation
       const response = await api.post(
         `/listing/${listingId}/start_conversation`,
         {}
       );
-
       const conversationId = response.data.id;
       navigate(`/conversations/${conversationId}`);
     } catch (err) {
-      if (err.response.statusText === "Unauthorized") {
-        console.error("Log In to start a conversation with the owner.");
-      } else {
-        console.error("An unexpected error occurred. Please try again.");
-      }
+      setError(
+        err?.response?.data?.detail ||
+          err?.response?.data?.error ||
+          "Failed to start conversation.",
+        err
+      );
     }
   };
 

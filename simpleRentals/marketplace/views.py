@@ -257,27 +257,55 @@ class StartConversationView(APIView):
     def post(self, request, pk):
         listing = get_object_or_404(Listing, id=pk)
 
+        # If 'participants' is provided in the request, treat as group conversation
+        participant_ids = request.data.get("participants")
+        if participant_ids and isinstance(participant_ids, list):
+            # Check if a conversation with these participants and this listing already exists
+            existing = Conversation.objects.filter(listing=listing)
+            for conv in existing:
+                conv_participants = set(conv.participants.values_list("id", flat=True))
+                if set(participant_ids) == conv_participants:
+                    raise ValidationError("A conversation for this group and listing already exists.")
+
+            conversation = Conversation.objects.create(listing=listing)
+            users = MarketplaceUser.objects.filter(id__in=participant_ids)
+            conversation.participants.add(*users)
+            # Optionally, add the sender if not already in the list
+            if request.user.id not in participant_ids:
+                conversation.participants.add(request.user)
+
+            Message.objects.create(
+                conversation=conversation,
+                sender=request.user,
+                content="Hello, group! Let's chat about this listing."
+            )
+            serializer = ConversationSerializer(conversation, context={'request': request})
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        # Otherwise, treat as 1-on-1 conversation between user and landlord
         if listing.owner == request.user:
             raise ValidationError("You cannot start a conversation with yourself.")
-        
-        # Check if conversation already exists
-        conversation = Conversation.objects.filter(participants=request.user, listing=listing).first()
 
-        if conversation:
-            raise ValidationError("A conversation for this listing already exists.")
+        # Check if a 1-on-1 conversation already exists between user and landlord for this listing
+        existing = Conversation.objects.filter(listing=listing)
+        for conv in existing:
+            conv_participants = list(conv.participants.values_list("id", flat=True))
+            if (
+                len(conv_participants) == 2 and
+                request.user.id in conv_participants and
+                listing.owner.id in conv_participants
+            ):
+                raise ValidationError("A conversation for this listing already exists between you and the landlord.")
 
-        # Create the conversation
         conversation = Conversation.objects.create(listing=listing)
         conversation.participants.add(request.user, listing.owner)
 
-        # Create the initial message
         Message.objects.create(
             conversation=conversation,
             sender=request.user,
             content="Hello, I'm interested in this listing."
         )
 
-        # Serialize and return the conversation
         serializer = ConversationSerializer(conversation, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 

@@ -14,6 +14,7 @@ function GroupView() {
   const [listing, setListing] = useState(null);
   const [listingOwnerId, setListingOwnerId] = useState(null);
   const [listingPrice, setListingPrice] = useState(null);
+  const [conversation, setConversation] = useState(null);
   const { profile, isProfileSelf } = useProfileContext();
 
   const fetchGroup = async () => {
@@ -31,9 +32,35 @@ function GroupView() {
     }
   };
 
+  const fetchConversation = async () => {
+    try {
+      const existingConversations = await api.get("/conversations/");
+      const participantIds = members.map((m) => String(m.user.id)).sort();
+
+      const existingConversation = existingConversations.data.find((conv) => {
+        if (String(conv.listing.id) !== String(listing.id)) return false;
+        const convParticipantIds = (conv.participants || []).map(String).sort();
+        return (
+          convParticipantIds.length === participantIds.length &&
+          convParticipantIds.every((id, idx) => id === participantIds[idx])
+        );
+      });
+
+      if (existingConversation) setConversation(existingConversation);
+      else setConversation(null);
+    } catch (err) {
+      setError("Failed to fetch conversation.");
+      setConversation(null);
+    }
+  };
+
   useEffect(() => {
     fetchGroup();
   }, [id]);
+
+  useEffect(() => {
+    if (listing && members.length > 0) fetchConversation();
+  }, [listing, members]);
 
   const handleJoin = async (e) => {
     e.preventDefault();
@@ -87,6 +114,31 @@ function GroupView() {
     } catch (err) {
       console.error("Error sending application: ", err);
       setError("Failed to send application.");
+    }
+  };
+
+  const handleStartConversation = async () => {
+    setError(null);
+    try {
+      if (conversation !== null) {
+        navigate(`/conversations/${conversation.id}`);
+        return;
+      }
+      // If not, create a new conversation
+      const payload = { participants: participantIds };
+      const res = await api.post(
+        `/listing/${listing.id}/start_conversation`,
+        payload
+      );
+      if (res.data && res.data.id) {
+        navigate(`/conversations/${res.data.id}`);
+      }
+    } catch (err) {
+      setError(
+        err?.response?.data?.detail ||
+          err?.response?.data?.error ||
+          "Failed to start conversation."
+      );
     }
   };
 
@@ -272,6 +324,24 @@ function GroupView() {
             </button>
           </>
         )}
+
+      {isOwner && !conversation && (
+        <button
+          onClick={handleStartConversation}
+          className="btn btn-secondary mt-3 ms-2"
+        >
+          Start Chat
+        </button>
+      )}
+
+      {conversation && isMember && (
+        <button
+          onClick={handleStartConversation}
+          className="btn btn-secondary mt-3 ms-2"
+        >
+          See Chat
+        </button>
+      )}
 
       {isProfileSelf(listing.owner.id) ? (
         <>
