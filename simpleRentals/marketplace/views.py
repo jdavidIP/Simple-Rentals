@@ -404,6 +404,15 @@ class ReviewListView(generics.ListAPIView):
 
         return queryset
     
+class ReviewDetailView(generics.RetrieveAPIView):
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        review = get_object_or_404(Review, id=self.kwargs['pk'])
+
+        return review
+    
 class ReviewPosting(generics.CreateAPIView):
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated]

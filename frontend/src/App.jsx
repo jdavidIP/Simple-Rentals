@@ -34,6 +34,7 @@ import RoommatesEdit from "./pages/RoommatesEdit";
 import Applications from "./pages/Applications";
 import GroupManage from "./pages/GroupManage";
 import Invitations from "./pages/Invitations";
+import ReviewsEdit from "./pages/ReviewsEdit";
 
 function App() {
   return (
@@ -142,6 +143,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Reviews />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/reviews/edit/:id"
+              element={
+                <ProtectedRoute>
+                  <ReviewsEdit />
                 </ProtectedRoute>
               }
             />

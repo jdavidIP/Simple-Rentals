@@ -25,6 +25,7 @@ api.interceptors.request.use(
       "/groups",
       "/messages",
       "/applications",
+      "/reviews",
     ];
     const url = new URL(config.url, config.baseURL).pathname;
 

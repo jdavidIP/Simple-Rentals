@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../api.js";
 import "../styles/profile.css";
 import { useProfileContext } from "../contexts/ProfileContext.jsx";
+import ReviewCard from "../components/ReviewCard.jsx";
 
 function Profile() {
   const { id } = useParams();
@@ -187,22 +188,9 @@ function Profile() {
           <div className="reviews-section">
             <h2>Reviews</h2>
             {reviews.length > 0 ? (
-              <div className="reviews-list">
+              <div className="reviews-grid">
                 {reviews.map((review) => (
-                  <div key={review.id} className="review-card">
-                    <p>
-                      <strong>
-                        {review.reviewer
-                          ? `${review.reviewer.first_name} ${review.reviewer.last_name}`
-                          : "Anonymous"}
-                      </strong>{" "}
-                      - Rating: {review.rating}/5
-                    </p>
-                    <p>{review.comment}</p>
-                    <p>
-                      <em>Reviewed as: {review.reviewee_role_display}</em>
-                    </p>
-                  </div>
+                  <ReviewCard key={review.id} review={review} />
                 ))}
               </div>
             ) : (

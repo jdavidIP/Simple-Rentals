@@ -32,7 +32,7 @@ urlpatterns = [
     path("listings/edit/<int:pk>", views.ListingEditView.as_view(), name="edit_listing"), # pk = listing id
     path("listings/delete/<int:pk>", views.ListingDeleteView.as_view(), name="delete_listing"), # pk = listing id
     path("listings/<int:pk>/groups", views.GroupListView.as_view(), name="viewAllGroups"), # pk - listing id
-    path("listings/<int:pk>/groups/post", views.GroupPostingView.as_view(), name="viewAllGroups"), # pk - listing id
+    path("listings/<int:pk>/groups/post", views.GroupPostingView.as_view(), name="post_groups"), # pk - listing id
     path("groups/<int:pk>", views.GroupDetailView.as_view(), name="view_group"), # pk - group id
     path("groups/edit/<int:pk>", views.GroupEditView.as_view(), name="edit_group"), # pk - group id
     path("groups/delete/<int:pk>", views.GroupDeleteView.as_view(), name="delete_group"), # pk - group id
@@ -48,8 +48,9 @@ urlpatterns = [
     path("applications/management", views.ApplicationManagementListView.as_view(), name="manage_applications"),
     path("profile/reviews", views.ReviewListView.as_view(), name="view_reviews"),
     path("profile/reviews/<int:pk>", views.ReviewPosting.as_view(), name="post_review"), # pk = reviewee id
+    path("reviews/<int:pk>", views.ReviewDetailView.as_view(), name="view_review"),
     path("profile/me", views.CurrentUserView.as_view(), name="profile_self"),
-    path("reviews/<int:pk>", views.ReviewUpdateDeleteView.as_view(), name="manage_review"), # pk = review id
+    path("reviews/manage/<int:pk>", views.ReviewUpdateDeleteView.as_view(), name="manage_review"), # pk = review id
     path("roommates/", views.RoommateListView.as_view(), name="viewAllRoommates"),
     path("roommates/<int:pk>", views.RoommateDetailView.as_view(), name="view_roommate"), # pk = roommate id
     path("roommates/post", views.CreateRoommateView.as_view(), name="post_roommate"),
