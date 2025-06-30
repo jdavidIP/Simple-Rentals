@@ -18,7 +18,7 @@ function GroupView() {
   const [listingOwnerId, setListingOwnerId] = useState(null);
   const [listingPrice, setListingPrice] = useState(null);
   const [conversation, setConversation] = useState(null);
-  const { profile, isProfileSelf } = useProfileContext();
+  const { roommate, profile, isProfileSelf } = useProfileContext();
   const [chatIds, setChatIds] = useState([]);
 
   const fetchGroup = async () => {
@@ -284,7 +284,13 @@ function GroupView() {
           </ul>
           <button
             className="btn btn-primary mt-3"
-            onClick={isMember ? handleLeave : handleJoin}
+            onClick={
+              !roommate
+                ? () => navigate("/roommates/post")
+                : isMember
+                ? handleLeave
+                : handleJoin
+            }
             disabled={
               (group.group_status !== "O" && !isMember) ||
               joining ||
@@ -303,6 +309,8 @@ function GroupView() {
               ? "Joining..."
               : isListingOwner
               ? "Listing is yours"
+              : !roommate
+              ? "Create Roommate Profile"
               : "Join Group"}
           </button>
           {isOwner &&

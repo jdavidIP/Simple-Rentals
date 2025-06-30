@@ -10,7 +10,7 @@ function RoommatesEdit() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const { id } = useParams();
-  const { isProfileSelf, profileLoading } = useProfileContext();
+  const { isRoommateSelf, profileLoading } = useProfileContext();
   const [authorized, setAuthorized] = useState(null);
 
   const fetchRoommate = async () => {
@@ -33,7 +33,7 @@ function RoommatesEdit() {
 
   useEffect(() => {
     if (roommate) {
-      setAuthorized(isProfileSelf(roommate.user.id));
+      setAuthorized(isRoommateSelf(roommate.id));
     }
   }, [roommate]);
 

@@ -11,18 +11,21 @@ export const ProfileProvider = ({ children }) => {
   const [messages, setMessages] = useState([]);
   const [applications, setApplications] = useState([]);
   const [invitations, setInvitations] = useState([]);
+  const [roommate, setRoommate] = useState(null);
 
   // Loading states
   const [profileLoading, setProfileLoading] = useState(false);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [applicationsLoading, setApplicationsLoading] = useState(false);
   const [invitationsLoading, setInvitationsLoading] = useState(false);
+  const [roommateLoading, setRoommateLoading] = useState(false);
 
   // Error states
   const [profileError, setProfileError] = useState(null);
   const [messagesError, setMessagesError] = useState(null);
   const [applicationsError, setApplicationsError] = useState(null);
   const [invitationsError, setInvitationsError] = useState(null);
+  const [roommateError, setRoommateError] = useState(null);
 
   const fetchUser = async () => {
     setProfileLoading(true);
@@ -84,6 +87,21 @@ export const ProfileProvider = ({ children }) => {
     }
   };
 
+  const fetchRoommate = async () => {
+    setRoommateLoading(true);
+    setRoommateError(null);
+    try {
+      const response = await api.get(`/roommates/${profile.roommate_profile}`);
+      setRoommate(response.data);
+    } catch (err) {
+      setRoommate(null);
+      setRoommateError("Failed to fetch roommate profile.");
+      console.error("Failed to fetch roommate profile.", err);
+    } finally {
+      setRoommateLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchUser();
     const handler = () => fetchUser();
@@ -96,6 +114,7 @@ export const ProfileProvider = ({ children }) => {
       fetchMessages();
       fetchApplications();
       fetchInvitations();
+      fetchRoommate();
     }
   }, [profile]);
 
@@ -115,6 +134,9 @@ export const ProfileProvider = ({ children }) => {
     invitations,
     invitationsLoading,
     invitationsError,
+    roommate,
+    roommateLoading,
+    roommateError,
     isProfileSelf,
     isRoommateSelf,
     fetchUser,
