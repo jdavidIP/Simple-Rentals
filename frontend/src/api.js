@@ -23,6 +23,9 @@ api.interceptors.request.use(
       "/listings/delete/",
       "/roommates",
       "/groups",
+      "/messages",
+      "/applications",
+      "/reviews",
     ];
     const url = new URL(config.url, config.baseURL).pathname;
 

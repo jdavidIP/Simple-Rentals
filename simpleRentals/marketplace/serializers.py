@@ -1,7 +1,7 @@
 from django.utils.timezone import now
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from .models import MarketplaceUser, Listing, ListingPicture, Group, Review, Favorites, Conversation, Message, RoommateUser
+from .models import MarketplaceUser, Listing, ListingPicture, Group, Review, Favorites, Conversation, Message, RoommateUser, GroupInvitation
 import os
 
 # Utility functions for image validation and saving
@@ -339,11 +339,33 @@ class GroupSerializer(serializers.ModelSerializer):
         if members:
             group.members.set(members)
         return group
+    
+class GroupInvitationSerializer(serializers.ModelSerializer):
+    group = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all())
+    invited_user = serializers.PrimaryKeyRelatedField(queryset=RoommateUser.objects.all())
+    invited_by = serializers.PrimaryKeyRelatedField(read_only=True)
+    group_name = serializers.CharField(source='group.name', read_only=True)
+    invited_user_email = serializers.EmailField(source='invited_user.user.email', read_only=True)
+    invited_by_email = serializers.EmailField(source='invited_by.user.email', read_only=True)
 
+    class Meta:
+        model = GroupInvitation
+        fields = [
+            'id', 'group', 'group_name', 'invited_user', 'invited_user_email',
+            'invited_by', 'invited_by_email', 'created_at', 'accepted', 'responded_at'
+        ]
+        read_only_fields = ['created_at', 'responded_at', 'invited_by']
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            roommate_user = RoommateUser.objects.get(user=request.user)
+            validated_data['invited_by'] = roommate_user
+        return super().create(validated_data)
 
 class ReviewSerializer(serializers.ModelSerializer):
     rating = serializers.ChoiceField(choices=[(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')])
-    reviewee_role = serializers.ChoiceField(choices=[('T', 'Tenant'), ('L', 'Landlord')])
+    reviewee_role = serializers.ChoiceField(choices=[('T', 'Tenant'), ('L', 'Landlord'), ('R', 'Roommate')])
     reviewee_role_display = serializers.CharField(source='get_reviewee_role_display', read_only=True)
     
     reviewee = serializers.PrimaryKeyRelatedField(queryset=MarketplaceUser.objects.all())
@@ -385,10 +407,11 @@ class ConversationSerializer(serializers.ModelSerializer):
     listing = ListingSerializer(read_only=True)  # Include listing details
     last_message = serializers.SerializerMethodField()  # Add the last message in the conversation
     messages = serializers.SerializerMethodField()  # Add all messages in the conversation
+    isGroup = serializers.SerializerMethodField() 
 
     class Meta:
         model = Conversation
-        fields = ['id', 'participants', 'listing', 'last_updated', 'last_message', 'messages']
+        fields = ['id', 'participants', 'listing', 'last_updated', 'last_message', 'messages', 'isGroup']
 
     def get_last_message(self, obj):
         last_message = obj.get_last_message()
@@ -399,6 +422,17 @@ class ConversationSerializer(serializers.ModelSerializer):
     def get_messages(self, obj):
         messages = obj.messages.order_by('timestamp')  # Order by timestamp ascending
         return MessageSerializer(messages, many=True, context=self.context).data
+    
+    def get_isGroup(self, obj):
+        # A conversation is a group if its participants match any group's members for the same listing
+        from .models import Group, RoommateUser
+        participant_ids = set(obj.participants.values_list("id", flat=True))
+        groups = Group.objects.filter(listing=obj.listing)
+        for group in groups:
+            group_member_user_ids = set(group.members.values_list("user__id", flat=True))
+            if participant_ids == group_member_user_ids and len(participant_ids) > 1:
+                return True
+        return False
 
 class MessageSerializer(serializers.ModelSerializer):
     sender = UserSerializer(read_only=True)  # Include sender details
@@ -413,13 +447,6 @@ class MessageSerializer(serializers.ModelSerializer):
             'timestamp': {'read_only': True},
             'read': {'read_only': True},
         }
-
-    def to_representation(self, instance):
-        # Automatically mark messages as read when retrieved
-        if not instance.read and instance.sender != self.context['request'].user:
-            instance.read = True
-            instance.save(update_fields=['read'])
-        return super().to_representation(instance)
 
     def create(self, validated_data):
         validated_data['sender'] = self.context['request'].user

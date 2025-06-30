@@ -1,33 +1,76 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
 import "../styles/forms.css";
 
-function FormReview() {
+function FormReview({ method, review }) {
   const { id: revieweeId } = useParams();
   const navigate = useNavigate();
 
-  const [rating, setRating] = useState(5);
-  const [comment, setComment] = useState("");
-  const [revieweeRole, setRevieweeRole] = useState("T"); // Default to Tenant
+  // Initialize state with review data if editing, otherwise defaults
+  const [rating, setRating] = useState(review?.rating || 5);
+  const [comment, setComment] = useState(review?.comment || "");
+  const [revieweeRole, setRevieweeRole] = useState(
+    review?.reviewee_role || "T"
+  );
   const [errors, setErrors] = useState([]);
+
+  useEffect(() => {
+    if (method === "edit" && review) {
+      setRating(review.rating);
+      setComment(review.comment);
+      setRevieweeRole(review.reviewee_role);
+    }
+  }, [method, review]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors([]);
 
     try {
-      const response = await api.post(`/profile/reviews/${revieweeId}`, {
-        rating,
-        comment,
-        reviewee_role: revieweeRole,
-        reviewee: revieweeId,
-      });
-
-      console.log("Review posted:", response.data);
-      navigate(`/profile/${revieweeId}`);
+      if (method === "edit" && review) {
+        // PATCH to update the review
+        await api.patch(`/reviews/manage/${review.id}`, {
+          rating,
+          comment,
+          reviewee_role: revieweeRole,
+        });
+        navigate(`/profile/${review.reviewee.id}`);
+      } else {
+        // POST to create a new review
+        const response = await api.post(`/profile/reviews/${revieweeId}`, {
+          rating,
+          comment,
+          reviewee_role: revieweeRole,
+          reviewee: revieweeId,
+        });
+        navigate(`/profile/${revieweeId}`);
+      }
     } catch (error) {
-      console.error("Error posting review:", error);
+      if (error.response?.data) {
+        const errorList = Object.values(error.response.data).flat();
+        setErrors(errorList);
+      } else {
+        setErrors(["An error occurred while submitting the review."]);
+      }
+    }
+  };
+
+  const handleDelete = async (e) => {
+    e.preventDefault();
+
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this review? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await api.delete(`/reviews/manage/${review.id}`);
+      navigate(`/profile/${review.reviewee.id}`);
+    } catch (error) {
       if (error.response?.data) {
         const errorList = Object.values(error.response.data).flat();
         setErrors(errorList);
@@ -39,8 +82,7 @@ function FormReview() {
 
   return (
     <div className="form-container">
-      <h1>Leave a Review</h1>
-
+      <h1>{method === "edit" ? "Edit Review" : "Leave a Review"}</h1>
       <form onSubmit={handleSubmit}>
         {errors.length > 0 && (
           <ul>
@@ -71,6 +113,7 @@ function FormReview() {
         >
           <option value="T">Tenant</option>
           <option value="L">Landlord</option>
+          <option value="R">Roommate</option>
         </select>
 
         <label htmlFor="comment">Comment</label>
@@ -82,7 +125,18 @@ function FormReview() {
           placeholder="Write your feedback here..."
         />
 
-        <button type="submit">Submit Review</button>
+        <button type="submit">
+          {method === "edit" ? "Save Changes" : "Submit Review"}
+        </button>
+        {method === "edit" && (
+          <button
+            type="delete"
+            className="btn btn-danger"
+            onClick={handleDelete}
+          >
+            Delete Review
+          </button>
+        )}
       </form>
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../api.js";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { useProfileContext } from "../contexts/ProfileContext.jsx";
 
 function ListingsView() {
   const { id } = useParams();
@@ -8,8 +9,11 @@ function ListingsView() {
   const [userIncome, setUserIncome] = useState(null);
   const [listing, setListing] = useState();
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const { profile, isProfileSelf } = useProfileContext();
 
   const fetchListing = async () => {
+    setLoading(true);
     try {
       const response = await api.get(`/listings/${id}`);
       const listing = response.data;
@@ -34,24 +38,21 @@ function ListingsView() {
     } catch (err) {
       console.error("Error fetching listings:", err);
       setError(err.response?.data?.Location || "Failed to fetch Listings.");
+      setListing(null);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchListing();
-    fetchUserIncome();
   }, [id]);
 
-  const fetchUserIncome = async () => {
-    try {
-      const response = await api.get("/profile/me/");
-      if (response.data.yearly_income) {
-        setUserIncome(parseFloat(response.data.yearly_income));
-      }
-    } catch (err) {
-      console.warn("User income not loaded");
+  useEffect(() => {
+    if (profile) {
+      setUserIncome(profile.yearly_income);
     }
-  };
+  }, [profile]);
 
   if (!listing) {
     return <div className="text-center fs-4 mt-5">Loading listing...</div>;
@@ -59,10 +60,15 @@ function ListingsView() {
 
   const handleStartConversation = async (listingId) => {
     try {
-      // Check if conversation already exists
+      // Check if conversation already exists between the user and the listing owner for this listing
       const existingConversations = await api.get("/conversations/");
       const existingConversation = existingConversations.data.find(
-        (conv) => String(conv.listing.id) === String(listingId)
+        (conv) =>
+          String(conv.listing.id) === String(listingId) &&
+          conv.participants &&
+          conv.participants.length === 2 &&
+          conv.participants.some((p) => p === profile.id) &&
+          conv.participants.some((p) => p === listing.owner.id)
       );
 
       if (existingConversation) {
@@ -73,17 +79,17 @@ function ListingsView() {
 
       // If not, create a new conversation
       const response = await api.post(
-        `/listing/${listingId}/start_conversation/`,
+        `/listing/${listingId}/start_conversation`,
         {}
       );
       const conversationId = response.data.id;
       navigate(`/conversations/${conversationId}`);
     } catch (err) {
-      if (err.response.statusText === "Unauthorized") {
-        setError("Log In to start a conversation with the owner.");
-      } else {
-        setError("An unexpected error occurred. Please try again.");
-      }
+      setError(
+        err?.response?.data?.detail ||
+          err?.response?.data?.error ||
+          "Failed to start conversation."
+      );
     }
   };
   const owner = listing.owner;
@@ -99,7 +105,11 @@ function ListingsView() {
     return { icon: "✅", label: "Recommended" };
   };
 
-  return (
+  return error ? (
+    <div className="alert alert-danger">{error}</div>
+  ) : loading ? (
+    <div className="loading">Loading...</div>
+  ) : (
     <div>
       <div className="container my-5 p-4 bg-white rounded shadow">
         {/* Header */}
@@ -114,16 +124,17 @@ function ListingsView() {
           <h3 className="text-primary fw-bold mt-2">
             ${listing.price} / month
           </h3>
-          {userIncome && (() => {
-            const affordability = getAffordability();
-            return affordability ? (
-              <div className="mt-1">
-                <span className="fw-semibold">
-                  {affordability.icon} {affordability.label}
-                </span>
-              </div>
-            ) : null;
-          })()}
+          {userIncome &&
+            (() => {
+              const affordability = getAffordability();
+              return affordability ? (
+                <div className="mt-1">
+                  <span className="fw-semibold">
+                    {affordability.icon} {affordability.label}
+                  </span>
+                </div>
+              ) : null;
+            })()}
           {error && <p className="text-danger fw-semibold">{error}</p>}
         </div>
 
@@ -148,12 +159,21 @@ function ListingsView() {
                   {owner.first_name} {owner.last_name}
                 </Link>
               </p>
-              <button
-                className="btn btn-primary mt-3"
-                onClick={() => handleStartConversation(listing.id)}
-              >
-                Contact Owner
-              </button>
+              {isProfileSelf(owner.id) ? (
+                <button
+                  className="btn btn-primary mt-3"
+                  onClick={() => navigate(`/conversations`)}
+                >
+                  See Conversations
+                </button>
+              ) : (
+                <button
+                  className="btn btn-primary mt-3"
+                  onClick={() => handleStartConversation(listing.id)}
+                >
+                  Contact Owner
+                </button>
+              )}
               <button
                 className="btn btn-primary mt-3"
                 onClick={() => navigate(`/listings/${listing.id}/groups`)}

@@ -3,32 +3,42 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
 import "../styles/groups.css";
 import { useProfileContext } from "../contexts/ProfileContext";
+import GroupCard from "../components/GroupCard";
 
 function Groups() {
   const { id } = useParams();
   const [groups, setGroups] = useState([]);
   const [ownerId, setOwnerId] = useState(null);
   const [error, setError] = useState(null);
+  const [loadingOwnerId, setLoadingOwnerId] = useState(true);
+  const [loadingGroup, setLoadingGroup] = useState(true);
   const errorRef = useRef(null);
   const navigate = useNavigate();
   const { isProfileSelf } = useProfileContext();
 
   const fetchGroups = async () => {
+    setLoadingGroup(true);
     try {
       const response = await api.get(`/listings/${id}/groups`);
       setGroups(response.data);
     } catch (err) {
+      console.error("Failed to fetch groups.", err);
       setError("Failed to fetch groups.");
+    } finally {
+      setLoadingGroup(false);
     }
   };
 
   const fetchListingOwner = async () => {
+    setLoadingOwnerId(true);
     try {
       const response = await api.get(`/listings/${id}`);
       setOwnerId(response.data.owner.id);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to get listing's owner.", err);
       setError("Failed to get listing's owner.");
+    } finally {
+      setLoadingOwnerId(false);
     }
   };
 
@@ -46,52 +56,34 @@ function Groups() {
   return (
     <div className="groups-container">
       <h2 className="groups-title">Groups for this Listing</h2>
-      {error && (
+      {error ? (
         <div ref={errorRef} className="alert alert-danger">
           {error}
         </div>
-      )}
-      {!isProfileSelf(ownerId) && (
-        <button
-          className="btn btn-primary mt-3"
-          onClick={() => navigate(`/listings/${id}/groups/post`)}
-        >
-          Open a Group
-        </button>
-      )}
-      {groups.length === 0 ? (
-        <p className="text-muted text-center">
-          No groups found for this listing.
-        </p>
+      ) : loadingGroup || loadingOwnerId ? (
+        <div className="loading">Loading...</div>
       ) : (
-        <div className="groups-list">
-          {groups.map((group) => (
-            <div
-              className="group-card"
-              key={group.id}
-              style={{ cursor: "pointer" }}
-              onClick={() => navigate(`/groups/${group.id}`)}
+        <>
+          {!isProfileSelf(ownerId) && (
+            <button
+              className="btn btn-primary mt-3"
+              onClick={() => navigate(`/listings/${id}/groups/post`)}
             >
-              <h4 className="group-name">{group.name}</h4>
-              <p className="group-description">
-                {group.description || "No description provided."}
-              </p>
-              <p>
-                <strong>Move-in Date:</strong> {group.move_in_date}
-              </p>
-              <p>
-                <strong>Status:</strong> {group.group_status}
-              </p>
-              <p>
-                <strong>Move-in Ready:</strong>{" "}
-                {group.move_in_ready ? "Yes" : "No"}
-              </p>
-              <p>
-                <strong>Members:</strong> {group.members.length}
-              </p>
+              Open a Group
+            </button>
+          )}
+          {groups.length === 0 ? (
+            <p className="text-muted text-center">
+              No groups found for this listing.
+            </p>
+          ) : (
+            <div className="groups-list">
+              {groups.map((group) => (
+                <GroupCard key={group.id} group={group} />
+              ))}
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </div>
   );

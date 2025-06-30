@@ -257,29 +257,83 @@ class StartConversationView(APIView):
     def post(self, request, pk):
         listing = get_object_or_404(Listing, id=pk)
 
+        # If 'participants' is provided in the request, treat as group conversation
+        participant_ids = request.data.get("participants")
+        if participant_ids and isinstance(participant_ids, list):
+            # Check if a conversation with these participants and this listing already exists
+            existing = Conversation.objects.filter(listing=listing)
+            for conv in existing:
+                conv_participants = set(conv.participants.values_list("id", flat=True))
+                if set(participant_ids) == conv_participants:
+                    raise ValidationError("A conversation for this group and listing already exists.")
+
+            conversation = Conversation.objects.create(listing=listing)
+            users = MarketplaceUser.objects.filter(id__in=participant_ids)
+            conversation.participants.add(*users)
+            # Optionally, add the sender if not already in the list
+            if request.user.id not in participant_ids:
+                conversation.participants.add(request.user)
+
+            Message.objects.create(
+                conversation=conversation,
+                sender=request.user,
+                content="Hello, group! Let's chat about this listing."
+            )
+            serializer = ConversationSerializer(conversation, context={'request': request})
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        # Otherwise, treat as 1-on-1 conversation between user and landlord
         if listing.owner == request.user:
             raise ValidationError("You cannot start a conversation with yourself.")
-        
-        # Check if conversation already exists
-        conversation = Conversation.objects.filter(participants=request.user, listing=listing).first()
 
-        if conversation:
-            raise ValidationError("A conversation for this listing already exists.")
+        # Check if a 1-on-1 conversation already exists between user and landlord for this listing
+        existing = Conversation.objects.filter(listing=listing)
+        for conv in existing:
+            conv_participants = list(conv.participants.values_list("id", flat=True))
+            if (
+                len(conv_participants) == 2 and
+                request.user.id in conv_participants and
+                listing.owner.id in conv_participants
+            ):
+                raise ValidationError("A conversation for this listing already exists between you and the landlord.")
 
-        # Create the conversation
         conversation = Conversation.objects.create(listing=listing)
         conversation.participants.add(request.user, listing.owner)
 
-        # Create the initial message
         Message.objects.create(
             conversation=conversation,
             sender=request.user,
             content="Hello, I'm interested in this listing."
         )
 
-        # Serialize and return the conversation
         serializer = ConversationSerializer(conversation, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+class ConversationDeleteView(generics.DestroyAPIView):
+    serializer_class = GroupSerializer
+    permission_clases = [IsAuthenticated]
+
+    def get_object(self):
+        conversation = get_object_or_404(Conversation.objects.filter(participants=self.request.user), id=self.kwargs['pk'])
+
+        return conversation
+    
+    def perform_destroy(self, instance):
+        # Only allow deletion if there is exactly one participant and it's the requesting user
+        participant_ids = list(instance.participants.values_list("id", flat=True))
+        if len(participant_ids) == 1 and participant_ids[0] == self.request.user.id:
+            instance.delete()
+        else:
+            raise PermissionDenied("You can only delete a conversation if you are the only participant.")
+
+class ConversationLeaveView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        conversation = get_object_or_404(Conversation, id=pk, participants=request.user)
+        conversation.participants.remove(request.user)
+        conversation.save()
+        return Response({"detail": "You have left the conversation."}, status=status.HTTP_200_OK)
 
 class SendMessageView(generics.CreateAPIView):
     """API view to send a message in a conversation."""
@@ -298,6 +352,27 @@ class SendMessageView(generics.CreateAPIView):
 
         # Mark all unread messages as read after sending a message
         conversation.messages.filter(read=False).exclude(sender=self.request.user).update(read=True)
+
+class MessageEditView(generics.UpdateAPIView):
+    serializer_class = MessageSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        message = get_object_or_404(Message, id=self.kwargs['pk'])
+        if message.sender != self.request.user:
+            raise PermissionDenied("You do not have permission to edit this message.")
+        return message
+
+class UnreadMessagesListView(generics.ListAPIView):
+    serializer_class = MessageSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Message.objects.filter(
+            read=False,
+            conversation__participants=user
+        ).exclude(sender=user).order_by('-timestamp')
 
 ### CONVERSATION SECTION - END ###
 
@@ -328,6 +403,15 @@ class ReviewListView(generics.ListAPIView):
             queryset = queryset.filter(reviewee=reviewee)
 
         return queryset
+    
+class ReviewDetailView(generics.RetrieveAPIView):
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        review = get_object_or_404(Review, id=self.kwargs['pk'])
+
+        return review
     
 class ReviewPosting(generics.CreateAPIView):
     serializer_class = ReviewSerializer
@@ -500,8 +584,40 @@ class GroupJoinView(generics.UpdateAPIView):
         group.members.add(roommate_user)
         group.save()
 
+        # Find a conversation for this group/listing with all current members as participants
+        conversations = Conversation.objects.filter(listing=group.listing)
+        for conv in conversations:
+            participant_ids = set(conv.participants.values_list("id", flat=True))
+            group_member_user_ids = set([m.user.id for m in group.members.all()])
+            # If this conversation matches the group members, add the user if not present
+            if group_member_user_ids.issubset(participant_ids) or participant_ids.issubset(group_member_user_ids):
+                if request.user.id not in participant_ids:
+                    conv.participants.add(request.user)
+
         serializer = self.get_serializer(group)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class GroupLeaveView(generics.UpdateAPIView):
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]
+
+    def update(self, request, *args, **kwargs):
+        group = get_object_or_404(Group, id=self.kwargs['pk'])
+        roommate_user = get_object_or_404(RoommateUser, user=request.user)
+
+        if not group.members.filter(id=roommate_user.id).exists():
+            return Response({"detail": "You are not a member of this group."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Remove user from group members
+        group.members.remove(roommate_user)
+        group.save()
+        conversations = Conversation.objects.filter(listing=group.listing)
+        for conv in conversations:
+            participant_ids = set(conv.participants.values_list("id", flat=True))
+            if request.user.id in participant_ids:
+                conv.participants.remove(request.user)
+        serializer = self.get_serializer(group)
+        return Response({"detail": "You have left the group.", "group": serializer.data}, status=status.HTTP_200_OK)
     
 class GroupEditView(generics.UpdateAPIView):
     serializer_class = GroupSerializer
@@ -510,9 +626,156 @@ class GroupEditView(generics.UpdateAPIView):
     def get_object(self):
         roommate_user = get_object_or_404(RoommateUser, user=self.request.user)
         group = get_object_or_404(Group, id=self.kwargs['pk'], owner=roommate_user)
-
         return group
 
+    def update(self, request, *args, **kwargs):
+        allowed_statuses = ['O', 'P', 'F', 'S']
+        group = self.get_object()
+        new_status = request.data.get('group_status')
+        if new_status and new_status not in allowed_statuses:
+            return Response(
+                {"error": "You can only set status to Open, Private, Filled, or Sent."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return super().update(request, *args, **kwargs)
+    
+class GroupDeleteView(generics.DestroyAPIView):
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        roommate_user = get_object_or_404(RoommateUser, user=self.request.user)
+        group = get_object_or_404(Group, id=self.kwargs['pk'], owner=roommate_user)
+        return group
+    
+    def perform_destroy(self, instance):
+        # Find conversations for this listing where all participants are group members
+        group_member_user_ids = set(instance.members.values_list("user__id", flat=True))
+        conversations = Conversation.objects.filter(listing=instance.listing)
+        for conv in conversations:
+            participant_ids = set(conv.participants.values_list("id", flat=True))
+            # If the conversation participants match the group members, delete it
+            if participant_ids == group_member_user_ids:
+                conv.delete()
+        # Now delete the group itself
+        instance.delete()
+    
+class GroupManageView(generics.UpdateAPIView):
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        group = get_object_or_404(Group, id=self.kwargs['pk'], listing__owner=self.request.user)
+        return group
+
+    def update(self, request, *args, **kwargs):
+        allowed_statuses = ['U', 'R', 'I']
+        group = self.get_object()
+        new_status = request.data.get('group_status')
+        if new_status and new_status not in allowed_statuses:
+            return Response(
+                {"error": "You can only set status to Under Review, Rejected, or Invited."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # If setting this group to Invited, set all other groups for this listing to Rejected
+        if new_status == 'I':
+            Group.objects.filter(
+                listing=group.listing
+            ).exclude(id=group.id).update(group_status='R')
+        
+        return super().update(request, *args, **kwargs)
+
+class ApplicationListView(generics.ListAPIView):
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        # Groups with status 'S' where user is the listing owner
+        q1 = Q(group_status='S', listing__owner=user)
+        # Groups with status 'R' or 'I' where user is a member
+        q2 = Q(group_status__in=['R', 'I'], members__user=user)
+        return Group.objects.filter(q1 | q2).distinct()
+    
+class ApplicationManagementListView(generics.ListAPIView):
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request, *args, **kwargs):
+        user = self.request.user
+        # Groups with status S, U, or I where user is the listing owner
+        landlord_qs = Group.objects.filter(
+            group_status__in=['S', 'U', 'I'],
+            listing__owner=user
+        ).distinct()
+        # All groups where user is a member
+        member_qs = Group.objects.filter(
+            members__user=user
+        ).distinct()
+
+        landlord_data = self.get_serializer(landlord_qs, many=True).data
+        member_data = self.get_serializer(member_qs, many=True).data
+
+        return Response({
+            "landlord": landlord_data,
+            "member": member_data
+        })
+    
+
+### GROUP INVITATION SECTION - START ###
+class GroupInvitationRetrieveView(generics.RetrieveAPIView):
+    queryset = GroupInvitation.objects.all()
+    serializer_class = GroupInvitationSerializer
+    permission_classes = [IsAuthenticated]
+
+class GroupInvitationListView(generics.ListAPIView):
+    serializer_class = GroupInvitationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request, *args, **kwargs):
+        roommate_user = RoommateUser.objects.filter(user=request.user).first()
+        if not roommate_user:
+            return Response({"detail": "No roommate profile found."}, status=404)
+        received = GroupInvitation.objects.filter(invited_user=roommate_user)
+        sent = GroupInvitation.objects.filter(invited_by=roommate_user)
+        data = {
+            "received": GroupInvitationSerializer(received, many=True).data,
+            "sent": GroupInvitationSerializer(sent, many=True).data,
+        }
+        return Response(data)
+
+class GroupInvitationCreateView(generics.CreateAPIView):
+    queryset = GroupInvitation.objects.all()
+    serializer_class = GroupInvitationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        roommate_user = get_object_or_404(RoommateUser, user=self.request.user)
+        invited_roommate = get_object_or_404(RoommateUser, id=self.request.data.get("invited_user"))
+        group = get_object_or_404(Group, id=self.kwargs['pk'], owner=roommate_user)
+        serializer.save(invited_by=roommate_user, group=group, invited_user=invited_roommate)
+
+class GroupInvitationUpdateView(generics.UpdateAPIView):
+    queryset = GroupInvitation.objects.all()
+    serializer_class = GroupInvitationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        accepted = request.data.get("accepted", None)
+        if accepted is not None:
+            instance.accepted = accepted
+            instance.responded_at = now()
+            instance.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        return super().update(request, *args, **kwargs)
+
+class GroupInvitationDeleteView(generics.DestroyAPIView):
+    queryset = GroupInvitation.objects.all()
+    serializer_class = GroupInvitationSerializer
+    permission_classes = [IsAuthenticated]
 
 # HOME SECTION - START
 

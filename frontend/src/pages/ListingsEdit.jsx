@@ -9,17 +9,21 @@ function ListingsEdit() {
   const { id } = useParams();
   const [listing, setListing] = useState(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
   const { isProfileSelf } = useProfileContext();
   const [authorized, setAuthorized] = useState(null);
 
   // Fetch the listing data
   const fetchListing = async () => {
+    setLoading(true);
     try {
       const response = await api.get(`/listings/${id}`);
       setListing(response.data);
     } catch (err) {
       console.error("Error fetching listing:", err);
       setError("Failed to fetch listing.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -33,19 +37,16 @@ function ListingsEdit() {
     }
   }, [listing]);
 
-  if (error) {
-    return <p style={{ color: "red" }}>{error}</p>;
-  }
-
-  // Show loading until we know if the user is authorized
-  if (listing === null || authorized === null) {
-    return <p>Loading...</p>;
-  }
-
-  return authorized ? (
+  return error ? (
+    <div className="alert alert-danger">{error}</div>
+  ) : loading ? (
+    <div className="loading">Loading...</div>
+  ) : !authorized ? (
+    <Unauthorized />
+  ) : listing ? (
     <FormListing method="edit" listing={listing} />
   ) : (
-    <Unauthorized />
+    <div>No listing found.</div>
   );
 }
 
