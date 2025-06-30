@@ -1,61 +1,91 @@
 import { createContext, useState, useContext, useEffect } from "react";
-import api from "../api"; // Make sure this import is present
+import api from "../api";
 
 const ProfileContext = createContext();
 
-export const useProfileContext = () => {
-  return useContext(ProfileContext);
-};
+export const useProfileContext = () => useContext(ProfileContext);
 
 export const ProfileProvider = ({ children }) => {
+  // Data states
   const [profile, setProfile] = useState(null);
   const [messages, setMessages] = useState([]);
   const [applications, setApplications] = useState([]);
   const [invitations, setInvitations] = useState([]);
 
+  // Loading states
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+  const [applicationsLoading, setApplicationsLoading] = useState(false);
+  const [invitationsLoading, setInvitationsLoading] = useState(false);
+
+  // Error states
+  const [profileError, setProfileError] = useState(null);
+  const [messagesError, setMessagesError] = useState(null);
+  const [applicationsError, setApplicationsError] = useState(null);
+  const [invitationsError, setInvitationsError] = useState(null);
+
   const fetchUser = async () => {
+    setProfileLoading(true);
+    setProfileError(null);
     try {
       const response = await api.get("/profile/me");
       setProfile(response.data);
     } catch (err) {
-      console.error("Failed to fetch user.", err);
       setProfile(null);
+      setProfileError("Failed to fetch user.");
+      console.error("Failed to fetch user.", err);
+    } finally {
+      setProfileLoading(false);
     }
   };
 
   const fetchMessages = async () => {
+    setMessagesLoading(true);
+    setMessagesError(null);
     try {
       const response = await api.get("/messages");
       setMessages(response.data);
     } catch (err) {
-      console.error("Failed to fetch messages.", err);
       setMessages([]);
+      setMessagesError("Failed to fetch messages.");
+      console.error("Failed to fetch messages.", err);
+    } finally {
+      setMessagesLoading(false);
     }
   };
 
   const fetchApplications = async () => {
+    setApplicationsLoading(true);
+    setApplicationsError(null);
     try {
       const response = await api.get("/applications");
       setApplications(response.data);
     } catch (err) {
-      console.error("Failed to fetch applications.", err);
       setApplications([]);
+      setApplicationsError("Failed to fetch applications.");
+      console.error("Failed to fetch applications.", err);
+    } finally {
+      setApplicationsLoading(false);
     }
   };
 
   const fetchInvitations = async () => {
+    setInvitationsLoading(true);
+    setInvitationsError(null);
     try {
       const response = await api.get("/groups/invitations");
       setInvitations(response.data);
     } catch (err) {
-      console.error("Failed to fecth invitations.", err);
       setInvitations([]);
+      setInvitationsError("Failed to fetch invitations.");
+      console.error("Failed to fetch invitations.", err);
+    } finally {
+      setInvitationsLoading(false);
     }
   };
 
   useEffect(() => {
     fetchUser();
-    // Listen for login event
     const handler = () => fetchUser();
     window.addEventListener("user-logged-in", handler);
     return () => window.removeEventListener("user-logged-in", handler);
@@ -69,21 +99,28 @@ export const ProfileProvider = ({ children }) => {
     }
   }, [profile]);
 
-  const isProfileSelf = (id) => {
-    return profile && id === profile.id;
-  };
-
-  const isRoommateSelf = (id) => {
-    return profile && profile.roommate_profile == id;
-  };
+  const isProfileSelf = (id) => profile && id === profile.id;
+  const isRoommateSelf = (id) => profile && profile.roommate_profile == id;
 
   const value = {
     profile,
-    applications,
+    profileLoading,
+    profileError,
     messages,
+    messagesLoading,
+    messagesError,
+    applications,
+    applicationsLoading,
+    applicationsError,
     invitations,
+    invitationsLoading,
+    invitationsError,
     isProfileSelf,
     isRoommateSelf,
+    fetchUser,
+    fetchMessages,
+    fetchApplications,
+    fetchInvitations,
   };
 
   return (

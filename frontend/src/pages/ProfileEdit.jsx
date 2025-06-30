@@ -10,16 +10,21 @@ function ProfileEdit() {
   const { id } = useParams();
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
   const { isProfileSelf } = useProfileContext();
   const [authorized, setAuthorized] = useState(null);
 
   const fetchProfile = async () => {
+    setLoading(true);
     try {
       const response = await api.get(`/profile/${id}`);
       setProfile(response.data);
     } catch (err) {
       console.error("Error fetching profile.", err);
       setError("Failed to fetch profile.");
+      setProfile(null);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -33,18 +38,16 @@ function ProfileEdit() {
     }
   }, [profile]);
 
-  if (error) {
-    return <p style={{ color: "red" }}>{error}</p>;
-  }
-
-  if (profile === null || authorized === null) {
-    return <p>Loading...</p>;
-  }
-
-  return authorized ? (
+  return error ? (
+    <div className="alert alert-danger">{error}</div>
+  ) : loading ? (
+    <div className="loading">Loading...</div>
+  ) : !authorized ? (
+    <Unauthorized />
+  ) : profile ? (
     <FormRegister method="edit" profile={profile} />
   ) : (
-    <Unauthorized />
+    <div>No profile found.</div>
   );
 }
 

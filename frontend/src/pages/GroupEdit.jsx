@@ -9,17 +9,20 @@ function GroupEdit() {
   const { id } = useParams();
   const [error, setError] = useState(null);
   const [group, setGroup] = useState(null);
-  const { isProfileSelf } = useProfileContext();
   const [authorized, setAuthorized] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const { isProfileSelf } = useProfileContext();
 
   const fetchGroup = async () => {
+    setLoading(true);
     try {
       const response = await api.get(`/groups/${id}`);
-
       setGroup(response.data);
     } catch (err) {
       console.error("Error fetching group:", err);
       setError("Failed to fetch group.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -41,10 +44,16 @@ function GroupEdit() {
     return <p>Loading...</p>;
   }
 
-  return authorized ? (
+  return error ? (
+    <div className="alert alert-danger">{error}</div>
+  ) : loading ? (
+    <div className="loading">Loading...</div>
+  ) : !authorized ? (
+    <Unauthorized />
+  ) : group ? (
     <FormGroup method="edit" group={group} />
   ) : (
-    <Unauthorized />
+    <div>No group found.</div>
   );
 }
 

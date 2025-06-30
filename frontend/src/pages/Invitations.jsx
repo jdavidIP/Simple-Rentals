@@ -1,27 +1,17 @@
-import { useEffect, useState, useCallback } from "react";
-import api from "../api";
+import { useState } from "react";
+import { useProfileContext } from "../contexts/ProfileContext";
 import InvitationCard from "../components/InvitationCard";
 import "../styles/groups.css";
 
 function Invitations() {
-  const [invitations, setInvitations] = useState({ received: [], sent: [] });
-  const [error, setError] = useState(null);
+  const {
+    invitations = { received: [], sent: [] },
+    invitationsLoading,
+    invitationsError,
+    fetchInvitations,
+  } = useProfileContext();
+
   const [activeTab, setActiveTab] = useState("received");
-
-  const fetchInvitations = useCallback(async () => {
-    try {
-      const response = await api.get("/groups/invitations");
-      setInvitations(response.data);
-    } catch (err) {
-      setError("Failed to fetch invitations.");
-      setInvitations({ received: [], sent: [] });
-      console.error("Failed to fetch invitations.", err);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchInvitations();
-  }, [fetchInvitations]);
 
   // Helper to classify invitations
   const classifyInvitations = (invites) => ({
@@ -36,12 +26,19 @@ function Invitations() {
   return (
     <div className="groups-container">
       <h2 className="groups-title">Group Invitations</h2>
-      {error && <div className="alert alert-danger">{error}</div>}
+      {invitationsLoading && (
+        <div className="alert alert-info">Loading invitations...</div>
+      )}
+      {invitationsError && (
+        <div className="alert alert-danger">{invitationsError}</div>
+      )}
 
       <ul className="nav nav-tabs mb-4">
         <li className="nav-item">
           <button
-            className={`nav-link${activeTab === "received" ? " active" : ""}`}
+            className={`nav-link${
+              activeTab === "received" ? " active" : ""
+            }`}
             onClick={() => setActiveTab("received")}
           >
             Received
@@ -49,7 +46,9 @@ function Invitations() {
         </li>
         <li className="nav-item">
           <button
-            className={`nav-link${activeTab === "sent" ? " active" : ""}`}
+            className={`nav-link${
+              activeTab === "sent" ? " active" : ""
+            }`}
             onClick={() => setActiveTab("sent")}
           >
             Sent

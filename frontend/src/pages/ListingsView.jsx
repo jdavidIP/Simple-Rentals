@@ -9,9 +9,11 @@ function ListingsView() {
   const [userIncome, setUserIncome] = useState(null);
   const [listing, setListing] = useState();
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
   const { profile, isProfileSelf } = useProfileContext();
 
   const fetchListing = async () => {
+    setLoading(true);
     try {
       const response = await api.get(`/listings/${id}`);
       const listing = response.data;
@@ -36,6 +38,9 @@ function ListingsView() {
     } catch (err) {
       console.error("Error fetching listings:", err);
       setError(err.response?.data?.Location || "Failed to fetch Listings.");
+      setListing(null);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -100,7 +105,11 @@ function ListingsView() {
     return { icon: "✅", label: "Recommended" };
   };
 
-  return (
+  return error ? (
+    <div className="alert alert-danger">{error}</div>
+  ) : loading ? (
+    <div className="loading">Loading...</div>
+  ) : (
     <div>
       <div className="container my-5 p-4 bg-white rounded shadow">
         {/* Header */}
