@@ -407,10 +407,11 @@ class ConversationSerializer(serializers.ModelSerializer):
     listing = ListingSerializer(read_only=True)  # Include listing details
     last_message = serializers.SerializerMethodField()  # Add the last message in the conversation
     messages = serializers.SerializerMethodField()  # Add all messages in the conversation
+    isGroup = serializers.SerializerMethodField() 
 
     class Meta:
         model = Conversation
-        fields = ['id', 'participants', 'listing', 'last_updated', 'last_message', 'messages']
+        fields = ['id', 'participants', 'listing', 'last_updated', 'last_message', 'messages', 'isGroup']
 
     def get_last_message(self, obj):
         last_message = obj.get_last_message()
@@ -421,6 +422,17 @@ class ConversationSerializer(serializers.ModelSerializer):
     def get_messages(self, obj):
         messages = obj.messages.order_by('timestamp')  # Order by timestamp ascending
         return MessageSerializer(messages, many=True, context=self.context).data
+    
+    def get_isGroup(self, obj):
+        # A conversation is a group if its participants match any group's members for the same listing
+        from .models import Group, RoommateUser
+        participant_ids = set(obj.participants.values_list("id", flat=True))
+        groups = Group.objects.filter(listing=obj.listing)
+        for group in groups:
+            group_member_user_ids = set(group.members.values_list("user__id", flat=True))
+            if participant_ids == group_member_user_ids and len(participant_ids) > 1:
+                return True
+        return False
 
 class MessageSerializer(serializers.ModelSerializer):
     sender = UserSerializer(read_only=True)  # Include sender details

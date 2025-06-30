@@ -9,7 +9,6 @@ function ConversationCard({ conv, onUpdate }) {
   const participantCount = conv.participants.length;
   const isOnlyUser =
     participantCount === 1 && conv.participants[0] === profile.id;
-  const canShowButton = participantCount < 3;
 
   const handleLeave = async (convId) => {
     try {
@@ -50,7 +49,7 @@ function ConversationCard({ conv, onUpdate }) {
           </div>
         )}
       </div>
-      {canShowButton && (
+      {!conv.isGroup && (
         <button
           className={
             isOnlyUser
