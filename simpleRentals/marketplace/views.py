@@ -308,6 +308,32 @@ class StartConversationView(APIView):
 
         serializer = ConversationSerializer(conversation, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+class ConversationDeleteView(generics.DestroyAPIView):
+    serializer_class = GroupSerializer
+    permission_clases = [IsAuthenticated]
+
+    def get_object(self):
+        conversation = get_object_or_404(Conversation.objects.filter(participants=self.request.user), id=self.kwargs['pk'])
+
+        return conversation
+    
+    def perform_destroy(self, instance):
+        # Only allow deletion if there is exactly one participant and it's the requesting user
+        participant_ids = list(instance.participants.values_list("id", flat=True))
+        if len(participant_ids) == 1 and participant_ids[0] == self.request.user.id:
+            instance.delete()
+        else:
+            raise PermissionDenied("You can only delete a conversation if you are the only participant.")
+
+class ConversationLeaveView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        conversation = get_object_or_404(Conversation, id=pk, participants=request.user)
+        conversation.participants.remove(request.user)
+        conversation.save()
+        return Response({"detail": "You have left the conversation."}, status=status.HTTP_200_OK)
 
 class SendMessageView(generics.CreateAPIView):
     """API view to send a message in a conversation."""
@@ -612,6 +638,18 @@ class GroupDeleteView(generics.DestroyAPIView):
         roommate_user = get_object_or_404(RoommateUser, user=self.request.user)
         group = get_object_or_404(Group, id=self.kwargs['pk'], owner=roommate_user)
         return group
+    
+    def perform_destroy(self, instance):
+        # Find conversations for this listing where all participants are group members
+        group_member_user_ids = set(instance.members.values_list("user__id", flat=True))
+        conversations = Conversation.objects.filter(listing=instance.listing)
+        for conv in conversations:
+            participant_ids = set(conv.participants.values_list("id", flat=True))
+            # If the conversation participants match the group members, delete it
+            if participant_ids == group_member_user_ids:
+                conv.delete()
+        # Now delete the group itself
+        instance.delete()
     
 class GroupManageView(generics.UpdateAPIView):
     serializer_class = GroupSerializer

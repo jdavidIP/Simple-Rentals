@@ -19,6 +19,8 @@ urlpatterns = [
     path("", views.home, name="home"),
     path('conversations/', views.ConversationListView.as_view(), name='conversation_list'),
     path('conversations/<int:pk>/', views.ConversationDetailView.as_view(), name='conversation_detail'), # pk = conversation id
+    path("conversations/delete/<int:pk>", views.ConversationDeleteView.as_view(), name="conversation_delete"),
+    path("conversations/leave/<int:pk>", views.ConversationLeaveView.as_view(), name="conversation_leave"),
     path('listing/<int:pk>/start_conversation', views.StartConversationView.as_view(), name='start_conversation'), # pk = listing id
     path('conversations/<int:pk>/send_message/', views.SendMessageView.as_view(), name='send_message'), # pk = conversation id
     path("messages", views.UnreadMessagesListView.as_view(), name="unread_messages"),
