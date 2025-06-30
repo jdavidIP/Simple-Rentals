@@ -35,7 +35,11 @@ function ConversationList() {
         <>
           <ul className="conversation-list">
             {conversations.map((conv) => (
-              <ConversationCard key={conv.id} conv={conv} />
+              <ConversationCard
+                key={conv.id}
+                conv={conv}
+                onUpdate={fetchConversations}
+              />
             ))}
           </ul>
         </>

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "../styles/Chat.css";
 import api from "../api";
 
-function ConversationCard({ conv }) {
+function ConversationCard({ conv, onUpdate }) {
   const { profile } = useProfileContext();
   const navigate = useNavigate();
   const participantCount = conv.participants.length;
@@ -14,7 +14,7 @@ function ConversationCard({ conv }) {
   const handleLeave = async (convId) => {
     try {
       await api.post(`/conversations/leave/${convId}`);
-      fetchConversations();
+      if (onUpdate) onUpdate(); // Call the passed function
     } catch (err) {
       alert("Failed to leave conversation.");
     }
@@ -23,7 +23,7 @@ function ConversationCard({ conv }) {
   const handleDelete = async (convId) => {
     try {
       await api.delete(`/conversations/delete/${convId}`);
-      fetchConversations();
+      if (onUpdate) onUpdate(); // Call the passed function
     } catch (err) {
       alert("Failed to delete conversation.");
     }
