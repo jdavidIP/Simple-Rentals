@@ -132,7 +132,7 @@ class Review(models.Model):
     rating = models.PositiveIntegerField(choices=[(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')])
     comment = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    reviewee_role = models.CharField(max_length=1, choices=[('T', 'Tenant'), ('L', 'Landlord')])
+    reviewee_role = models.CharField(max_length=1, choices=[('T', 'Tenant'), ('L', 'Landlord'), ('R', 'Roommate')])
 
 class Favorites(models.Model):
     user = models.ForeignKey(MarketplaceUser, related_name="wishlist", on_delete=models.CASCADE)

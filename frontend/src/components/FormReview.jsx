@@ -71,6 +71,7 @@ function FormReview() {
         >
           <option value="T">Tenant</option>
           <option value="L">Landlord</option>
+          <option value="R">Roommate</option>
         </select>
 
         <label htmlFor="comment">Comment</label>

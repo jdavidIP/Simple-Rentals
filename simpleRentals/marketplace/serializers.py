@@ -365,7 +365,7 @@ class GroupInvitationSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     rating = serializers.ChoiceField(choices=[(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')])
-    reviewee_role = serializers.ChoiceField(choices=[('T', 'Tenant'), ('L', 'Landlord')])
+    reviewee_role = serializers.ChoiceField(choices=[('T', 'Tenant'), ('L', 'Landlord'), ('R', 'Roommate')])
     reviewee_role_display = serializers.CharField(source='get_reviewee_role_display', read_only=True)
     
     reviewee = serializers.PrimaryKeyRelatedField(queryset=MarketplaceUser.objects.all())
