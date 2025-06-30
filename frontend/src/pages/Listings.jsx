@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import api from "../api.js";
 import { useLocation } from "react-router-dom";
-
-import Header from "../components/header";
-import Footer from "../components/footer";
 import ListingCard from "../components/ListingCard.jsx";
 import { useProfileContext } from "../contexts/ProfileContext.jsx";
 

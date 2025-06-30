@@ -549,6 +549,16 @@ class GroupJoinView(generics.UpdateAPIView):
         group.members.add(roommate_user)
         group.save()
 
+        # Find a conversation for this group/listing with all current members as participants
+        conversations = Conversation.objects.filter(listing=group.listing)
+        for conv in conversations:
+            participant_ids = set(conv.participants.values_list("id", flat=True))
+            group_member_user_ids = set([m.user.id for m in group.members.all()])
+            # If this conversation matches the group members, add the user if not present
+            if group_member_user_ids.issubset(participant_ids) or participant_ids.issubset(group_member_user_ids):
+                if request.user.id not in participant_ids:
+                    conv.participants.add(request.user)
+
         serializer = self.get_serializer(group)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -566,6 +576,11 @@ class GroupLeaveView(generics.UpdateAPIView):
         # Remove user from group members
         group.members.remove(roommate_user)
         group.save()
+        conversations = Conversation.objects.filter(listing=group.listing)
+        for conv in conversations:
+            participant_ids = set(conv.participants.values_list("id", flat=True))
+            if request.user.id in participant_ids:
+                conv.participants.remove(request.user)
         serializer = self.get_serializer(group)
         return Response({"detail": "You have left the group.", "group": serializer.data}, status=status.HTTP_200_OK)
     
