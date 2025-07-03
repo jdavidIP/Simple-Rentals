@@ -43,6 +43,8 @@ function FormListing({ method, listing }) {
   });
   const [existingImages, setExistingImages] = useState(listing?.pictures || []);
   const [error, setError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const [latLng, setLatLng] = useState({
     lat: listing?.latitude || null,
     lng: listing?.longitude || null,
@@ -102,13 +104,65 @@ function FormListing({ method, listing }) {
     };
   }, []);
 
+  function validateFields(data) {
+    const errors = {};
+    if (!data.street_address || data.street_address.length < 3)
+      errors.street_address = "Street address is required.";
+    if (!data.city || data.city.length < 2)
+      errors.city = "City is required.";
+    if (!data.postal_code || data.postal_code.length < 5)
+      errors.postal_code = "Postal code is required.";
+    if (!data.price || Number(data.price) <= 0)
+      errors.price = "Price must be greater than 0.";
+    if (!data.property_type)
+      errors.property_type = "Property type is required.";
+    if (!data.sqft_area || Number(data.sqft_area) <= 0)
+      errors.sqft_area = "Area must be greater than 0.";
+    if (!data.payment_type)
+      errors.payment_type = "Payment type is required.";
+    if (!data.laundry_type)
+      errors.laundry_type = "Laundry type is required.";
+    if (!data.bedrooms || Number(data.bedrooms) < 0)
+      errors.bedrooms = "Bedrooms required.";
+    if (!data.bathrooms || Number(data.bathrooms) < 0)
+      errors.bathrooms = "Bathrooms required.";
+    if (!data.parking_spaces || Number(data.parking_spaces) < 0)
+      errors.parking_spaces = "Parking spaces required.";
+    if (!data.move_in_date)
+      errors.move_in_date = "Move-in date is required.";
+    if (!data.description || data.description.length < 10)
+      errors.description = "Description must be at least 10 characters.";
+    return errors;
+  }
+
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
-    setFormData({
+    let fieldValue =
+      type === "checkbox" ? checked : type === "file" ? files : value;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: fieldValue,
+    }));
+
+    const data = {
       ...formData,
-      [name]: type === "checkbox" ? checked : type === "file" ? files : value,
-    });
+      [name]: fieldValue,
+    };
+    setFieldErrors(validateFields(data));
   };
+
+  const handleBlur = (e) => {
+    setTouched((prev) => ({
+      ...prev,
+      [e.target.name]: true,
+    }));
+  };
+
+  const errMsg = (name) =>
+    touched[name] && fieldErrors[name] ? (
+      <div className="field-error">{fieldErrors[name]}</div>
+    ) : null;
 
   const handleFileInputChange = (e) => {
     const { name, files } = e.target;
@@ -188,6 +242,18 @@ function FormListing({ method, listing }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
+
+    const validationErrors = validateFields(formData);
+    setFieldErrors(validationErrors);
+    setTouched(
+      Object.fromEntries(Object.keys(formData).map((k) => [k, true]))
+    );
+    if (Object.keys(validationErrors).length > 0) {
+      if (errorRef.current) errorRef.current.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+
     if (!validateImages()) return;
 
     try {
@@ -208,7 +274,6 @@ function FormListing({ method, listing }) {
         }
       });
 
-      // Append lat and lng
       if (latLng.lat && latLng.lng) {
         data.append("latitude", latLng.lat);
         data.append("longitude", latLng.lng);
@@ -226,7 +291,6 @@ function FormListing({ method, listing }) {
         navigate(`/listings/${listing.id}`);
       }
     } catch (err) {
-      console.error("Error submitting form:", err);
       setError("An error occurred. Please try again.");
     }
   };
@@ -294,8 +358,10 @@ function FormListing({ method, listing }) {
           ref={addressInputRef}
           value={formData.street_address}
           onChange={handleChange}
+          onBlur={handleBlur}
           required
         />
+        {errMsg("street_address")}
       </div>
 
       <div className="mb-3">
@@ -306,8 +372,10 @@ function FormListing({ method, listing }) {
           name="city"
           value={formData.city}
           onChange={handleChange}
+          onBlur={handleBlur}
           required
         />
+        {errMsg("city")}
       </div>
 
       <div className="mb-3">
@@ -318,8 +386,10 @@ function FormListing({ method, listing }) {
           name="postal_code"
           value={formData.postal_code}
           onChange={handleChange}
+          onBlur={handleBlur}
           required
         />
+        {errMsg("postal_code")}
       </div>
 
       <div className="mb-3">
@@ -330,8 +400,10 @@ function FormListing({ method, listing }) {
           name="price"
           value={formData.price}
           onChange={handleChange}
+          onBlur={handleBlur}
           required
         />
+        {errMsg("price")}
       </div>
       <div className="mb-3">
         <label htmlFor="property_type">Property Type</label>
@@ -340,6 +412,7 @@ function FormListing({ method, listing }) {
           name="property_type"
           value={formData.property_type[0]}
           onChange={handleChange}
+          onBlur={handleBlur}
           required
         >
           <option value="">Select</option>
@@ -349,6 +422,7 @@ function FormListing({ method, listing }) {
           <option value="T">Townhouse</option>
           <option value="O">Other</option>
         </select>
+        {errMsg("property_type")}
       </div>
 
       <div className="mb-3">
@@ -359,8 +433,10 @@ function FormListing({ method, listing }) {
           name="sqft_area"
           value={formData.sqft_area}
           onChange={handleChange}
+          onBlur={handleBlur}
           required
         />
+        {errMsg("sqft_area")}
       </div>
 
       <div className="mb-3">
@@ -372,6 +448,7 @@ function FormListing({ method, listing }) {
             formData.payment_type === "Chexy" ? "X" : formData.payment_type[0]
           }
           onChange={handleChange}
+          onBlur={handleBlur}
           required
         >
           <option value="">Select</option>
@@ -382,6 +459,7 @@ function FormListing({ method, listing }) {
           <option value="X">Chexy</option>
           <option value="O">Other</option>
         </select>
+        {errMsg("payment_type")}
       </div>
 
       <div className="mb-3">
@@ -391,6 +469,7 @@ function FormListing({ method, listing }) {
           name="laundry_type"
           value={formData.laundry_type}
           onChange={handleChange}
+          onBlur={handleBlur}
           required
         >
           <option value="">Select</option>
@@ -398,6 +477,7 @@ function FormListing({ method, listing }) {
           <option value="S">Shared</option>
           <option value="N">None</option>
         </select>
+        {errMsg("laundry_type")}
       </div>
 
       <div className="mb-3">
@@ -408,8 +488,10 @@ function FormListing({ method, listing }) {
           name="bedrooms"
           value={formData.bedrooms}
           onChange={handleChange}
+          onBlur={handleBlur}
           required
         />
+        {errMsg("bedrooms")}
       </div>
 
       <div className="mb-3">
@@ -420,8 +502,10 @@ function FormListing({ method, listing }) {
           name="bathrooms"
           value={formData.bathrooms}
           onChange={handleChange}
+          onBlur={handleBlur}
           required
         />
+        {errMsg("bathrooms")}
       </div>
 
       <div className="mb-3">
@@ -468,8 +552,10 @@ function FormListing({ method, listing }) {
           name="parking_spaces"
           value={formData.parking_spaces}
           onChange={handleChange}
+          onBlur={handleBlur}
           required
         />
+        {errMsg("parking_spaces")}
       </div>
 
       <div className="mb-3">
@@ -480,8 +566,10 @@ function FormListing({ method, listing }) {
           name="move_in_date"
           value={formData.move_in_date}
           onChange={handleChange}
+          onBlur={handleBlur}
           required
         />
+        {errMsg("move_in_date")}
       </div>
 
       <div className="mb-3">
@@ -491,8 +579,10 @@ function FormListing({ method, listing }) {
           name="description"
           value={formData.description}
           onChange={handleChange}
+          onBlur={handleBlur}
           required
         ></textarea>
+        {errMsg("description")}
       </div>
 
       <div className="mb-3">
@@ -502,6 +592,7 @@ function FormListing({ method, listing }) {
           name="extra_amenities"
           value={formData.extra_amenities}
           onChange={handleChange}
+          onBlur={handleBlur}
         ></textarea>
       </div>
 

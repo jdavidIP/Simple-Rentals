@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import api from "../api.js";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function Roommates() {
   const [roommates, setRoommates] = useState([]);
@@ -19,16 +19,90 @@ function Roommates() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const errorRef = useRef(null);
+  const cityInputRef = useRef(null);
+  const autocompleteRef = useRef(null);
 
+  // Helper: (re)initialize Google Places Autocomplete
+  const initializeAutocomplete = () => {
+    if (
+      window.google &&
+      window.google.maps &&
+      window.google.maps.places &&
+      cityInputRef.current
+    ) {
+      // Remove previous listeners if any
+      if (autocompleteRef.current) {
+        window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      }
+      const options = { types: ["(cities)"] };
+      autocompleteRef.current = new window.google.maps.places.Autocomplete(
+        cityInputRef.current,
+        options
+      );
+      autocompleteRef.current.addListener("place_changed", () => {
+        const place = autocompleteRef.current.getPlace();
+        const cityName =
+          place.address_components?.find((c) =>
+            c.types.includes("locality")
+          )?.long_name ||
+          place.address_components?.find((c) =>
+            c.types.includes("administrative_area_level_1")
+          )?.long_name ||
+          place.name ||
+          "";
+        setFilters((prev) => ({
+          ...prev,
+          city: cityName,
+        }));
+      });
+    }
+  };
+
+  // wait for Google API, then set up autocomplete
+  useEffect(() => {
+    let checkInterval = setInterval(() => {
+      if (
+        window.google &&
+        window.google.maps &&
+        window.google.maps.places &&
+        cityInputRef.current
+      ) {
+        initializeAutocomplete();
+        clearInterval(checkInterval);
+      }
+    }, 100);
+
+    return () => {
+      clearInterval(checkInterval);
+      if (autocompleteRef.current && window.google) {
+        window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      }
+    };
+    // eslint-disable-next-line
+  }, []);
+
+  // Re-initialize autocomplete after city is cleared
+  useEffect(() => {
+    if (
+      window.google &&
+      window.google.maps &&
+      window.google.maps.places &&
+      cityInputRef.current &&
+      filters.city === ""
+    ) {
+      initializeAutocomplete();
+    }
+    // eslint-disable-next-line
+  }, [filters.city]);
+
+  // Fetch Roommates API
   const fetchRoommates = async (customFilters = filters) => {
     setLoading(true);
     try {
       const params = {};
       if (customFilters.city) params.city = customFilters.city;
-      if (customFilters.budget_min)
-        params.budget_min = customFilters.budget_min;
-      if (customFilters.budget_max)
-        params.budget_max = customFilters.budget_max;
+      if (customFilters.budget_min) params.budget_min = customFilters.budget_min;
+      if (customFilters.budget_max) params.budget_max = customFilters.budget_max;
       if (customFilters.gender_preference)
         params.gender_preference = customFilters.gender_preference;
       if (customFilters.pet_friendly)
@@ -44,11 +118,9 @@ function Roommates() {
 
       const response = await api.get("/roommates/", { params });
       setRoommates(response.data);
-      console.log(response.data);
       setError(null);
     } catch (err) {
       setError("Failed to fetch roommates.");
-      console.error("Failed to fetch roommates.", err);
       setRoommates([]);
     } finally {
       setLoading(false);
@@ -120,6 +192,9 @@ function Roommates() {
                       className="form-control"
                       value={filters.city}
                       onChange={handleInputChange}
+                      ref={cityInputRef}
+                      placeholder="Type a city..."
+                      autoComplete="off"
                     />
                   </div>
                   <div className="col-md-2">
@@ -151,9 +226,8 @@ function Roommates() {
                       className="form-select"
                       value={filters.gender_preference}
                       onChange={handleInputChange}
-                      defaultValue="O"
                     >
-                      <option value="O">Open</option>
+                      <option value="">Open</option>
                       <option value="F">Female</option>
                       <option value="M">Male</option>
                     </select>

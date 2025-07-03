@@ -14,78 +14,81 @@ function Listings() {
     bedrooms: "",
     bathrooms: "",
     property_type: "",
+    max_price: "",
   });
   const [latLng, setLatLng] = useState({ lat: null, lng: null });
-  const [radius, setRadius] = useState("5"); // Default radius
+  const [radius, setRadius] = useState("5");
   const [error, setError] = useState(null);
   const [loadingListings, setLoadingListings] = useState(false);
   const [userIncome, setUserIncome] = useState(null);
+
   const errorRef = useRef(null);
   const locationInputRef = useRef(null);
+  const autocompleteRef = useRef(null);
   const { profile } = useProfileContext();
 
+  // --- Fetch User Income (for income ranking) ---
+  useEffect(() => {
+    if (profile && profile.yearly_income != null) {
+      const income = parseFloat(profile.yearly_income);
+      setUserIncome(isNaN(income) ? null : income);
+    } else {
+      setUserIncome(null);
+    }
+  }, [profile]);
+
+  // --- Fetch Listings ---
   const fetchListings = async (customFilters = filters) => {
     setLoadingListings(true);
     try {
       const params = { ...customFilters };
-
       if (latLng.lat && latLng.lng) {
         params.lat = latLng.lat;
         params.lng = latLng.lng;
         params.radius = radius;
       }
-
       const response = await api.get("/listings/viewAll", { params });
-
       const processedListings = response.data.map((listing) => {
-        const primaryImage = listing.pictures.find((p) => p.is_primary);
+        const primaryImage = listing.pictures?.find((p) => p.is_primary);
         return { ...listing, primary_image: primaryImage };
       });
-
       setListings(processedListings);
+      setError(null);
     } catch (err) {
-      console.error("Error fetching listings:", err);
       setError(err.response?.data?.Location || "Failed to fetch Listings.");
     } finally {
       setLoadingListings(false);
     }
   };
 
-  const fetchUserIncome = () => {
-    const income = parseFloat(profile.yearly_income);
-    if (!isNaN(income)) {
-      setUserIncome(income);
-    } else {
-      console.warn("No valid income returned");
-    }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (filters.min_price > filters.max_price) {
-      setError("Minimum price cannot be greater than maximum price.");
-      return;
-    }
-
-    setError(null);
-
-    const customFilters = { ...filters };
-    if (latLng.lat && latLng.lng) {
-      customFilters.location = filters.location.split(",")[0].trim();
-    }
-
-    fetchListings(customFilters);
-  };
-
+  // --- Controlled input change ---
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFilters((prev) => ({
       ...prev,
       [name]: value,
     }));
+    if (name === "location") {
+      setLatLng({ lat: null, lng: null });
+    }
   };
 
+  // --- Filter submit ---
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (
+      filters.min_price &&
+      filters.max_price &&
+      Number(filters.min_price) > Number(filters.max_price)
+    ) {
+      setError("Minimum price cannot be greater than maximum price.");
+      return;
+    }
+    setError(null);
+    fetchListings({ ...filters });
+  };
+
+  // --- Clear filters ---
   const clearFilters = () => {
     const cleared = {
       location: "",
@@ -101,58 +104,47 @@ function Listings() {
     fetchListings(cleared);
   };
 
-  useEffect(() => {
-    fetchUserIncome();
-  }, []);
-
+  // --- Initial listings load ---
   useEffect(() => {
     if (!location.state?.listings) {
       fetchListings();
     } else {
       const processed = location.state?.listings.map((listing) => {
-        const primaryImage = listing.pictures.find((p) => p.is_primary);
+        const primaryImage = listing.pictures?.find((p) => p.is_primary);
         return { ...listing, primary_image: primaryImage };
       });
       setListings(processed);
     }
+    // eslint-disable-next-line
   }, [location.state]);
 
+  // --- Scroll to error if needed ---
   useEffect(() => {
     if (error && errorRef.current) {
       errorRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [error]);
 
+  // --- GOOGLE PLACES AUTOCOMPLETE ---
   useEffect(() => {
-    const existingScript = document.getElementById("googleMaps");
-
-    if (!existingScript) {
-      const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyCdOFDB8B2dHR7M6JXBfdZ-F-1XRjDm-2E&libraries=places`;
-      script.id = "googleMaps";
-      script.async = true;
-      script.defer = true;
-      document.body.appendChild(script);
-
-      script.onload = () => {
-        initAutocomplete();
-      };
-    } else {
-      initAutocomplete();
+    // Clean up previous autocomplete instance
+    if (autocompleteRef.current) {
+      window.google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
+      autocompleteRef.current = null;
     }
 
-    function initAutocomplete() {
-      if (!window.google || !locationInputRef.current) {
-        console.warn("Google Maps or input ref not ready");
-        return;
-      }
-
-      const autocomplete = new window.google.maps.places.Autocomplete(
+    // Only initialize when google and input are ready
+    if (
+      window.google &&
+      window.google.maps &&
+      window.google.maps.places &&
+      locationInputRef.current
+    ) {
+      autocompleteRef.current = new window.google.maps.places.Autocomplete(
         locationInputRef.current
       );
-
-      autocomplete.addListener("place_changed", () => {
-        const place = autocomplete.getPlace();
+      autocompleteRef.current.addListener("place_changed", () => {
+        const place = autocompleteRef.current.getPlace();
         if (place.geometry) {
           const { lat, lng } = place.geometry.location;
           setLatLng({
@@ -161,13 +153,21 @@ function Listings() {
           });
           setFilters((prev) => ({
             ...prev,
-            location: place.name,
+            location: place.formatted_address || place.name,
           }));
-          locationInputRef.current.value = place.formatted_address;
         }
       });
     }
-  }, []);
+
+    // Cleanup
+    return () => {
+      if (autocompleteRef.current) {
+        window.google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
+        autocompleteRef.current = null;
+      }
+    };
+    // Re-run if input changes or location filter changes
+  }, [filters.location]);
 
   return (
     <div>
@@ -195,11 +195,11 @@ function Listings() {
                           name="location"
                           ref={locationInputRef}
                           className="form-control"
-                          defaultValue={filters.location}
+                          value={filters.location}
                           onChange={handleInputChange}
-                          required
+                          placeholder="Type a location..."
+                          autoComplete="off"
                         />
-
                         <select
                           className="form-select"
                           style={{ maxWidth: "120px" }}
@@ -214,7 +214,6 @@ function Listings() {
                         </select>
                       </div>
                     </div>
-
                     {/* Min Price */}
                     <div className="col-md-6">
                       <label className="form-label">Min Price</label>
@@ -227,7 +226,6 @@ function Listings() {
                         min="0"
                       />
                     </div>
-
                     {/* Max Price */}
                     <div className="col-md-6">
                       <label className="form-label">Max Price</label>
@@ -240,7 +238,6 @@ function Listings() {
                         min="0"
                       />
                     </div>
-
                     {/* Property Type */}
                     <div className="col-md-4">
                       <label className="form-label">Property Type</label>
@@ -258,7 +255,6 @@ function Listings() {
                         <option value="O">Other</option>
                       </select>
                     </div>
-
                     {/* Bedrooms */}
                     <div className="col-md-4">
                       <label className="form-label">Bedrooms</label>
@@ -271,7 +267,6 @@ function Listings() {
                         min="0"
                       />
                     </div>
-
                     {/* Bathrooms */}
                     <div className="col-md-4">
                       <label className="form-label">Bathrooms</label>
@@ -285,7 +280,6 @@ function Listings() {
                       />
                     </div>
                   </div>
-
                   {/* Buttons */}
                   <div className="d-flex justify-content-end gap-2 mt-4">
                     <button type="submit" className="btn btn-primary">
@@ -302,7 +296,6 @@ function Listings() {
                 </form>
               </div>
             </div>
-
             {/* Listings */}
             {listings.length === 0 ? (
               <p className="text-muted text-center">No listings found.</p>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useDebugValue } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api.js";
 import "../styles/forms.css";
@@ -20,6 +20,11 @@ function FormGroup({ method, group }) {
   const [selectedToAdd, setSelectedToAdd] = useState([]);
   const [invited, setInvited] = useState([]);
   const [error, setError] = useState(null);
+
+  // Live validation states:
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [touched, setTouched] = useState({});
+
   const { profile } = useProfileContext();
   const errorRef = useRef(null);
   const canInvite = method === "edit" && group && group.id;
@@ -29,6 +34,45 @@ function FormGroup({ method, group }) {
       errorRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [error]);
+
+  // Validation logic
+  function validateFields(data) {
+    const errors = {};
+    if (!data.name || data.name.trim().length < 2)
+      errors.name = "Group name must be at least 2 characters.";
+    if (!data.move_in_date)
+      errors.move_in_date = "Move-in date is required.";
+    if (data.description && data.description.length > 400)
+      errors.description = "Description cannot exceed 400 characters.";
+    return errors;
+  }
+
+  // Live validation per field
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+    const updated = {
+      ...formData,
+      [name]: type === "checkbox" ? checked : value,
+    };
+    setFieldErrors(validateFields(updated));
+  };
+
+  const handleBlur = (e) => {
+    setTouched((prev) => ({
+      ...prev,
+      [e.target.name]: true,
+    }));
+  };
+
+  // For per-field errors
+  const errMsg = (name) =>
+    touched[name] && fieldErrors[name] ? (
+      <div className="field-error">{fieldErrors[name]}</div>
+    ) : null;
 
   // Fetch roommates by name
   const handleSearch = async (e) => {
@@ -54,7 +98,6 @@ function FormGroup({ method, group }) {
     }
   };
 
-  // Handle selection in the select box
   const handleSelectChange = (e) => {
     const selected = Array.from(e.target.selectedOptions, (opt) =>
       Number(opt.value)
@@ -62,7 +105,6 @@ function FormGroup({ method, group }) {
     setSelectedToAdd(selected);
   };
 
-  // Add selected members to the group
   const handleAdd = () => {
     setInvited((prev) => [
       ...prev,
@@ -71,25 +113,19 @@ function FormGroup({ method, group }) {
     setSelectedToAdd([]);
   };
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    if (!formData.name.trim()) {
-      setError(["Group name is required."]);
+
+    // Run validation!
+    const validationErrors = validateFields(formData);
+    setFieldErrors(validationErrors);
+    setTouched(Object.fromEntries(Object.keys(formData).map((k) => [k, true])));
+    if (Object.keys(validationErrors).length > 0) {
+      if (errorRef.current) errorRef.current.scrollIntoView({ behavior: "smooth" });
       return;
     }
-    if (!formData.move_in_date) {
-      setError(["Move-in date is required."]);
-      return;
-    }
+
     try {
       const payload = {
         name: formData.name,
@@ -135,19 +171,15 @@ function FormGroup({ method, group }) {
       ...prev,
       member_ids: prev.member_ids.filter((id) => id !== memberId),
     }));
-
     setInvited((prev) => prev.filter((id) => id !== memberId));
   };
 
   // Helper to show added members' info
   const getMemberInfo = (memberId) => {
-    // Try to find in allRoommates (from search)
     let roommate = allRoommates.find((r) => r.id === memberId);
-    // If not found, try to find in group.members (for edit mode)
     if (!roommate && group?.members) {
       roommate = group.members.find((m) => m.id === memberId);
     }
-    // If not found, try to find in invited (for newly invited users)
     if (!roommate && invited.length > 0) {
       roommate = allRoommates.find(
         (r) => invited.includes(r.id) && r.id === memberId
@@ -182,8 +214,10 @@ function FormGroup({ method, group }) {
           className="form-control"
           value={formData.name}
           onChange={handleChange}
+          onBlur={handleBlur}
           required
         />
+        {errMsg("name")}
       </div>
       <div className="mb-3">
         <label className="form-label">Description</label>
@@ -192,7 +226,9 @@ function FormGroup({ method, group }) {
           className="form-control"
           value={formData.description}
           onChange={handleChange}
+          onBlur={handleBlur}
         />
+        {errMsg("description")}
       </div>
       <div className="mb-3">
         <label className="form-label">Move-in Date</label>
@@ -202,8 +238,10 @@ function FormGroup({ method, group }) {
           className="form-control"
           value={formData.move_in_date}
           onChange={handleChange}
+          onBlur={handleBlur}
           required
         />
+        {errMsg("move_in_date")}
       </div>
       <div className="mb-3">
         <label className="form-label">Move-in Ready</label>
@@ -213,6 +251,7 @@ function FormGroup({ method, group }) {
           checked={formData.move_in_ready}
           onChange={handleChange}
           className="form-check-input ms-2"
+          onBlur={handleBlur}
         />
       </div>
       <div className="mb-3">
@@ -222,6 +261,7 @@ function FormGroup({ method, group }) {
           className="form-select"
           value={formData.group_status}
           onChange={handleChange}
+          onBlur={handleBlur}
           required
         >
           <option value="O">Open</option>
@@ -302,7 +342,7 @@ function FormGroup({ method, group }) {
                     }}
                   >
                     {getMemberInfo(memberId)}
-                    {memberId != profile.roommate_profile && (
+                    {memberId !== profile.roommate_profile && (
                       <button
                         type="button"
                         className="btn btn-sm btn-danger"
