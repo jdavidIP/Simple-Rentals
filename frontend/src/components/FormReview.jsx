@@ -14,6 +14,8 @@ function FormReview({ method, review }) {
     review?.reviewee_role || "T"
   );
   const [errors, setErrors] = useState([]);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [touched, setTouched] = useState({});
 
   useEffect(() => {
     if (method === "edit" && review) {
@@ -23,9 +25,47 @@ function FormReview({ method, review }) {
     }
   }, [method, review]);
 
+  function validateFields({ rating, comment, reviewee_role }) {
+    const errors = {};
+    if (!rating || rating < 1 || rating > 5) errors.rating = "Rating must be between 1 and 5.";
+    if (!comment || comment.trim().length < 10) errors.comment = "Comment must be at least 10 characters.";
+    if (!["T", "L", "R"].includes(reviewee_role)) errors.reviewee_role = "Select a valid role.";
+    return errors;
+  }
+
+  const handleChange = (field, value) => {
+    if (field === "rating") setRating(value);
+    else if (field === "comment") setComment(value);
+    else if (field === "reviewee_role") setRevieweeRole(value);
+
+    const data = {
+      rating: field === "rating" ? value : rating,
+      comment: field === "comment" ? value : comment,
+      reviewee_role: field === "reviewee_role" ? value : revieweeRole,
+    };
+    setFieldErrors(validateFields(data));
+  };
+
+  const handleBlur = (field) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+  };
+
+  const errMsg = (name) =>
+    touched[name] && fieldErrors[name] ? (
+      <div className="field-error">{fieldErrors[name]}</div>
+    ) : null;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors([]);
+    setTouched({ rating: true, comment: true, reviewee_role: true });
+
+    const validationErrors = validateFields({ rating, comment, reviewee_role: revieweeRole });
+    setFieldErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
 
     try {
       if (method === "edit" && review) {
@@ -56,36 +96,12 @@ function FormReview({ method, review }) {
     }
   };
 
-  const handleDelete = async (e) => {
-    e.preventDefault();
-
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this review? This action cannot be undone."
-      )
-    ) {
-      return;
-    }
-
-    try {
-      await api.delete(`/reviews/manage/${review.id}`);
-      navigate(`/profile/${review.reviewee.id}`);
-    } catch (error) {
-      if (error.response?.data) {
-        const errorList = Object.values(error.response.data).flat();
-        setErrors(errorList);
-      } else {
-        setErrors(["An error occurred while submitting the review."]);
-      }
-    }
-  };
-
   return (
     <div className="form-container">
       <h1>{method === "edit" ? "Edit Review" : "Leave a Review"}</h1>
       <form onSubmit={handleSubmit}>
         {errors.length > 0 && (
-          <ul>
+          <ul className="error-list">
             {errors.map((err, idx) => (
               <li key={idx}>{err}</li>
             ))}
@@ -96,7 +112,8 @@ function FormReview({ method, review }) {
         <select
           id="rating"
           value={rating}
-          onChange={(e) => setRating(parseInt(e.target.value))}
+          onChange={(e) => handleChange("rating", parseInt(e.target.value))}
+          onBlur={() => handleBlur("rating")}
         >
           {[1, 2, 3, 4, 5].map((num) => (
             <option key={num} value={num}>
@@ -104,33 +121,38 @@ function FormReview({ method, review }) {
             </option>
           ))}
         </select>
+        {errMsg("rating")}
 
         <label htmlFor="revieweeRole">Role of Reviewee</label>
         <select
           id="revieweeRole"
           value={revieweeRole}
-          onChange={(e) => setRevieweeRole(e.target.value)}
+          onChange={(e) => handleChange("reviewee_role", e.target.value)}
+          onBlur={() => handleBlur("reviewee_role")}
         >
           <option value="T">Tenant</option>
           <option value="L">Landlord</option>
           <option value="R">Roommate</option>
         </select>
+        {errMsg("reviewee_role")}
 
         <label htmlFor="comment">Comment</label>
         <textarea
           id="comment"
           rows="4"
           value={comment}
-          onChange={(e) => setComment(e.target.value)}
+          onChange={(e) => handleChange("comment", e.target.value)}
+          onBlur={() => handleBlur("comment")}
           placeholder="Write your feedback here..."
         />
+        {errMsg("comment")}
 
         <button type="submit">
           {method === "edit" ? "Save Changes" : "Submit Review"}
         </button>
         {method === "edit" && (
           <button
-            type="delete"
+            type="button"
             className="btn btn-danger"
             onClick={handleDelete}
           >
