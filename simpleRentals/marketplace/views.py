@@ -191,9 +191,9 @@ class ListingListView(generics.ListAPIView):
         if max_price:
             queryset = queryset.filter(price__lte=max_price)
         if bedrooms:
-            queryset = queryset.filter(bedrooms__gte=bedrooms)
+            queryset = queryset.filter(bedrooms=bedrooms)
         if bathrooms:
-            queryset = queryset.filter(bathrooms__gte=bathrooms)
+            queryset = queryset.filter(bathrooms=bathrooms)
         if property_type:
             queryset = queryset.filter(property_type=property_type)
         
