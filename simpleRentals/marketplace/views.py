@@ -754,6 +754,12 @@ class GroupInvitationCreateView(generics.CreateAPIView):
         roommate_user = get_object_or_404(RoommateUser, user=self.request.user)
         invited_roommate = get_object_or_404(RoommateUser, id=self.request.data.get("invited_user"))
         group = get_object_or_404(Group, id=self.kwargs['pk'], owner=roommate_user)
+        listing = group.listing
+
+        # Check if the invited user is the owner of the listing
+        if invited_roommate.user.id == listing.owner.id:
+            raise ValidationError("The owner of the listing cannot be invited to the group.")
+
         serializer.save(invited_by=roommate_user, group=group, invited_user=invited_roommate)
 
 class GroupInvitationUpdateView(generics.UpdateAPIView):
