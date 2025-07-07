@@ -191,28 +191,23 @@ class ListingListView(generics.ListAPIView):
         if max_price:
             queryset = queryset.filter(price__lte=max_price)
         if bedrooms:
-            queryset = queryset.filter(bedrooms__gte=bedrooms)
+            queryset = queryset.filter(bedrooms=bedrooms)
         if bathrooms:
-            queryset = queryset.filter(bathrooms__gte=bathrooms)
+            queryset = queryset.filter(bathrooms=bathrooms)
         if property_type:
             queryset = queryset.filter(property_type=property_type)
         
         if lat and lng:
             lat, lng = float(lat), float(lng)
             queryset = queryset.filter(latitude__isnull=False, longitude__isnull=False)
-            print(f"Number of listings after owner/other filters: {queryset.count()}")
-
-            filtered_listings = []
+            filtered_ids = []
             for listing in queryset:
                 distance = self.haversine_distance(lat, lng, listing.latitude, listing.longitude)
-                print(f"Listing ID {listing.id}: distance = {distance} km")
                 if distance <= radius:
-                    filtered_listings.append(listing)
-
-            queryset = filtered_listings
+                    filtered_ids.append(listing.id)
+            queryset = queryset.filter(id__in=filtered_ids)
 
         elif location:
-            # Only fallback to location filter if lat/lng not provided
             queryset = queryset.filter(
                 Q(street_address__icontains=location) | Q(city__icontains=location)
             )
@@ -754,6 +749,12 @@ class GroupInvitationCreateView(generics.CreateAPIView):
         roommate_user = get_object_or_404(RoommateUser, user=self.request.user)
         invited_roommate = get_object_or_404(RoommateUser, id=self.request.data.get("invited_user"))
         group = get_object_or_404(Group, id=self.kwargs['pk'], owner=roommate_user)
+        listing = group.listing
+
+        # Check if the invited user is the owner of the listing
+        if invited_roommate.user.id == listing.owner.id:
+            raise ValidationError("The owner of the listing cannot be invited to the group.")
+
         serializer.save(invited_by=roommate_user, group=group, invited_user=invited_roommate)
 
 class GroupInvitationUpdateView(generics.UpdateAPIView):

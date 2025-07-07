@@ -5,8 +5,9 @@ import { useNavigate } from "react-router-dom";
 function ListingsHome() {
   const [city, setCity] = useState("");
   const [error, setError] = useState(null);
-  const [radius, setRadius] = useState("5"); // Default 5 km radius
-  const [latLng, setLatLng] = useState({ lat: null, lng: null }); // Coordinates from autocomplete
+  const [radius, setRadius] = useState("5");
+  const [latLng, setLatLng] = useState({ lat: null, lng: null });
+  const [citySelected, setCitySelected] = useState(false);
   const navigate = useNavigate();
   const locationInputRef = useRef(null);
 
@@ -22,7 +23,6 @@ function ListingsHome() {
       document.body.appendChild(script);
 
       script.onload = () => {
-        console.log("Google Maps script loaded!");
         initAutocomplete();
       };
     } else {
@@ -31,7 +31,6 @@ function ListingsHome() {
 
     function initAutocomplete() {
       if (!window.google || !locationInputRef.current) {
-        console.warn("Google Maps or input ref not ready");
         return;
       }
 
@@ -48,13 +47,26 @@ function ListingsHome() {
             lng: lng(),
           });
           setCity(place.formatted_address);
+          setCitySelected(true);
         }
       });
     }
   }, []);
 
+  // If user types in the field, mark city as "not selected"
+  const handleCityChange = (e) => {
+    setCity(e.target.value);
+    setLatLng({ lat: null, lng: null });
+    setCitySelected(false); 
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (city && !citySelected) {
+      setError("Please select a city from the dropdown.");
+      return;
+    }
 
     try {
       const params = {
@@ -73,7 +85,6 @@ function ListingsHome() {
         state: { listings: response.data, city: city },
       });
     } catch (err) {
-      console.error("Error fetching listings:", err);
       setError("Failed to fetch listings. Please try again.");
     }
   };
@@ -110,8 +121,9 @@ function ListingsHome() {
                     className="form-control"
                     placeholder="e.g. Waterloo, Vancouver, Halifax"
                     value={city}
-                    onChange={(e) => setCity(e.target.value)}
+                    onChange={handleCityChange}
                     required
+                    aria-label="City"
                   />
 
                   <select
@@ -128,9 +140,24 @@ function ListingsHome() {
                     <option value="50">50 km</option>
                   </select>
                 </div>
+                {/* Show warning if city not selected */}
+                {city && !citySelected && (
+                  <small className="text-danger">
+                    Please select a city from the dropdown.
+                  </small>
+                )}
               </div>
 
-              <button type="submit" className="btn btn-primary w-100 mt-2">
+              <button
+                type="submit"
+                className="btn btn-primary w-100 mt-2"
+                disabled={city && !citySelected}
+                title={
+                  city && !citySelected
+                    ? "Please select a city from the dropdown"
+                    : ""
+                }
+              >
                 🔍 Search Listings
               </button>
             </form>
