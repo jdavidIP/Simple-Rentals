@@ -200,19 +200,14 @@ class ListingListView(generics.ListAPIView):
         if lat and lng:
             lat, lng = float(lat), float(lng)
             queryset = queryset.filter(latitude__isnull=False, longitude__isnull=False)
-            print(f"Number of listings after owner/other filters: {queryset.count()}")
-
-            filtered_listings = []
+            filtered_ids = []
             for listing in queryset:
                 distance = self.haversine_distance(lat, lng, listing.latitude, listing.longitude)
-                print(f"Listing ID {listing.id}: distance = {distance} km")
                 if distance <= radius:
-                    filtered_listings.append(listing)
-
-            queryset = filtered_listings
+                    filtered_ids.append(listing.id)
+            queryset = queryset.filter(id__in=filtered_ids)
 
         elif location:
-            # Only fallback to location filter if lat/lng not provided
             queryset = queryset.filter(
                 Q(street_address__icontains=location) | Q(city__icontains=location)
             )

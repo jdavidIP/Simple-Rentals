@@ -14,20 +14,88 @@ function Listings() {
     bedrooms: "",
     bathrooms: "",
     property_type: "",
-    max_price: "",
   });
   const [latLng, setLatLng] = useState({ lat: null, lng: null });
   const [radius, setRadius] = useState("5");
   const [error, setError] = useState(null);
   const [loadingListings, setLoadingListings] = useState(false);
   const [userIncome, setUserIncome] = useState(null);
+  const [locationSelected, setLocationSelected] = useState(false); 
 
   const errorRef = useRef(null);
   const locationInputRef = useRef(null);
   const autocompleteRef = useRef(null);
   const { profile } = useProfileContext();
 
-  // --- Fetch User Income (for income ranking) ---
+  // Autocomplete initialization
+  const initializeAutocomplete = () => {
+    if (
+      window.google &&
+      window.google.maps &&
+      window.google.maps.places &&
+      locationInputRef.current
+    ) {
+      if (autocompleteRef.current) {
+        window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      }
+      autocompleteRef.current = new window.google.maps.places.Autocomplete(
+        locationInputRef.current
+      );
+      autocompleteRef.current.addListener("place_changed", () => {
+        const place = autocompleteRef.current.getPlace();
+        if (place.geometry && place.geometry.location) {
+          const { lat, lng } = place.geometry.location;
+          setLatLng({
+            lat: lat(),
+            lng: lng(),
+          });
+          setFilters((prev) => ({
+            ...prev,
+            location: place.formatted_address || place.name,
+          }));
+          setLocationSelected(true); 
+        }
+      });
+    }
+  };
+
+  // Wait for Google API, then setup autocomplete
+  useEffect(() => {
+    let checkInterval = setInterval(() => {
+      if (
+        window.google &&
+        window.google.maps &&
+        window.google.maps.places &&
+        locationInputRef.current
+      ) {
+        initializeAutocomplete();
+        clearInterval(checkInterval);
+      }
+    }, 100);
+
+    return () => {
+      clearInterval(checkInterval);
+      if (autocompleteRef.current && window.google) {
+        window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      }
+    };
+  }, []);
+
+  // If location cleared, re-init autocomplete
+  useEffect(() => {
+    if (
+      window.google &&
+      window.google.maps &&
+      window.google.maps.places &&
+      locationInputRef.current &&
+      filters.location === ""
+    ) {
+      initializeAutocomplete();
+      setLocationSelected(false); 
+    }
+  }, [filters.location]);
+
+  // Fetch User Income
   useEffect(() => {
     if (profile && profile.yearly_income != null) {
       const income = parseFloat(profile.yearly_income);
@@ -37,7 +105,7 @@ function Listings() {
     }
   }, [profile]);
 
-  // --- Fetch Listings ---
+  // Fetch Listings API with geo params
   const fetchListings = async (customFilters = filters) => {
     setLoadingListings(true);
     try {
@@ -55,13 +123,26 @@ function Listings() {
       setListings(processedListings);
       setError(null);
     } catch (err) {
-      setError(err.response?.data?.Location || "Failed to fetch Listings.");
+      setError("Failed to fetch listings.");
+      setListings([]);
     } finally {
       setLoadingListings(false);
     }
   };
 
-  // --- Controlled input change ---
+  useEffect(() => {
+    if (!location.state?.listings) {
+      fetchListings();
+    } else {
+      const processed = location.state?.listings.map((listing) => {
+        const primaryImage = listing.pictures?.find((p) => p.is_primary);
+        return { ...listing, primary_image: primaryImage };
+      });
+      setListings(processed);
+    }
+  }, [location.state]);
+
+  // Track typing: mark location as "not selected"
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFilters((prev) => ({
@@ -70,12 +151,17 @@ function Listings() {
     }));
     if (name === "location") {
       setLatLng({ lat: null, lng: null });
+      setLocationSelected(false);
     }
   };
 
-  // --- Filter submit ---
+  // Only allow submit if location is selected or field is empty
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (filters.location && !locationSelected) {
+      setError("Please select a location from the dropdown.");
+      return;
+    }
     if (
       filters.min_price &&
       filters.max_price &&
@@ -88,7 +174,6 @@ function Listings() {
     fetchListings({ ...filters });
   };
 
-  // --- Clear filters ---
   const clearFilters = () => {
     const cleared = {
       location: "",
@@ -101,73 +186,15 @@ function Listings() {
     setFilters(cleared);
     setLatLng({ lat: null, lng: null });
     setRadius("5");
+    setLocationSelected(false);
     fetchListings(cleared);
   };
 
-  // --- Initial listings load ---
-  useEffect(() => {
-    if (!location.state?.listings) {
-      fetchListings();
-    } else {
-      const processed = location.state?.listings.map((listing) => {
-        const primaryImage = listing.pictures?.find((p) => p.is_primary);
-        return { ...listing, primary_image: primaryImage };
-      });
-      setListings(processed);
-    }
-    // eslint-disable-next-line
-  }, [location.state]);
-
-  // --- Scroll to error if needed ---
   useEffect(() => {
     if (error && errorRef.current) {
       errorRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [error]);
-
-  // --- GOOGLE PLACES AUTOCOMPLETE ---
-  useEffect(() => {
-    // Clean up previous autocomplete instance
-    if (autocompleteRef.current) {
-      window.google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
-      autocompleteRef.current = null;
-    }
-
-    // Only initialize when google and input are ready
-    if (
-      window.google &&
-      window.google.maps &&
-      window.google.maps.places &&
-      locationInputRef.current
-    ) {
-      autocompleteRef.current = new window.google.maps.places.Autocomplete(
-        locationInputRef.current
-      );
-      autocompleteRef.current.addListener("place_changed", () => {
-        const place = autocompleteRef.current.getPlace();
-        if (place.geometry) {
-          const { lat, lng } = place.geometry.location;
-          setLatLng({
-            lat: lat(),
-            lng: lng(),
-          });
-          setFilters((prev) => ({
-            ...prev,
-            location: place.formatted_address || place.name,
-          }));
-        }
-      });
-    }
-
-    // Cleanup
-    return () => {
-      if (autocompleteRef.current) {
-        window.google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
-        autocompleteRef.current = null;
-      }
-    };
-    // Re-run if input changes or location filter changes
-  }, [filters.location]);
 
   return (
     <div>
@@ -188,9 +215,12 @@ function Listings() {
                   <div className="row g-3">
                     {/* Location & Radius */}
                     <div className="col-12">
-                      <label className="form-label">Location & Radius</label>
+                      <label htmlFor="location-input" className="form-label">
+                        Location & Radius
+                      </label>
                       <div className="input-group">
                         <input
+                          id="location-input"
                           type="text"
                           name="location"
                           ref={locationInputRef}
@@ -199,6 +229,7 @@ function Listings() {
                           onChange={handleInputChange}
                           placeholder="Type a location..."
                           autoComplete="off"
+                          aria-label="Location"
                         />
                         <select
                           className="form-select"
@@ -213,8 +244,14 @@ function Listings() {
                           <option value="50">50 km</option>
                         </select>
                       </div>
+                      {/* Show feedback if user typed location but didn't pick */}
+                      {filters.location && !locationSelected && (
+                        <small className="text-danger">
+                          Please select a location from the dropdown.
+                        </small>
+                      )}
                     </div>
-                    {/* Min Price */}
+                    {/* Min/Max Price, etc. */}
                     <div className="col-md-6">
                       <label className="form-label">Min Price</label>
                       <input
@@ -226,7 +263,6 @@ function Listings() {
                         min="0"
                       />
                     </div>
-                    {/* Max Price */}
                     <div className="col-md-6">
                       <label className="form-label">Max Price</label>
                       <input
@@ -238,7 +274,6 @@ function Listings() {
                         min="0"
                       />
                     </div>
-                    {/* Property Type */}
                     <div className="col-md-4">
                       <label className="form-label">Property Type</label>
                       <select
@@ -255,7 +290,6 @@ function Listings() {
                         <option value="O">Other</option>
                       </select>
                     </div>
-                    {/* Bedrooms */}
                     <div className="col-md-4">
                       <label className="form-label">Bedrooms</label>
                       <input
@@ -267,7 +301,6 @@ function Listings() {
                         min="0"
                       />
                     </div>
-                    {/* Bathrooms */}
                     <div className="col-md-4">
                       <label className="form-label">Bathrooms</label>
                       <input
@@ -280,9 +313,17 @@ function Listings() {
                       />
                     </div>
                   </div>
-                  {/* Buttons */}
                   <div className="d-flex justify-content-end gap-2 mt-4">
-                    <button type="submit" className="btn btn-primary">
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      disabled={filters.location && !locationSelected}
+                      title={
+                        filters.location && !locationSelected
+                          ? "Please select a location from the dropdown"
+                          : ""
+                      }
+                    >
                       🔍 Apply Filters
                     </button>
                     <button
