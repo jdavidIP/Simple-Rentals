@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import api from "../api.js";
 import { useLocation } from "react-router-dom";
 import ListingCard from "../components/ListingCard.jsx";
@@ -15,32 +15,43 @@ function Listings() {
     bathrooms: "",
     property_type: "",
   });
-  const [latLng, setLatLng] = useState({ lat: null, lng: null });
-  const [radius, setRadius] = useState("5");
+  const [latLng, setLatLng] = useState(location.state?.latLng || { lat: null, lng: null });
+  const [radius, setRadius] = useState(location.state?.radius || "5");
   const [error, setError] = useState(null);
   const [loadingListings, setLoadingListings] = useState(false);
   const [userIncome, setUserIncome] = useState(null);
-  const [locationSelected, setLocationSelected] = useState(false); 
+  const [locationSelected, setLocationSelected] = useState(location.state?.locationSelected || false);
 
   const errorRef = useRef(null);
   const locationInputRef = useRef(null);
   const autocompleteRef = useRef(null);
   const { profile } = useProfileContext();
 
-  // Autocomplete initialization
-  const initializeAutocomplete = () => {
+  // --- Google Places Autocomplete initialization ---
+  const initializeAutocomplete = useCallback(() => {
     if (
       window.google &&
       window.google.maps &&
       window.google.maps.places &&
       locationInputRef.current
     ) {
+      // If already attached to the current input, skip
+      if (
+        autocompleteRef.current &&
+        autocompleteRef.current.inputElement === locationInputRef.current
+      ) {
+        return;
+      }
+      // Remove any existing autocomplete
       if (autocompleteRef.current) {
         window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
+        autocompleteRef.current = null;
       }
+      // Attach autocomplete
       autocompleteRef.current = new window.google.maps.places.Autocomplete(
         locationInputRef.current
       );
+      autocompleteRef.current.inputElement = locationInputRef.current;
       autocompleteRef.current.addListener("place_changed", () => {
         const place = autocompleteRef.current.getPlace();
         if (place.geometry && place.geometry.location) {
@@ -53,13 +64,13 @@ function Listings() {
             ...prev,
             location: place.formatted_address || place.name,
           }));
-          setLocationSelected(true); 
+          setLocationSelected(true);
         }
       });
     }
-  };
+  }, []);
 
-  // Wait for Google API, then setup autocomplete
+  // --- Init autocomplete after Google API loads and input mounts ---
   useEffect(() => {
     let checkInterval = setInterval(() => {
       if (
@@ -79,9 +90,14 @@ function Listings() {
         window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
       }
     };
-  }, []);
+  }, [initializeAutocomplete]);
 
-  // If location cleared, re-init autocomplete
+  // --- Always re-initialize autocomplete when input is focused ---
+  const handleLocationFocus = () => {
+    initializeAutocomplete();
+  };
+
+  // --- If location field is cleared, reset selected state ---
   useEffect(() => {
     if (
       window.google &&
@@ -91,11 +107,13 @@ function Listings() {
       filters.location === ""
     ) {
       initializeAutocomplete();
-      setLocationSelected(false); 
+      setLocationSelected(false);
+      setLatLng({ lat: null, lng: null });
     }
-  }, [filters.location]);
+    // eslint-disable-next-line
+  }, [filters.location, initializeAutocomplete]);
 
-  // Fetch User Income
+  // --- Fetch User Income ---
   useEffect(() => {
     if (profile && profile.yearly_income != null) {
       const income = parseFloat(profile.yearly_income);
@@ -105,15 +123,21 @@ function Listings() {
     }
   }, [profile]);
 
-  // Fetch Listings API with geo params
-  const fetchListings = async (customFilters = filters) => {
+  // --- Fetch Listings API with geo params ---
+  const fetchListings = async (customFilters = filters, customLatLng = latLng, customRadius = radius) => {
     setLoadingListings(true);
     try {
       const params = { ...customFilters };
-      if (latLng.lat && latLng.lng) {
-        params.lat = latLng.lat;
-        params.lng = latLng.lng;
-        params.radius = radius;
+      // Only add geo params if location is picked & has latLng
+      if (customFilters.location && customLatLng.lat && customLatLng.lng) {
+        params.lat = customLatLng.lat;
+        params.lng = customLatLng.lng;
+        params.radius = customRadius;
+      } else {
+        // Remove geo params if present
+        delete params.lat;
+        delete params.lng;
+        delete params.radius;
       }
       const response = await api.get("/listings/viewAll", { params });
       const processedListings = response.data.map((listing) => {
@@ -130,9 +154,10 @@ function Listings() {
     }
   };
 
+  // --- Initial load: use listings from navigation or fetch ---
   useEffect(() => {
     if (!location.state?.listings) {
-      fetchListings();
+      fetchListings(filters, latLng, radius);
     } else {
       const processed = location.state?.listings.map((listing) => {
         const primaryImage = listing.pictures?.find((p) => p.is_primary);
@@ -140,9 +165,10 @@ function Listings() {
       });
       setListings(processed);
     }
+    // eslint-disable-next-line
   }, [location.state]);
 
-  // Track typing: mark location as "not selected"
+  // --- Input change handling ---
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFilters((prev) => ({
@@ -150,15 +176,25 @@ function Listings() {
       [name]: value,
     }));
     if (name === "location") {
-      setLatLng({ lat: null, lng: null });
-      setLocationSelected(false);
+      if (value.trim() === "") {
+        setLatLng({ lat: null, lng: null });
+        setLocationSelected(false);
+      } else {
+        setLocationSelected(false);
+      }
     }
   };
 
-  // Only allow submit if location is selected or field is empty
+  // --- Only allow submit if location is selected---
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (filters.location && !locationSelected) {
+    // Block if no location
+    if (!filters.location) {
+      setError("Please select a location from the dropdown.");
+      return;
+    }
+    // Block if location typed but not picked
+    if (!locationSelected) {
       setError("Please select a location from the dropdown.");
       return;
     }
@@ -171,25 +207,45 @@ function Listings() {
       return;
     }
     setError(null);
-    fetchListings({ ...filters });
+    fetchListings({ ...filters }, latLng, radius);
   };
 
+  // --- Only reset filter fields ---
   const clearFilters = () => {
-    const cleared = {
-      location: "",
+    // Clear only the non-location fields
+    setFilters((prev) => ({
+      ...prev,
       min_price: "",
       max_price: "",
       bedrooms: "",
       bathrooms: "",
       property_type: "",
-    };
-    setFilters(cleared);
-    setLatLng({ lat: null, lng: null });
-    setRadius("5");
-    setLocationSelected(false);
-    fetchListings(cleared);
+    }));
+
+    // If location field is empty, just clear filters and listings
+    if (!filters.location.trim()) {
+      setListings([]);
+      setError(null);
+      return;
+    }
+
+    // If location is still present, fetch filtered listings
+    fetchListings(
+      {
+        ...filters,
+        min_price: "",
+        max_price: "",
+        bedrooms: "",
+        bathrooms: "",
+        property_type: "",
+      },
+      latLng,
+      radius
+    );
   };
 
+
+  // --- Error scroll into view ---
   useEffect(() => {
     if (error && errorRef.current) {
       errorRef.current.scrollIntoView({ behavior: "smooth" });
@@ -227,6 +283,7 @@ function Listings() {
                           className="form-control"
                           value={filters.location}
                           onChange={handleInputChange}
+                          onFocus={handleLocationFocus}
                           placeholder="Type a location..."
                           autoComplete="off"
                           aria-label="Location"
@@ -317,11 +374,13 @@ function Listings() {
                     <button
                       type="submit"
                       className="btn btn-primary"
-                      disabled={filters.location && !locationSelected}
+                      disabled={!filters.location.trim() || !locationSelected}
                       title={
                         filters.location && !locationSelected
                           ? "Please select a location from the dropdown"
-                          : ""
+                          : !filters.location.trim()
+                            ? "Please enter and select a location"
+                            : ""
                       }
                     >
                       🔍 Apply Filters

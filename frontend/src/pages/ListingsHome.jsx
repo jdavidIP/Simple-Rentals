@@ -82,7 +82,13 @@ function ListingsHome() {
       const response = await api.get("/listings/viewAll", { params });
 
       navigate("/listings/results", {
-        state: { listings: response.data, city: city },
+        state: { 
+          listings: response.data, 
+          city: city, 
+          radius: radius,
+          latLng: latLng,
+          locationSelected: citySelected,
+        }
       });
     } catch (err) {
       setError("Failed to fetch listings. Please try again.");
