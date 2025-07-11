@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import ListingCard from "../components/ListingCard.jsx";
 import { useProfileContext } from "../contexts/ProfileContext.jsx";
 import SortDropdown from "../components/SortDropdown.jsx";
+import Pagination from "../components/Pagination.jsx";
 
 function Listings() {
   const location = useLocation();
@@ -33,6 +34,10 @@ function Listings() {
   const locationInputRef = useRef(null);
   const autocompleteRef = useRef(null);
   const { profile } = useProfileContext();
+
+  const ITEMS_PER_PAGE = 3; // 👈 Change page size here
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(listings.length / ITEMS_PER_PAGE);
 
   // --- Google Places Autocomplete initialization ---
   const initializeAutocomplete = useCallback(() => {
@@ -180,6 +185,7 @@ function Listings() {
       }
 
       setListings(processedListings);
+      setCurrentPage(1);
       setError(null);
     } catch (err) {
       setError("Failed to fetch listings.");
@@ -258,6 +264,8 @@ function Listings() {
       affordability: "",
     }));
 
+    setCurrentPage(1);
+
     // If location field is empty, just clear filters and listings
     if (!filters.location.trim()) {
       setListings([]);
@@ -302,6 +310,11 @@ function Listings() {
         return 0;
     }
   });
+
+  const paginatedListings = sortedListings.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   return (
     <div>
@@ -468,11 +481,11 @@ function Listings() {
             />
 
             {/* Listings */}
-            {sortedListings.length === 0 ? (
+            {paginatedListings.length === 0 ? (
               <p className="text-muted text-center">No listings found.</p>
             ) : (
               <div className="row g-4">
-                {sortedListings.map((listing) => (
+                {paginatedListings.map((listing) => (
                   <ListingCard
                     key={listing.id}
                     listing={listing}
@@ -480,6 +493,14 @@ function Listings() {
                   />
                 ))}
               </div>
+            )}
+
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
             )}
           </>
         )}
