@@ -3,10 +3,12 @@ import api from "../api.js";
 import { useLocation } from "react-router-dom";
 import ListingCard from "../components/ListingCard.jsx";
 import { useProfileContext } from "../contexts/ProfileContext.jsx";
+import SortDropdown from "../components/SortDropdown.jsx";
 
 function Listings() {
   const location = useLocation();
   const [listings, setListings] = useState(location.state?.listings || []);
+  const [sortOption, setSortOption] = useState("newest");
   const [filters, setFilters] = useState({
     location: location.state?.city || "",
     min_price: "",
@@ -14,6 +16,7 @@ function Listings() {
     bedrooms: "",
     bathrooms: "",
     property_type: "",
+    affordability: "",
   });
   const [latLng, setLatLng] = useState(location.state?.latLng || { lat: null, lng: null });
   const [radius, setRadius] = useState(location.state?.radius || "5");
@@ -87,7 +90,9 @@ function Listings() {
     return () => {
       clearInterval(checkInterval);
       if (autocompleteRef.current && window.google) {
-        window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
+        window.google.maps.event.clearInstanceListeners(
+          autocompleteRef.current
+        );
       }
     };
   }, [initializeAutocomplete]);
@@ -140,10 +145,30 @@ function Listings() {
         delete params.radius;
       }
       const response = await api.get("/listings/viewAll", { params });
-      const processedListings = response.data.map((listing) => {
+      let processedListings = response.data.map((listing) => {
         const primaryImage = listing.pictures?.find((p) => p.is_primary);
         return { ...listing, primary_image: primaryImage };
       });
+
+      if (customFilters.affordability && userIncome) {
+        processedListings = processedListings.filter((listing) => {
+          const monthlyIncome = userIncome / 12;
+          switch (customFilters.affordability) {
+            case "affordable":
+              return listing.price <= monthlyIncome * 0.25;
+            case "recommended":
+              return (
+                listing.price > monthlyIncome * 0.25 &&
+                listing.price <= monthlyIncome * 0.4
+              );
+            case "tooExpensive":
+              return listing.price > monthlyIncome * 0.4;
+            default:
+              return true;
+          }
+        });
+      }
+
       setListings(processedListings);
       setError(null);
     } catch (err) {
@@ -212,6 +237,7 @@ function Listings() {
 
   // --- Only reset filter fields ---
   const clearFilters = () => {
+    const cleared = {
     // Clear only the non-location fields
     setFilters((prev) => ({
       ...prev,
@@ -220,6 +246,8 @@ function Listings() {
       bedrooms: "",
       bathrooms: "",
       property_type: "",
+      affordability: "",
+    };
     }));
 
     // If location field is empty, just clear filters and listings
@@ -238,6 +266,7 @@ function Listings() {
         bedrooms: "",
         bathrooms: "",
         property_type: "",
+        affordability: "",
       },
       latLng,
       radius
@@ -251,6 +280,21 @@ function Listings() {
       errorRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [error]);
+
+  const sortedListings = [...listings].sort((a, b) => {
+    switch (sortOption) {
+      case "newest":
+        return new Date(b.created_at) - new Date(a.created_at);
+      case "oldest":
+        return new Date(a.created_at) - new Date(b.created_at);
+      case "priceLowHigh":
+        return a.price - b.price;
+      case "priceHighLow":
+        return b.price - a.price;
+      default:
+        return 0;
+    }
+  });
 
   return (
     <div>
@@ -309,7 +353,7 @@ function Listings() {
                       )}
                     </div>
                     {/* Min/Max Price, etc. */}
-                    <div className="col-md-6">
+                    <div className="col-md-4">
                       <label className="form-label">Min Price</label>
                       <input
                         type="number"
@@ -320,7 +364,7 @@ function Listings() {
                         min="0"
                       />
                     </div>
-                    <div className="col-md-6">
+                    <div className="col-md-4">
                       <label className="form-label">Max Price</label>
                       <input
                         type="number"
@@ -330,6 +374,20 @@ function Listings() {
                         onChange={handleInputChange}
                         min="0"
                       />
+                    </div>
+                    <div className="col-md-4">
+                      <label className="form-label">Affordability</label>
+                      <select
+                        name="affordability"
+                        className="form-select"
+                        value={filters.affordability}
+                        onChange={handleInputChange}
+                      >
+                        <option value="">Any</option>
+                        <option value="affordable">Affordable</option>
+                        <option value="recommended">Recommended</option>
+                        <option value="tooExpensive">Too Expensive</option>
+                      </select>
                     </div>
                     <div className="col-md-4">
                       <label className="form-label">Property Type</label>
@@ -396,12 +454,18 @@ function Listings() {
                 </form>
               </div>
             </div>
+
+            <SortDropdown
+              sortOption={sortOption}
+              setSortOption={setSortOption}
+            />
+
             {/* Listings */}
-            {listings.length === 0 ? (
+            {sortedListings.length === 0 ? (
               <p className="text-muted text-center">No listings found.</p>
             ) : (
               <div className="row g-4">
-                {listings.map((listing) => (
+                {sortedListings.map((listing) => (
                   <ListingCard
                     key={listing.id}
                     listing={listing}

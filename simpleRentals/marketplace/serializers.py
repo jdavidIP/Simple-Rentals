@@ -278,6 +278,7 @@ class ListingPostingSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Remove pictures from validated_data
         pictures_data = validated_data.pop('pictures', [])
+        validated_data['created_at'] = now()
         listing = Listing.objects.create(**validated_data)
 
         # Save images using your existing logic
