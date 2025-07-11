@@ -67,6 +67,7 @@ class Listing(models.Model):
     verification_status = models.CharField(max_length=10, choices=[('V', 'Verified'), ('P', 'Pending'), ('U', 'Unverified')], default='U')
     move_in_date = models.DateField()
     description = models.TextField()
+    created_at = models.DateTimeField(default=timezone.now)
 
     # Address
     unit_number = models.CharField(max_length=10, blank=True, null=True)

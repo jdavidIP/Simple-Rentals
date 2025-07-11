@@ -3,10 +3,12 @@ import api from "../api.js";
 import { useLocation } from "react-router-dom";
 import ListingCard from "../components/ListingCard.jsx";
 import { useProfileContext } from "../contexts/ProfileContext.jsx";
+import SortDropdown from "../components/SortDropdown.jsx";
 
 function Listings() {
   const location = useLocation();
   const [listings, setListings] = useState(location.state?.listings || []);
+  const [sortOption, setSortOption] = useState("newest");
   const [filters, setFilters] = useState({
     location: location.state?.city || "",
     min_price: "",
@@ -20,7 +22,7 @@ function Listings() {
   const [error, setError] = useState(null);
   const [loadingListings, setLoadingListings] = useState(false);
   const [userIncome, setUserIncome] = useState(null);
-  const [locationSelected, setLocationSelected] = useState(false); 
+  const [locationSelected, setLocationSelected] = useState(false);
 
   const errorRef = useRef(null);
   const locationInputRef = useRef(null);
@@ -36,7 +38,9 @@ function Listings() {
       locationInputRef.current
     ) {
       if (autocompleteRef.current) {
-        window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
+        window.google.maps.event.clearInstanceListeners(
+          autocompleteRef.current
+        );
       }
       autocompleteRef.current = new window.google.maps.places.Autocomplete(
         locationInputRef.current
@@ -53,7 +57,7 @@ function Listings() {
             ...prev,
             location: place.formatted_address || place.name,
           }));
-          setLocationSelected(true); 
+          setLocationSelected(true);
         }
       });
     }
@@ -76,7 +80,9 @@ function Listings() {
     return () => {
       clearInterval(checkInterval);
       if (autocompleteRef.current && window.google) {
-        window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
+        window.google.maps.event.clearInstanceListeners(
+          autocompleteRef.current
+        );
       }
     };
   }, []);
@@ -91,7 +97,7 @@ function Listings() {
       filters.location === ""
     ) {
       initializeAutocomplete();
-      setLocationSelected(false); 
+      setLocationSelected(false);
     }
   }, [filters.location]);
 
@@ -195,6 +201,21 @@ function Listings() {
       errorRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [error]);
+
+  const sortedListings = [...listings].sort((a, b) => {
+    switch (sortOption) {
+      case "newest":
+        return new Date(b.created_at) - new Date(a.created_at);
+      case "oldest":
+        return new Date(a.created_at) - new Date(b.created_at);
+      case "priceLowHigh":
+        return a.price - b.price;
+      case "priceHighLow":
+        return b.price - a.price;
+      default:
+        return 0;
+    }
+  });
 
   return (
     <div>
@@ -337,12 +358,18 @@ function Listings() {
                 </form>
               </div>
             </div>
+
+            <SortDropdown
+              sortOption={sortOption}
+              setSortOption={setSortOption}
+            />
+
             {/* Listings */}
-            {listings.length === 0 ? (
+            {sortedListings.length === 0 ? (
               <p className="text-muted text-center">No listings found.</p>
             ) : (
               <div className="row g-4">
-                {listings.map((listing) => (
+                {sortedListings.map((listing) => (
                   <ListingCard
                     key={listing.id}
                     listing={listing}
