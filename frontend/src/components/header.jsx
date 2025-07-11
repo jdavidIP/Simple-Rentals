@@ -55,10 +55,15 @@ function Header() {
     .slice(0, 3);
 
   return (
-    <nav className="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+    <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
       <div className="container">
         <a className="navbar-brand" href="/">
-          Simple Rentals
+          {/* Simple Rentals */}
+          <img
+            src="../transp_full_icon3.png"
+            alt="Logo"
+            style={{ height: "60px" }}
+          />
         </a>
         <button
           className="navbar-toggler"

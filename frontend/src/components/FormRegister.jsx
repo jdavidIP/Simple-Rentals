@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import api from "../api.js";
 import "../styles/forms.css";
-import { Link } from "react-router-dom";
 
 function FormRegister({ method = "register", profile }) {
+  const [step, setStep] = useState(1);
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     email: profile?.email || "",
     password: "",
@@ -26,14 +28,10 @@ function FormRegister({ method = "register", profile }) {
     receive_sms_notifications: profile?.receive_sms_notifications || false,
     terms_accepted: profile?.terms_accepted || false,
   });
-
-  const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [existingProfilePicture, setExistingProfilePicture] = useState(profile?.profile_picture || null);
   const [deleteProfilePicture, setDeleteProfilePicture] = useState(false);
-  const navigate = useNavigate();
-
   // --- GOOGLE PLACES AUTOCOMPLETE REFS ---
   const cityInputRef = useRef(null);
   const preferredLocationInputRef = useRef(null);
@@ -110,526 +108,190 @@ function FormRegister({ method = "register", profile }) {
     };
   }, []);
 
-  useEffect(() => {
-    if (profile) {
-      setFormData((prev) => ({
-        ...prev,
-        ...profile,
-        password: "",
-        password_confirmation: "",
-        profile_picture: null,
-        budget_min: profile.budget_min ?? "",
-        budget_max: profile.budget_max ?? "",
-        yearly_income: profile.yearly_income ?? "",
-      }));
-      setExistingProfilePicture(profile.profile_picture || null);
-      setDeleteProfilePicture(false);
-    }
-  }, [profile]);
-
-  // --- VALIDATION LOGIC ---
-  function validateFields(data) {
+  const validateStep = () => {
     const errors = {};
-    // Email
-    if (!data.email) errors.email = "Email is required.";
-    else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email))
-      errors.email = "Invalid email format.";
-
-    // Password
-    if (method !== "edit" || data.password || data.password_confirmation) {
-      if (!data.password) errors.password = "Password is required.";
-      else if (data.password.length < 8)
-        errors.password = "Password must be at least 8 characters.";
-      if (data.password !== data.password_confirmation)
-        errors.password_confirmation = "Passwords do not match.";
+    if (step === 1) {
+      if (!formData.email) errors.email = "Email is required.";
+      if (!formData.password || formData.password.length < 8) errors.password = "Min 8 characters.";
+      if (formData.password !== formData.password_confirmation) errors.password_confirmation = "Passwords must match.";
     }
+    if (step === 2) {
+      ["first_name", "last_name", "age", "sex", "city", "preferred_location", "phone_number", "budget_max"]
+        .forEach(field => { if (!formData[field]) errors[field] = "Required."; });
+    }
+    if (step === 3 && !formData.terms_accepted) {
+      errors.terms_accepted = "Please accept terms.";
+    }
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
-    // Names
-    if (!data.first_name || data.first_name.length < 2)
-      errors.first_name = "First name must be at least 2 characters.";
-    if (!/^[a-zA-ZÀ-ÿ'. -]+$/.test(data.first_name))
-      errors.first_name = "First name contains invalid characters.";
-    if (!data.last_name || data.last_name.length < 2)
-      errors.last_name = "Last name must be at least 2 characters.";
-    if (!/^[a-zA-ZÀ-ÿ'. -]+$/.test(data.last_name))
-      errors.last_name = "Last name contains invalid characters.";
+  const handleNext = () => validateStep() && setStep(step + 1);
+  const handleBack = () => setStep(step - 1);
 
-    // Age
-    if (!data.age) errors.age = "Age is required.";
-    else if (Number(data.age) < 16 || Number(data.age) > 120)
-      errors.age = "Age must be between 16 and 120.";
-
-    // Sex
-    if (!["M", "F", "O"].includes(data.sex))
-      errors.sex = "Select a valid gender.";
-
-    // Budget min/max
-    if (data.budget_min !== "" && Number(data.budget_min) < 0)
-      errors.budget_min = "Budget min cannot be negative.";
-    if (!data.budget_max && data.budget_max !== 0)
-      errors.budget_max = "Budget max is required.";
-    else if (Number(data.budget_max) < 0)
-      errors.budget_max = "Budget max cannot be negative.";
-    if (
-      data.budget_min !== "" &&
-      data.budget_max !== "" &&
-      Number(data.budget_min) > Number(data.budget_max)
-    )
-      errors.budget_min = "Min budget cannot be greater than max budget.";
-
-    // Yearly income
-    if (
-      data.yearly_income !== "" &&
-      (isNaN(Number(data.yearly_income)) || Number(data.yearly_income) < 0)
-    )
-      errors.yearly_income = "Income must be a positive number.";
-
-    // City
-    if (!data.city || data.city.length < 2)
-      errors.city = "City is required.";
-
-    // Preferred location
-    if (!data.preferred_location || data.preferred_location.length < 2)
-      errors.preferred_location = "Preferred location is required.";
-
-    // Phone
-    if (!data.phone_number) errors.phone_number = "Phone number required.";
-    else if (!/^\+?[0-9\-()\s]{7,20}$/.test(data.phone_number))
-      errors.phone_number = "Invalid phone number.";
-
-    // Instagram/Facebook
-    if (
-      data.instagram_link &&
-      !/^https?:\/\/(www\.)?instagram\.com\/[A-Za-z0-9._%-]+\/?$/.test(
-        data.instagram_link
-      )
-    )
-      errors.instagram_link = "Enter a valid Instagram URL.";
-    if (
-      data.facebook_link &&
-      !/^https?:\/\/(www\.)?facebook\.com\/[A-Za-z0-9.\-_%/]+$/.test(
-        data.facebook_link
-      )
-    )
-      errors.facebook_link = "Enter a valid Facebook URL.";
-
-    // Terms
-    if (!data.terms_accepted && method !== "edit")
-      errors.terms_accepted = "You must accept the terms and conditions.";
-
-    return errors;
-  }
-
-  // --- HANDLE CHANGE with LIVE VALIDATION ---
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    const newValue = type === "checkbox" ? checked : value;
-
-    setFormData((prev) => {
-      const updated = { ...prev, [name]: newValue };
-
-      // Live validate ALL fields as you type
-      const validationErrors = validateFields(updated);
-      setFieldErrors(validationErrors);
-
-      return updated;
-    });
+    const { name, type, checked, value, files } = e.target;
+    const newValue = type === "checkbox" ? checked : (type === "file" ? files[0] : value);
+    setFormData(prev => ({ ...prev, [name]: newValue }));
+    setTouched(prev => ({ ...prev, [name]: true }));
   };
-
-  // --- HANDLE BLUR for TOUCHED TRACKING ---
-  const handleBlur = (e) => {
-    setTouched((prev) => ({
-      ...prev,
-      [e.target.name]: true,
-    }));
-  };
-
-  const handleFileInputChange = (e) => {
-    const { files } = e.target;
-    if (files && files[0]) {
-      setFormData((prev) => ({
-        ...prev,
-        profile_picture: files[0],
-      }));
-      setExistingProfilePicture(null);
-      setDeleteProfilePicture(false);
-    }
-  };
-
-  const handleDeleteProfilePicture = () => {
-    setExistingProfilePicture(null);
+  const handleDeletePicture = () => {
+    setFormData(prev => ({ ...prev, profile_picture: null }));
     setDeleteProfilePicture(true);
-    setFormData((prev) => ({
-      ...prev,
-      profile_picture: null,
-    }));
+    setExistingProfilePicture(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-
-    // Validate one more time before submit
-    const validationErrors = validateFields(formData);
-    setFieldErrors(validationErrors);
-    setTouched(
-      Object.keys(formData).reduce((obj, key) => ({ ...obj, [key]: true }), {})
-    );
-    if (Object.keys(validationErrors).length > 0) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
-
-    const cleanFormData = {
-      ...formData,
-      budget_min: formData.budget_min === "" ? null : parseFloat(formData.budget_min),
-      budget_max: formData.budget_max === "" ? null : parseFloat(formData.budget_max),
-      yearly_income: formData.yearly_income === "" ? null : parseFloat(formData.yearly_income),
-    };
+    if (!validateStep()) return;
+    const data = new FormData();
+    Object.entries(formData).forEach(([k, v]) => {
+      if (k === "profile_picture" && v instanceof File) data.append(k, v);
+      else if (typeof v === "boolean" || v) data.append(k, v);
+    });
+    if (deleteProfilePicture) data.append("delete_profile_picture", "true");
     try {
-      const data = new FormData();
-      Object.entries(cleanFormData).forEach(([key, value]) => {
-        if (
-          method === "edit" &&
-          (key === "password" || key === "password_confirmation") &&
-          !value
-        ) return;
-        if (key === "profile_picture") {
-          if (value instanceof File) data.append(key, value);
-        } else if (["instagram_link", "facebook_link"].includes(key) && typeof value === "string" && value.trim() === "") {
-          // Don't send empty social links
-          return;
-        } else {
-          data.append(key, value === null ? "" : value);
-        }
-      });
-      if (method === "edit" && deleteProfilePicture) {
-        data.append("delete_profile_picture", "true");
-      }
-      const endpoint = method === "edit" ? "/edit-profile/" : "/register/";
-      const response = await api[method === "edit" ? "patch" : "post"](endpoint, data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      if (response.status === 200 || response.status === 201) {
-        navigate(method === "edit" ? `/profile/${response.data.id}` : "/login");
-      }
-    } catch (err) {
-      if (err.response && err.response.data) {
-        const errorMessages = Object.entries(err.response.data).map(
-          ([field, messages]) =>
-            `${field}: ${Array.isArray(messages) ? messages.join(", ") : messages}`
-        );
-        setError(errorMessages);
-      } else {
-        setError(["Registration failed. Please try again."]);
-      }
+      const resp = await api[method === "edit" ? "patch" : "post"](
+        method === "edit" ? "/edit-profile/" : "/register/",
+        data, { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      navigate(method === "edit" ? `/profile/${resp.data.id}` : "/login");
+    } catch {
+      alert("Submission failed.");
     }
   };
 
-  // --- ERROR MESSAGE HELPER ---
-  const errMsg = (name) =>
-    touched[name] && fieldErrors[name] ? (
-      <div className="field-error">{fieldErrors[name]}</div>
-    ) : null;
-
-  // --- IMAGE PREVIEW ---
-  const renderNewImagePreview = () =>
-    formData.profile_picture instanceof File && (
-      <div className="image-container">
-        <img src={URL.createObjectURL(formData.profile_picture)} alt="Preview" style={{ maxWidth: "150px" }} />
-        <button
-          type="button"
-          className="btn btn-danger"
-          onClick={() => setFormData((prev) => ({ ...prev, profile_picture: null }))}
-        >
-          Remove
-        </button>
+  const renderImagePreview = () =>
+    (formData.profile_picture instanceof File || existingProfilePicture) && (
+      <div className="mb-3">
+        <img
+          src={formData.profile_picture ? URL.createObjectURL(formData.profile_picture) : existingProfilePicture}
+          alt="Preview" className="img-thumbnail" style={{ maxWidth: "150px" }}
+        />
+        <button type="button" className="btn btn-sm btn-danger ms-2" onClick={handleDeletePicture}>Delete</button>
       </div>
     );
 
   return (
-    <form onSubmit={handleSubmit} className="form-container" autoComplete="off">
-      <h1>{method === "edit" ? "Edit Profile" : "Register"}</h1>
-      {error && (
-        <ul className="error-list">
-          {error.map((errMsg, index) => (
-            <li key={index}>{errMsg}</li>
-          ))}
-        </ul>
-      )}
+    <div className="container py-5">
+      <div className="card mx-auto shadow" style={{ maxWidth: "600px" }}>
+        <div className="card-body">
+          <h2 className="card-title text-center mb-4">
+            {method === "edit" ? "Edit Profile" : "Register"} (Step {step}/3)
+          </h2>
 
-      <input
-        type="email"
-        id="email"
-        name="email"
-        placeholder="Email"
-        value={formData.email}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        required
-        disabled={method === "edit"}
-        autoComplete="username"
-      />
-      {errMsg("email")}
+          <ul className="nav nav-pills nav-fill mb-4">
+            {[1,2,3].map(i => (
+              <li className="nav-item" key={i}>
+                <button className={`nav-link${step === i ? " active" : (step > i ? "" : " disabled")}`}>
+                  {["Credentials","Info","Extras"][i-1]}
+                </button>
+              </li>
+            ))}
+          </ul>
 
-      <input
-        type="password"
-        id="password"
-        name="password"
-        placeholder={
-          method === "edit" ? "New Password (leave blank to keep current)" : "Password"
-        }
-        value={formData.password}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        required={method !== "edit"}
-        autoComplete="new-password"
-      />
-      {errMsg("password")}
+          <form onSubmit={handleSubmit} noValidate>
+            {step === 1 && (
+              <>
+                <div className="mb-3">
+                  <label className="form-label">Email</label>
+                  <input type="email" name="email" className={`form-control${fieldErrors.email ? " is-invalid" : ""}`} value={formData.email} onChange={handleChange} />
+                  <div className="invalid-feedback">{fieldErrors.email}</div>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Password</label>
+                  <input type="password" name="password" className={`form-control${fieldErrors.password ? " is-invalid" : ""}`} value={formData.password} onChange={handleChange} />
+                  <div className="invalid-feedback">{fieldErrors.password}</div>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Confirm Password</label>
+                  <input type="password" name="password_confirmation" className={`form-control${fieldErrors.password_confirmation ? " is-invalid" : ""}`} value={formData.password_confirmation} onChange={handleChange} />
+                  <div className="invalid-feedback">{fieldErrors.password_confirmation}</div>
+                </div>
+              </>
+            )}
 
-      <input
-        type="password"
-        id="password_confirmation"
-        name="password_confirmation"
-        placeholder={method === "edit" ? "Confirm New Password" : "Confirm Password"}
-        value={formData.password_confirmation}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        required={method !== "edit"}
-        autoComplete="new-password"
-      />
-      {errMsg("password_confirmation")}
+            {step === 2 && (
+              <>
+                {["first_name","last_name","age","city","preferred_location","phone_number","budget_max"].map(field => (
+                  <div className="mb-3" key={field}>
+                    <label className="form-label">{field.replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase())}</label>
+                    <input
+                      type={field==="age" || field.includes("budget") ? "number" : "text"}
+                      name={field}
+                      ref={field === "city" ? cityInputRef : field === "preferred_location" ? preferredLocationInputRef : null}
+                      className={`form-control${fieldErrors[field] ? " is-invalid" : ""}`}
+                      value={formData[field]} onChange={handleChange}
+                    />
+                    <div className="invalid-feedback">{fieldErrors[field]}</div>
+                  </div>
+                ))}
+                <div className="mb-3">
+                  <label className="form-label">Gender</label>
+                  <select name="sex" className={`form-select${fieldErrors.sex ? " is-invalid" : ""}`} value={formData.sex} onChange={handleChange}>
+                    <option value="">Select</option>
+                    <option value="M">Male</option>
+                    <option value="F">Female</option>
+                    <option value="O">Other</option>
+                  </select>
+                  <div className="invalid-feedback">{fieldErrors.sex}</div>
+                </div>
+              </>
+            )}
 
-      <input
-        type="text"
-        id="first_name"
-        name="first_name"
-        placeholder="First Name"
-        value={formData.first_name}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        required
-        maxLength={50}
-      />
-      {errMsg("first_name")}
+            {step === 3 && (
+              <>
+                <div className="mb-3">
+                  <label className="form-label">Profile Picture</label>
+                  <input type="file" name="profile_picture" accept="image/*" className="form-control" onChange={handleChange} />
+                  {renderImagePreview()}
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Instagram Link</label>
+                  <input type="url" name="instagram_link" className="form-control" value={formData.instagram_link} onChange={handleChange} />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Facebook Link</label>
+                  <input type="url" name="facebook_link" className="form-control" value={formData.facebook_link} onChange={handleChange} />
+                </div>
+                <div className="form-check mb-3">
+                  <input type="checkbox" name="receive_email_notifications" className="form-check-input" checked={formData.receive_email_notifications} onChange={handleChange} id="emailNotify" />
+                  <label className="form-check-label" htmlFor="emailNotify">Receive Email Notifications</label>
+                </div>
+                <div className="form-check mb-3">
+                  <input type="checkbox" name="receive_sms_notifications" className="form-check-input" checked={formData.receive_sms_notifications} onChange={handleChange} id="smsNotify" />
+                  <label className="form-check-label" htmlFor="smsNotify">Receive SMS Notifications</label>
+                </div>
+                <div className="form-check mb-3">
+                  <input type="checkbox" name="terms_accepted" className={`form-check-input${fieldErrors.terms_accepted ? " is-invalid" : ""}`} checked={formData.terms_accepted} onChange={handleChange} id="terms" />
+                  <label className="form-check-label" htmlFor="terms">I accept the terms and conditions</label>
+                  <div className="invalid-feedback">{fieldErrors.terms_accepted}</div>
+                </div>
+              </>
+            )}
 
-      <input
-        type="text"
-        id="last_name"
-        name="last_name"
-        placeholder="Last Name"
-        value={formData.last_name}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        required
-        maxLength={50}
-      />
-      {errMsg("last_name")}
+            <div className="d-flex justify-content-between">
+              {step > 1 ? (
+                <button type="button" className="btn btn-outline-secondary" onClick={handleBack}>Back</button>
+              ) : <div />}
 
-      <input
-        type="number"
-        id="age"
-        name="age"
-        placeholder="Age"
-        value={formData.age}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        min="0"
-        required
-        step="1"
-      />
-      {errMsg("age")}
+              {step < 3 ? (
+                <button type="button" className="btn btn-primary" onClick={handleNext}>Next</button>
+              ) : (
+                <button type="submit" className="btn btn-success">{method === "edit" ? "Save Changes" : "Register"}</button>
+              )}
+            </div>
 
-      <select
-        id="sex"
-        name="sex"
-        value={formData.sex}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        required
-      >
-        <option value="">Select your gender</option>
-        <option value="M">Male</option>
-        <option value="F">Female</option>
-        <option value="O">Other</option>
-      </select>
-      {errMsg("sex")}
+            {method !== "edit" && step === 1 && (
+              <div className="text-center mt-3">
+                <Link to="/login">Already have an account? Log In</Link>
+              </div>
+            )}
+          </form>
 
-      <input
-        type="number"
-        id="budget_min"
-        name="budget_min"
-        placeholder="Budget Min (Optional)"
-        value={formData.budget_min}
-        min="0"
-        max={formData.budget_max || undefined}
-        step="0.01"
-        onChange={handleChange}
-        onBlur={handleBlur}
-      />
-      {errMsg("budget_min")}
-
-      <input
-        type="number"
-        id="budget_max"
-        name="budget_max"
-        placeholder="Budget Max"
-        value={formData.budget_max}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        min="0"
-        step="0.01"
-        required
-      />
-      {errMsg("budget_max")}
-
-      <input
-        type="number"
-        id="yearly_income"
-        name="yearly_income"
-        placeholder="Yearly Income (Optional)"
-        value={formData.yearly_income}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        step="0.01"
-        min="0"
-      />
-      {errMsg("yearly_income")}
-
-      <input
-        type="text"
-        id="city"
-        name="city"
-        placeholder="City"
-        value={formData.city}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        required
-        ref={cityInputRef}
-      />
-      {errMsg("city")}
-
-      <input
-        type="text"
-        id="preferred_location"
-        name="preferred_location"
-        placeholder="Preferred Location to live"
-        value={formData.preferred_location}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        required
-        ref={preferredLocationInputRef}
-      />
-      {errMsg("preferred_location")}
-
-      <input
-        type="text"
-        id="phone_number"
-        name="phone_number"
-        placeholder="Phone Number (e.g., +1-123-456-7890)"
-        value={formData.phone_number}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        pattern="^\+?[0-9\-()\s]{7,20}$"
-        required
-      />
-      {errMsg("phone_number")}
-
-      <input
-        type="url"
-        id="instagram_link"
-        name="instagram_link"
-        placeholder="Instagram Link"
-        value={formData.instagram_link}
-        onChange={handleChange}
-        onBlur={handleBlur}
-      />
-      {errMsg("instagram_link")}
-
-      <input
-        type="url"
-        id="facebook_link"
-        name="facebook_link"
-        placeholder="Facebook Link"
-        value={formData.facebook_link}
-        onChange={handleChange}
-        onBlur={handleBlur}
-      />
-      {errMsg("facebook_link")}
-
-      <input
-        type="file"
-        id="profile_picture"
-        name="profile_picture"
-        accept="image/*"
-        onChange={handleFileInputChange}
-      />
-      {existingProfilePicture && (
-        <div className="image-container">
-          <img
-            src={existingProfilePicture}
-            alt="Profile"
-            style={{ maxWidth: "150px" }}
-          />
-          {method === "edit" && (
-            <button
-              type="button"
-              className="btn btn-danger"
-              onClick={handleDeleteProfilePicture}
-            >
-              Delete
-            </button>
-          )}
         </div>
-      )}
-      {renderNewImagePreview()}
-
-      <label htmlFor="receive_email_notifications">
-        <input
-          type="checkbox"
-          id="receive_email_notifications"
-          name="receive_email_notifications"
-          checked={formData.receive_email_notifications}
-          onChange={handleChange}
-        />
-        I would like to receive email notifications
-      </label>
-      <label htmlFor="receive_sms_notifications">
-        <input
-          type="checkbox"
-          id="receive_sms_notifications"
-          name="receive_sms_notifications"
-          checked={formData.receive_sms_notifications}
-          onChange={handleChange}
-        />
-        I would like to receive text messages.
-      </label>
-      <label htmlFor="terms_accepted">
-        <input
-          type="checkbox"
-          id="terms_accepted"
-          name="terms_accepted"
-          checked={formData.terms_accepted}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
-          disabled={method === "edit"}
-        />
-        I accept the terms and conditions
-      </label>
-      {errMsg("terms_accepted")}
-
-      <button type="submit">
-        {method === "edit" ? "Save Changes" : "Register"}
-      </button>
-      {method !== "edit" && (
-        <div>
-          <Link to="/login" className="link">
-            Already have an account? Log In here!
-          </Link>
-        </div>
-      )}
-    </form>
+      </div>
+    </div>
   );
 }
 
