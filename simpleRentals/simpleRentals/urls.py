@@ -48,7 +48,7 @@ urlpatterns = [
     path("applications/management", views.ApplicationManagementListView.as_view(), name="manage_applications"),
     path("profile/reviews", views.ReviewListView.as_view(), name="view_reviews"),
     path("profile/reviews/<int:pk>", views.ReviewPosting.as_view(), name="post_review"), # pk = reviewee id
-    path("reviews/<int:pk>", views.ReviewDetailView.as_view(), name="view_review"),
+    path("reviews/<int:pk>", views.ReviewDetailView.as_view(), name="view_review"),# pk = review id
     path("profile/me", views.CurrentUserView.as_view(), name="profile_self"),
     path("reviews/manage/<int:pk>", views.ReviewUpdateDeleteView.as_view(), name="manage_review"), # pk = review id
     path("roommates/", views.RoommateListView.as_view(), name="viewAllRoommates"),
