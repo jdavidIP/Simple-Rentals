@@ -1,9 +1,20 @@
+import { useState } from "react";
 import { useProfileContext } from "../contexts/ProfileContext";
 import { useNavigate } from "react-router-dom";
 
 function ReviewCard({ review }) {
   const { isProfileSelf } = useProfileContext();
   const navigate = useNavigate();
+  const [expanded, setExpanded] = useState(false);
+
+  const toggleExpanded = () => setExpanded((prev) => !prev);
+
+  const maxPreviewLength = 200; // Show first 200 chars
+
+  const displayComment =
+    review.comment.length > maxPreviewLength && !expanded
+      ? review.comment.slice(0, maxPreviewLength) + "..."
+      : review.comment;
 
   return (
     <div key={review.id} className="review-card">
@@ -15,10 +26,22 @@ function ReviewCard({ review }) {
         </strong>{" "}
         - Rating: {review.rating}/5
       </p>
-      <p>{review.comment}</p>
+
+      <p>{displayComment}</p>
+      {review.comment.length > maxPreviewLength && (
+        <button
+          className="btn btn-link p-0"
+          onClick={toggleExpanded}
+          style={{ fontSize: "0.9rem" }}
+        >
+          {expanded ? "View Less" : "View More"}
+        </button>
+      )}
+
       <p>
         <em>Reviewed as: {review.reviewee_role_display}</em>
       </p>
+
       {isProfileSelf(review.reviewer.id) && (
         <button
           className="edit-button"

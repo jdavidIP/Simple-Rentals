@@ -27,9 +27,14 @@ function FormReview({ method, review }) {
 
   function validateFields({ rating, comment, reviewee_role }) {
     const errors = {};
-    if (!rating || rating < 1 || rating > 5) errors.rating = "Rating must be between 1 and 5.";
-    if (!comment || comment.trim().length < 10) errors.comment = "Comment must be at least 10 characters.";
-    if (!["T", "L", "R"].includes(reviewee_role)) errors.reviewee_role = "Select a valid role.";
+    if (!rating || rating < 1 || rating > 5)
+      errors.rating = "Rating must be between 1 and 5.";
+    if (!comment || comment.trim().length < 10)
+      errors.comment = "Comment must be at least 10 characters.";
+    if (!["T", "L", "R"].includes(reviewee_role))
+      errors.reviewee_role = "Select a valid role.";
+    if (comment.length > 1000)
+      errors.comment = "Comment cannot exceed 1,000 characters.";
     return errors;
   }
 
@@ -46,6 +51,16 @@ function FormReview({ method, review }) {
     setFieldErrors(validateFields(data));
   };
 
+  const handleDelete = async () => {
+    try {
+      await api.delete(`reviews/manage/${review.id}`);
+      navigate(`/profile/${review.reviewee.id}`);
+    } catch (err) {
+      errors.delete = "Error deleting review";
+      console.error("Failed to delete review.", err);
+    }
+  };
+
   const handleBlur = (field) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
   };
@@ -60,7 +75,11 @@ function FormReview({ method, review }) {
     setErrors([]);
     setTouched({ rating: true, comment: true, reviewee_role: true });
 
-    const validationErrors = validateFields({ rating, comment, reviewee_role: revieweeRole });
+    const validationErrors = validateFields({
+      rating,
+      comment,
+      reviewee_role: revieweeRole,
+    });
     setFieldErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -139,6 +158,7 @@ function FormReview({ method, review }) {
         <label htmlFor="comment">Comment</label>
         <textarea
           id="comment"
+          maxLength="1000"
           rows="4"
           value={comment}
           onChange={(e) => handleChange("comment", e.target.value)}
