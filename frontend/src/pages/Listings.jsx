@@ -18,12 +18,16 @@ function Listings() {
     property_type: "",
     affordability: "",
   });
-  const [latLng, setLatLng] = useState(location.state?.latLng || { lat: null, lng: null });
+  const [latLng, setLatLng] = useState(
+    location.state?.latLng || { lat: null, lng: null }
+  );
   const [radius, setRadius] = useState(location.state?.radius || "5");
   const [error, setError] = useState(null);
   const [loadingListings, setLoadingListings] = useState(false);
   const [userIncome, setUserIncome] = useState(null);
-  const [locationSelected, setLocationSelected] = useState(location.state?.locationSelected || false);
+  const [locationSelected, setLocationSelected] = useState(
+    location.state?.locationSelected || false
+  );
 
   const errorRef = useRef(null);
   const locationInputRef = useRef(null);
@@ -47,7 +51,9 @@ function Listings() {
       }
       // Remove any existing autocomplete
       if (autocompleteRef.current) {
-        window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
+        window.google.maps.event.clearInstanceListeners(
+          autocompleteRef.current
+        );
         autocompleteRef.current = null;
       }
       // Attach autocomplete
@@ -129,7 +135,11 @@ function Listings() {
   }, [profile]);
 
   // --- Fetch Listings API with geo params ---
-  const fetchListings = async (customFilters = filters, customLatLng = latLng, customRadius = radius) => {
+  const fetchListings = async (
+    customFilters = filters,
+    customLatLng = latLng,
+    customRadius = radius
+  ) => {
     setLoadingListings(true);
     try {
       const params = { ...customFilters };
@@ -237,7 +247,6 @@ function Listings() {
 
   // --- Only reset filter fields ---
   const clearFilters = () => {
-    const cleared = {
     // Clear only the non-location fields
     setFilters((prev) => ({
       ...prev,
@@ -247,7 +256,6 @@ function Listings() {
       bathrooms: "",
       property_type: "",
       affordability: "",
-    };
     }));
 
     // If location field is empty, just clear filters and listings
@@ -272,7 +280,6 @@ function Listings() {
       radius
     );
   };
-
 
   // --- Error scroll into view ---
   useEffect(() => {
@@ -437,8 +444,8 @@ function Listings() {
                         filters.location && !locationSelected
                           ? "Please select a location from the dropdown"
                           : !filters.location.trim()
-                            ? "Please enter and select a location"
-                            : ""
+                          ? "Please enter and select a location"
+                          : ""
                       }
                     >
                       🔍 Apply Filters
