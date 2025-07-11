@@ -16,6 +16,7 @@ function Listings() {
     bedrooms: "",
     bathrooms: "",
     property_type: "",
+    affordability: "",
   });
   const [latLng, setLatLng] = useState({ lat: null, lng: null });
   const [radius, setRadius] = useState("5");
@@ -122,10 +123,30 @@ function Listings() {
         params.radius = radius;
       }
       const response = await api.get("/listings/viewAll", { params });
-      const processedListings = response.data.map((listing) => {
+      let processedListings = response.data.map((listing) => {
         const primaryImage = listing.pictures?.find((p) => p.is_primary);
         return { ...listing, primary_image: primaryImage };
       });
+
+      if (customFilters.affordability && userIncome) {
+        processedListings = processedListings.filter((listing) => {
+          const monthlyIncome = userIncome / 12;
+          switch (customFilters.affordability) {
+            case "affordable":
+              return listing.price <= monthlyIncome * 0.25;
+            case "recommended":
+              return (
+                listing.price > monthlyIncome * 0.25 &&
+                listing.price <= monthlyIncome * 0.4
+              );
+            case "tooExpensive":
+              return listing.price > monthlyIncome * 0.4;
+            default:
+              return true;
+          }
+        });
+      }
+
       setListings(processedListings);
       setError(null);
     } catch (err) {
@@ -182,12 +203,12 @@ function Listings() {
 
   const clearFilters = () => {
     const cleared = {
-      location: "",
       min_price: "",
       max_price: "",
       bedrooms: "",
       bathrooms: "",
       property_type: "",
+      affordability: "",
     };
     setFilters(cleared);
     setLatLng({ lat: null, lng: null });
@@ -273,7 +294,7 @@ function Listings() {
                       )}
                     </div>
                     {/* Min/Max Price, etc. */}
-                    <div className="col-md-6">
+                    <div className="col-md-4">
                       <label className="form-label">Min Price</label>
                       <input
                         type="number"
@@ -284,7 +305,7 @@ function Listings() {
                         min="0"
                       />
                     </div>
-                    <div className="col-md-6">
+                    <div className="col-md-4">
                       <label className="form-label">Max Price</label>
                       <input
                         type="number"
@@ -294,6 +315,20 @@ function Listings() {
                         onChange={handleInputChange}
                         min="0"
                       />
+                    </div>
+                    <div className="col-md-4">
+                      <label className="form-label">Affordability</label>
+                      <select
+                        name="affordability"
+                        className="form-select"
+                        value={filters.affordability}
+                        onChange={handleInputChange}
+                      >
+                        <option value="">Any</option>
+                        <option value="affordable">Affordable</option>
+                        <option value="recommended">Recommended</option>
+                        <option value="tooExpensive">Too Expensive</option>
+                      </select>
                     </div>
                     <div className="col-md-4">
                       <label className="form-label">Property Type</label>
