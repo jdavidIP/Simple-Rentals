@@ -88,119 +88,142 @@ function Profile() {
     fetchListings();
     fetchReviews(); // Fetch reviews
   }, [id]);
-
   return (
-    <div className="profile-container">
+    <div className="container my-5">
       {error ? (
         <div className="alert alert-danger">{error}</div>
       ) : loadingListings || loadingProfile || loadingReviews ? (
-        <div className="loading">Loading...</div>
+        <div className="d-flex justify-content-center py-5">
+          <div className="spinner-border text-primary" role="status" />
+        </div>
       ) : (
         <>
-          <div className="profile-header">
-            <img
-              src={profile.profile_picture || "/default-avatar.png"}
-              alt={`${profile.first_name} ${profile.last_name}`}
-              className="profile-picture"
-            />
-            <h1>{`${profile.first_name} ${profile.last_name}`}</h1>
-            <p>{profile.email}</p>
-            <p>{profile.phone_number}</p>
-            {isProfileSelf(profile.id) ? (
-              <button
-                onClick={() => navigate(`/listings/post`)}
-                className="btn btn-primary"
-              >
-                Create a Listing
-              </button>
-            ) : (
-              <button
-                onClick={() => navigate(`/profile/${id}/reviews`)}
-                className="btn btn-primary"
-              >
-                Write a Review
-              </button>
-            )}
+          {/* Profile Header */}
+          <div className="card shadow-sm mb-4">
+            <div className="card-body d-flex flex-column align-items-center text-center">
+              <img
+                src={profile.profile_picture || "/default-avatar.png"}
+                alt={`${profile.first_name} ${profile.last_name}`}
+                className="rounded-circle mb-3"
+                style={{ width: "120px", height: "120px", objectFit: "cover" }}
+              />
+              <h4 className="fw-bold">{`${profile.first_name} ${profile.last_name}`}</h4>
+              <p className="text-muted mb-1">{profile.email}</p>
+              <p className="text-muted">{profile.phone_number}</p>
 
-            {isProfileSelf(profile.id) && (
-              <button
-                onClick={() => navigate(`/profile/edit/${id}`)}
-                className="btn btn-primary"
-              >
-                Edit Profile
-              </button>
-            )}
-
-            {roommateId && (
-              <button
-                onClick={() =>
-                  navigate(`/roommates/${profile.roommate_profile}`)
-                }
-                className="btn btn-primary"
-              >
-                See Roommate Profile
-              </button>
-            )}
-          </div>
-          <div className="listings-section">
-            <h2>Listings</h2>
-            {listings.length > 0 ? (
-              <div className="listings-grid">
-                {listings.map((listing) => (
-                  <div key={listing.id} className="listing-card">
-                    <img
-                      src={
-                        listing.pictures?.[0]?.image || "/default-listing.png"
-                      }
-                      alt={listing.title}
-                      className="listing-image"
-                    />
-                    <h3>{listing.title}</h3>
-                    <p>{listing.description}</p>
-                    <p>
-                      <strong>Price:</strong> ${listing.price}
-                    </p>
-                    <p>
-                      <strong>Location:</strong> {listing.street_address},{" "}
-                      {listing.city}, {listing.postal_code || "Not specified"}
-                    </p>
+              <div className="d-flex flex-wrap justify-content-center gap-2 mt-3">
+                {isProfileSelf(profile.id) ? (
+                  <>
                     <button
-                      className="view-more-button"
-                      onClick={() => navigate(`/listings/${listing.id}`)}
+                      onClick={() => navigate(`/listings/post`)}
+                      className="btn btn-primary"
                     >
-                      View More
+                      Create Listing
                     </button>
-                    {isProfileSelf(profile.id) && (
-                      <button
-                        className="edit-button"
-                        onClick={() => navigate(`/listings/edit/${listing.id}`)}
-                      >
-                        Edit Listing
-                      </button>
-                    )}
-                  </div>
-                ))}
+                    <button
+                      onClick={() => navigate(`/profile/edit/${id}`)}
+                      className="btn btn-outline-secondary"
+                    >
+                      Edit Profile
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => navigate(`/profile/${id}/reviews`)}
+                    className="btn btn-primary"
+                  >
+                    Write a Review
+                  </button>
+                )}
+                {roommateId && (
+                  <button
+                    onClick={() =>
+                      navigate(`/roommates/${profile.roommate_profile}`)
+                    }
+                    className="btn btn-outline-info"
+                  >
+                    See Roommate Profile
+                  </button>
+                )}
               </div>
-            ) : (
-              <p>No listings found.</p>
-            )}
+            </div>
           </div>
-          <div className="reviews-section">
-            <h2>Reviews</h2>
-            {reviews.length > 0 ? (
-              <div className="reviews-grid">
-                {reviews.map((review) => (
-                  <ReviewCard key={review.id} review={review} />
-                ))}
-              </div>
-            ) : (
-              <p>No reviews yet.</p>
-            )}
-          </div>{" "}
+
+          {/* Listings Section */}
+          <div className="card shadow-sm mb-4">
+            <div className="card-body">
+              <h5 className="mb-4 border-bottom pb-2">Listings</h5>
+              {listings.length > 0 ? (
+                <div className="row">
+                  {listings.map((listing) => (
+                    <div key={listing.id} className="col-md-6 col-lg-4 mb-4">
+                      <div className="card h-100 shadow-sm">
+                        <img
+                          src={listing.pictures?.[0]?.image || "/default-listing.png"}
+                          alt={listing.title}
+                          className="card-img-top"
+                          style={{ height: "180px", objectFit: "cover" }}
+                        />
+                        <div className="card-body d-flex flex-column">
+                          <h6 className="card-title">{listing.title}</h6>
+                          <p className="text-muted small flex-grow-1">
+                            {listing.description}
+                          </p>
+                          <p className="mb-1"><strong>Price:</strong> ${listing.price}</p>
+                          <p className="mb-2">
+                            <strong>Location:</strong> {listing.street_address}, {listing.city}, {listing.postal_code || "N/A"}
+                          </p>
+                          <div className="d-flex gap-2 mt-auto">
+                            <button
+                              className="btn btn-sm btn-outline-primary w-100"
+                              onClick={() => navigate(`/listings/${listing.id}`)}
+                            >
+                              View More
+                            </button>
+                            {isProfileSelf(profile.id) && (
+                              <button
+                                className="btn btn-sm btn-outline-secondary w-100"
+                                onClick={() =>
+                                  navigate(`/listings/edit/${listing.id}`)
+                                }
+                              >
+                                Edit
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted fst-italic">No listings found.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Reviews Section */}
+          <div className="card shadow-sm mb-4">
+            <div className="card-body">
+              <h5 className="mb-4 border-bottom pb-2">Reviews</h5>
+              {reviews.length > 0 ? (
+                <div className="row">
+                  {reviews.map((review) => (
+                    <div className="col-md-6 col-lg-4 mb-4" key={review.id}>
+                      <ReviewCard review={review} />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted fst-italic">No reviews yet.</p>
+              )}
+            </div>
+          </div>
         </>
       )}
     </div>
   );
+
 }
 
 export default Profile;
