@@ -2,14 +2,19 @@ name: Django CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - "main"
+      - "test*"
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - "main"
+      - "test*"
 
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04  # Use stable runner
+
     services:
       postgres:
         image: postgres:15
@@ -25,19 +30,14 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-    strategy:
-      max-parallel: 4
-      matrix:
-        python-version: [3.10, 3.11, 3.12]
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: "3.11"
 
     - name: Install dependencies
       run: |
@@ -47,7 +47,7 @@ jobs:
     - name: Wait for PostgreSQL
       run: |
         until pg_isready -h localhost -p 5432 -U postgres; do
-          echo "Waiting for Postgres..."
+          echo "Waiting for PostgreSQL..."
           sleep 2
         done
 
@@ -56,7 +56,7 @@ jobs:
         cd simpleRentals
         python manage.py migrate
 
-    - name: Run tests
+    - name: Run Django tests
       run: |
         cd simpleRentals
         python manage.py test
