@@ -19,7 +19,7 @@ function FormLogIn() {
     else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))
       errors.email = "Invalid email format.";
     if (!password) errors.password = "Password is required.";
-    else if (password.length < 8)
+    else if (password.length < 0)
       errors.password = "Password must be at least 8 characters.";
     return errors;
   }
@@ -75,53 +75,61 @@ function FormLogIn() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="form-container">
-      <h1>Login</h1>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <div className="mb-3">
-        <label htmlFor="email">Email</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          className="form-control"
-          placeholder="Enter your email"
-          value={email}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
-        />
-        {errMsg("email")}
-      </div>
-      <div className="mb-3">
-        <label htmlFor="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          className="form-control"
-          placeholder="Enter your password"
-          value={password}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
-        />
-        {errMsg("password")}
-      </div>
+    <div className="container py-5">
+      <div className="card mx-auto shadow" style={{ maxWidth: "600px" }}>
+        <div className="card-body">
+          <h2 className="card-title text-center mb-4">
+            Log In
+          </h2>
+          {error && <p style={{ color: "red" }}>{error}</p>}
+          <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <label htmlFor="email">Email</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                className="form-control"
+                placeholder="Enter your email"
+                value={email}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                required
+              />
+              {errMsg("email")}
+            </div>
+            <div className="mb-3">
+              <label htmlFor="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                className="form-control"
+                placeholder="Enter your password"
+                value={password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                required
+              />
+              {errMsg("password")}
+            </div>
 
-      <div>
-        <button type="submit" className="btn btn-primary">
-          Login
-        </button>
-      </div>
+            <div>
+              <button type="submit" className="btn btn-primary w-100">
+                Login
+              </button>
+            </div>
 
-      <div>
-        <Link to="/register" className="link">
-          {" "}
-          Not registered yet? Create an account here!{" "}
-        </Link>
+            <div className="text-center mt-3"> 
+              <Link to="/register" className="link">
+                {" "}
+                Not registered yet? Create an account here!{" "}
+              </Link>
+            </div>
+          </form>
+        </div>
       </div>
-    </form>
+    </div>
   );
 }
 

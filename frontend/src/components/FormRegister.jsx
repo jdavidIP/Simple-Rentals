@@ -190,7 +190,7 @@ function FormRegister({ method = "register", profile }) {
             ))}
           </ul>
 
-          <form onSubmit={handleSubmit} noValidate>
+          <form onSubmit={handleSubmit}>
             {step === 1 && (
               <>
                 <div className="mb-3">
