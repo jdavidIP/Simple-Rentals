@@ -12,8 +12,7 @@ on:
 
 jobs:
   build:
-
-    runs-on: ubuntu-22.04  # Use stable runner
+    runs-on: ubuntu-22.04 # Use stable runner
 
     services:
       postgres:
@@ -31,32 +30,47 @@ jobs:
           --health-retries 5
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.11"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r simpleRentals/requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r simpleRentals/requirements.txt
 
-    - name: Wait for PostgreSQL
-      run: |
-        until pg_isready -h localhost -p 5432 -U postgres; do
-          echo "Waiting for PostgreSQL..."
-          sleep 2
-        done
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
 
-    - name: Run Django migrations
-      run: |
-        cd simpleRentals
-        python manage.py migrate
+      - name: Run Django migrations
+        run: |
+          cd simpleRentals
+          python manage.py migrate
 
-    - name: Run Django tests
-      run: |
-        cd simpleRentals
-        python manage.py test
+      - name: Run Django tests
+        run: |
+          cd simpleRentals
+          python manage.py test
+
+      - name: Check if Django server starts
+        run: |
+          cd simpleRentals
+          # Start server in background
+          python manage.py runserver 0.0.0.0:8000 &
+          SERVER_PID=$!
+          echo "Server PID: $SERVER_PID"
+          # Give it time to start
+          sleep 5
+          # Check if home page or any endpoint responds
+          curl --fail http://127.0.0.1:8000 || (echo "Server did not respond!" && exit 1)
+          # Kill the server
+          kill $SERVER_PID
+          wait $SERVER_PID || true
