@@ -55,7 +55,7 @@ function Header() {
     .slice(0, 3);
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav className="navbar navbar-expand-lg" style={{ backgroundColor: "#0078FF66" }}>
       <div className="container">
         <a className="navbar-brand" href="/">
           {/* Simple Rentals */}
