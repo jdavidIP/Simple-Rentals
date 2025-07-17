@@ -29,36 +29,21 @@ class RoommateEditViewTests(APITestCase):
         )
         self.client.force_authenticate(user=self.user)
 
-        self.updated_data = {
-            "description": "Updated",
-            "move_in_date": self.roommate.move_in_date,
-            "stay_length": 6,
-            "occupation": "S",
-            "roommate_budget": 750,
-            "smoke_friendly": True,
-            "cannabis_friendly": True,
-            "pet_friendly": True,
-            "couple_friendly": True,
-            "gender_preference": "F",
-            "open_to_message": False
-        }
-
         self.url = reverse('edit_roommate', kwargs={'pk': self.roommate.id})
 
     def test_edit_own_roommate_profile(self):
-
-        response = self.client.put(self.url, self.updated_data)
+        response = self.client.patch(self.url, {"description": "Updated"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.roommate.refresh_from_db()
         self.assertEqual(self.roommate.description, "Updated")
 
     def test_edit_other_users_roommate_profile(self):
         self.client.force_authenticate(user=self.other_user)
-        response = self.client.put(self.url, self.updated_data)
+        response = self.client.patch(self.url, {"description": "Updated"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_edit_unauthenticated(self):
         self.client.force_authenticate(user=None)
-        response = self.client.put(self.url, self.updated_data)
+        response = self.client.patch(self.url, {"description": "Updated"})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 

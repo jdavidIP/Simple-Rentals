@@ -25,14 +25,12 @@ class TestReviewUpdateDeleteView(APITestCase):
 
     def test_update_review_by_owner(self):
         self.client.force_authenticate(user=self.reviewer)
-        data = {"reviewee": self.reviewee.id, "rating": 3, "comment": "Updated comment", "reviewee_role": "T"}
-        response = self.client.put(self.url, data)
+        response = self.client.patch(self.url, {"comment": "Updated comment"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.review.refresh_from_db()
         self.assertEqual(self.review.comment, "Updated comment")
 
     def test_update_review_unauthorized(self):
         self.client.force_authenticate(user=self.other_user)
-        data = {"rating": 1, "comment": "Hacked update", "reviewee_role": "T"}
-        response = self.client.put(self.url, data)
+        response = self.client.patch(self.url, {"rating": 3})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
