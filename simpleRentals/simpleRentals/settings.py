@@ -176,3 +176,13 @@ CORS_ALLOWS_CREDENTIALS = True
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "Cache-Control",
 ]
+
+# EMAIL
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"   # For development
+# DEFAULT_FROM_EMAIL = "noreply@simplerentals.com" <-- Uncomment and set email here for production
+
+# URL for frontend in verification links
+FRONTEND_URL = "http://localhost:5173"
+
+# STATIC ROOT FIX
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')

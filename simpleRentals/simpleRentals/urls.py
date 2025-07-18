@@ -54,7 +54,9 @@ urlpatterns = [
     path("roommates/", views.RoommateListView.as_view(), name="viewAllRoommates"),
     path("roommates/<int:pk>", views.RoommateDetailView.as_view(), name="view_roommate"), # pk = roommate id
     path("roommates/post", views.CreateRoommateView.as_view(), name="post_roommate"),
-    path("roommates/edit/<int:pk>", views.RoommateEditView.as_view(), name="edit_roommate") # pk - roommate id
+    path("roommates/edit/<int:pk>", views.RoommateEditView.as_view(), name="edit_roommate"), # pk - roommate id
+    path("resend-verification/", views.ResendVerificationEmailView.as_view(), name="resend_verification"),
+    path("verify-email/", views.VerifyEmailView.as_view(), name="verify_email")
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

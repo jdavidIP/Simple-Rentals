@@ -14,6 +14,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 from math import radians, cos, sin, asin, sqrt
+from rest_framework.views import APIView
+from django.contrib.auth import get_user_model
+from .tokens import email_verification_token
+from .utils import send_verification_email
+
 
 from .models import Listing, ListingPicture, Conversation, Message, MarketplaceUser, Review
 
@@ -29,7 +34,6 @@ class CreateUserView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
 class LogInView(generics.CreateAPIView):
-    """API view to handle user login."""
     serializer_class = UserLogInSerializer
     permission_classes = [AllowAny]
 
@@ -37,6 +41,14 @@ class LogInView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
+        
+        # BLOCK unverified emails
+        if not user.email_verified:
+            return Response(
+                {"detail": "Email not verified. Please check your inbox or resend the verification email."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
         login(request, user)
 
         # Generate tokens for the user
@@ -97,6 +109,40 @@ class LogoutView(APIView):
         except Exception as e:
             print("Error blacklisting token:", str(e))  # Debugging
             return Response({"error": "Invalid token"}, status=400)
+        
+
+User = get_user_model()
+
+class VerifyEmailView(APIView):
+    permission_classes = [permissions.AllowAny]
+    def post(self, request):
+        uid = request.data.get("uid")
+        token = request.data.get("token")
+        try:
+            user = User.objects.get(pk=uid)
+        except User.DoesNotExist:
+            return Response({"detail": "Invalid user."}, status=status.HTTP_400_BAD_REQUEST)
+        if user.email_verified:
+            return Response({"detail": "Email already verified."}, status=status.HTTP_200_OK)
+        if email_verification_token.check_token(user, token):
+            user.email_verified = True
+            user.save(update_fields=["email_verified"])
+            return Response({"detail": "Email verified successfully."}, status=status.HTTP_200_OK)
+        else:
+            return Response({"detail": "Invalid or expired token."}, status=status.HTTP_400_BAD_REQUEST)
+
+class ResendVerificationEmailView(APIView):
+    permission_classes = [permissions.AllowAny]
+    def post(self, request):
+        email = request.data.get("email")
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({"detail": "If an account with that email exists, we sent a verification email."}, status=200)
+        if user.email_verified:
+            return Response({"detail": "Email already verified."}, status=200)
+        send_verification_email(user, request)
+        return Response({"detail": "Verification email resent. Check your inbox!"}, status=200)
         
 ### USER AUTHENTICATION SECTION - END ###
 
