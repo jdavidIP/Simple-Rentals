@@ -2,6 +2,7 @@ from django.utils.timezone import now
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from .models import MarketplaceUser, Listing, ListingPicture, Group, Review, Favorites, Conversation, Message, RoommateUser, GroupInvitation
+from .utils import send_verification_email
 import os
 
 # Utility functions for image validation and saving
@@ -115,6 +116,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         validated_data.pop('password_confirmation')  # Remove password_confirmation before creating the user
         validated_data['username'] = validated_data['email']  # Set username to email
         user = MarketplaceUser.objects.create_user(**validated_data)
+        # --- Send confirmation email here! ---
+        request = self.context.get("request")
+        send_verification_email(user, request)
         return user
     
 class UserLogInSerializer(serializers.ModelSerializer):

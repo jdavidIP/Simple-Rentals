@@ -4,7 +4,7 @@ import api from "../api.js";
 import "../styles/forms.css";
 import { Link } from "react-router-dom";
 
-function FormRegister({ method = "register", profile }) {
+function FormRegister({ profile, method = "register" }) {
   const [formData, setFormData] = useState({
     email: profile?.email || "",
     password: "",
@@ -42,7 +42,6 @@ function FormRegister({ method = "register", profile }) {
 
   // --- GOOGLE PLACES AUTOCOMPLETE EFFECT ---
   useEffect(() => {
-    // Remove any existing listeners
     if (autocompleteCityRef.current) {
       window.google?.maps?.event?.clearInstanceListeners(autocompleteCityRef.current);
       autocompleteCityRef.current = null;
@@ -52,7 +51,6 @@ function FormRegister({ method = "register", profile }) {
       autocompletePreferredRef.current = null;
     }
 
-    // Attach autocomplete if Google and input refs are ready
     if (window.google && window.google.maps && window.google.maps.places) {
       const options = { types: ["(cities)"] };
 
@@ -97,7 +95,6 @@ function FormRegister({ method = "register", profile }) {
       }
     }
 
-    // Cleanup function
     return () => {
       if (autocompleteCityRef.current) {
         window.google?.maps?.event?.clearInstanceListeners(autocompleteCityRef.current);
@@ -269,7 +266,7 @@ function FormRegister({ method = "register", profile }) {
     e.preventDefault();
     setError(null);
 
-    // Validate one more time before submit
+    // Validate before submit
     const validationErrors = validateFields(formData);
     setFieldErrors(validationErrors);
     setTouched(
@@ -311,7 +308,11 @@ function FormRegister({ method = "register", profile }) {
         headers: { "Content-Type": "multipart/form-data" },
       });
       if (response.status === 200 || response.status === 201) {
-        navigate(method === "edit" ? `/profile/${response.data.id}` : "/login");
+        if (method === "edit") {
+          navigate(`/profile/${response.data.id}`);
+        } else {
+          navigate(`/verify-pending?email=${encodeURIComponent(formData.email)}`);
+        }
       }
     } catch (err) {
       if (err.response && err.response.data) {

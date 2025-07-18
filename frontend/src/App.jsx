@@ -3,7 +3,6 @@ import {
   BrowserRouter as Router,
   Route,
   Routes,
-  Navigate,
 } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -35,12 +34,16 @@ import Applications from "./pages/Applications";
 import GroupManage from "./pages/GroupManage";
 import Invitations from "./pages/Invitations";
 import ReviewsEdit from "./pages/ReviewsEdit";
+import VerifyPending from "./pages/VerifyPending";
+import VerifyEmail from "./pages/VerifyEmail";
+import AuthLayout from "./components/AuthLayout";
 
 function App() {
   return (
     <ProfileProvider>
       <Router>
         <Routes>
+          {/* Main site layout with header/footer */}
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -203,6 +206,12 @@ function App() {
               }
             />
             <Route path="*" element={<NotFound />} />
+          </Route>
+          
+          {/* Auth-only layout (no header/footer) */}
+          <Route element={<AuthLayout />}>
+            <Route path="/verify-pending" element={<VerifyPending />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
           </Route>
         </Routes>
       </Router>
