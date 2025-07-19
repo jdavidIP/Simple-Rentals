@@ -10,7 +10,8 @@ class UserAuthTests(APITestCase):
         self.user = MarketplaceUser.objects.create_user(
             username="testuser",
             email="testuser@example.com",
-            password="testpass123"
+            password="testpass123",
+            email_verified=True
         )
         self.login_url = reverse("login")
         self.register_url = reverse("register")
@@ -64,7 +65,7 @@ class UserAuthTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("terms_accepted", response.data)
 
-    def test_user_login(self):
+    def test_user_login_email_verified(self):
         data = {
             "email": "testuser@example.com",
             "password": "testpass123"
@@ -75,6 +76,22 @@ class UserAuthTests(APITestCase):
         self.assertIn("refresh", response.data)
         self.assertEqual(response.data["message"], "Login successful")
 
+    def test_user_login_email_not_verified(self):
+        self.user.email_verified = False
+        self.user.save() 
+        data = {
+            "email": "testuser@example.com",
+            "password": "testpass123"
+        }
+
+        response = self.client.post(self.login_url, data)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(
+            response.data["detail"],
+            "Email not verified. Please check your inbox or resend the verification email."
+        )
+
+
     def test_user_login_invalid_password(self):
         data = {
             "email": "testuser@example.com",
@@ -82,4 +99,4 @@ class UserAuthTests(APITestCase):
         }
         response = self.client.post(self.login_url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("non_field_errors", response.data)  # or check exact error key based on your serializer's raise
+        self.assertIn("non_field_errors", response.data)
