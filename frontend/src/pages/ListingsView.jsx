@@ -87,8 +87,8 @@ function ListingsView() {
     } catch (err) {
       setError(
         err?.response?.data?.detail ||
-          err?.response?.data?.error ||
-          "Failed to start conversation."
+        err?.response?.data?.error ||
+        "Failed to start conversation."
       );
     }
   };
@@ -105,91 +105,47 @@ function ListingsView() {
     return { icon: "✅", label: "Recommended" };
   };
 
+  
   return error ? (
     <div className="alert alert-danger">{error}</div>
   ) : loading ? (
-    <div className="loading">Loading...</div>
+    <div className="d-flex justify-content-center py-5">
+      <div className="spinner-border text-primary" role="status"></div>
+    </div>
   ) : (
-    <div>
-      <div className="container my-5 p-4 bg-white rounded shadow">
-        {/* Header */}
-        <div className="mb-4">
-          <h1 className="mb-2">
+    <div className="container my-5">
+
+      {/* Block 1: Basic Info */}
+      <div className="card mb-4 shadow-sm">
+        <div className="card-body">
+          <h4 className="fw-bold mb-1">
             {listing.property_type} for Rent in {listing.city}
-          </h1>
-          <h5 className="text-muted">
+          </h4>
+          <p className="text-muted mb-2">
             {listing.unit_number && `${listing.unit_number}, `}
             {listing.street_address}, {listing.city}, {listing.postal_code}
-          </h5>
-          <h3 className="text-primary fw-bold mt-2">
-            ${listing.price} / month
-          </h3>
+          </p>
+          <h5 className="text-primary fw-bold mb-2">${listing.price} / month</h5>
           {userIncome &&
             (() => {
               const affordability = getAffordability();
               return affordability ? (
-                <div className="mt-1">
-                  <span className="fw-semibold">
-                    {affordability.icon} {affordability.label}
-                  </span>
+                <div className="alert alert-info py-2 px-3 d-inline-flex align-items-center mb-0">
+                  {affordability.icon}
+                  <span className="ms-2">{affordability.label}</span>
                 </div>
               ) : null;
             })()}
-          {error && <p className="text-danger fw-semibold">{error}</p>}
         </div>
+      </div>
 
-        {/* Owner Info */}
-        <div className="mb-4">
-          <h5 className="border-bottom pb-2">Owner Information</h5>
-          <div className="d-flex align-items-center gap-3 mt-3">
-            <img
-              src={owner.profile_picture}
-              alt="Profile"
-              className="rounded-circle"
-              style={{
-                width: "10rem",
-                height: "10rem",
-                objectFit: "cover",
-                outline: "0.5px solid #000",
-              }}
-            />
-            <div>
-              <p className="mb-3 fw-bold">
-                <Link to={`/profile/${owner.id}`}>
-                  {owner.first_name} {owner.last_name}
-                </Link>
-              </p>
-              {isProfileSelf(owner.id) ? (
-                <button
-                  className="btn btn-primary mt-3"
-                  onClick={() => navigate(`/conversations`)}
-                >
-                  See Conversations
-                </button>
-              ) : (
-                <button
-                  className="btn btn-primary mt-3"
-                  onClick={() => handleStartConversation(listing.id)}
-                >
-                  Contact Owner
-                </button>
-              )}
-              <button
-                className="btn btn-primary mt-3"
-                onClick={() => navigate(`/listings/${listing.id}/groups`)}
-              >
-                See Groups
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Photos */}
-        <div className="mb-4">
+      {/* Block 2: Photo Carousel */}
+      <div className="card mb-4 shadow-sm">
+        <div className="card-body">
           <h5 className="border-bottom pb-2">Photos</h5>
           {listing.pictures.length > 0 ? (
             <div
-              id="carouselExampleIndicators"
+              id="carouselPhotos"
               className="carousel slide mt-3"
               data-bs-ride="carousel"
             >
@@ -203,6 +159,7 @@ function ListingsView() {
                       src={picture.image}
                       className="d-block w-100"
                       alt={`Slide ${index + 1}`}
+                      style={{ maxHeight: "400px", objectFit: "cover" }}
                     />
                   </div>
                 ))}
@@ -210,7 +167,7 @@ function ListingsView() {
               <button
                 className="carousel-control-prev"
                 type="button"
-                data-bs-target="#carouselExampleIndicators"
+                data-bs-target="#carouselPhotos"
                 data-bs-slide="prev"
               >
                 <span
@@ -222,7 +179,7 @@ function ListingsView() {
               <button
                 className="carousel-control-next"
                 type="button"
-                data-bs-target="#carouselExampleIndicators"
+                data-bs-target="#carouselPhotos"
                 data-bs-slide="next"
               >
                 <span
@@ -233,113 +190,174 @@ function ListingsView() {
               </button>
             </div>
           ) : (
-            <p className="fst-italic text-muted">
+            <p className="fst-italic text-muted mt-2">
               No photos available for this listing.
             </p>
           )}
         </div>
+      </div>
 
-        {/* Property Details */}
-        <div className="mb-4">
-          <h2 className="h5 border-bottom pb-2">Property Details</h2>
-          <div className="row mt-3">
-            <div className="col-md-4 mb-2">
-              <p>
-                <strong>Bedrooms:</strong> {listing.bedrooms}
-              </p>
-              <p>
-                <strong>Bathrooms:</strong> {listing.bathrooms}
-              </p>
-              <p>
-                <strong>Square Feet:</strong> {listing.sqft_area}
-              </p>
-              <p>
-                <strong>Parking Spaces:</strong> {listing.parking_spaces}
-              </p>
-            </div>
-            <div className="col-md-4 mb-2">
-              <p>
-                <strong>AC:</strong> {listing.ac ? "Yes" : "No"}
-              </p>
-              <p>
-                <strong>Heating:</strong> {listing.heating ? "Yes" : "No"}
-              </p>
-              <p>
-                <strong>Laundry:</strong> {listing.laundry_type}
-              </p>
-              <p>
-                <strong>Pet Friendly:</strong>{" "}
-                {listing.pet_friendly ? "Yes" : "No"}
-              </p>
-            </div>
-            <div className="col-md-4 mb-2">
-              <p>
-                <strong>Roommates:</strong> {listing.shareable ? "Yes" : "No"}
-              </p>
-              <p>
-                <strong>Payment Type:</strong> {listing.payment_type}
-              </p>
-              <p>
-                <strong>Verification:</strong> {listing.verification_status}
-              </p>
-              <p>
-                <strong>Move-in Date:</strong> {listing.move_in_date}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Description & Amenities */}
-        <div className="mb-4">
-          <h2 className="h5 border-bottom pb-2">Description</h2>
-          <h6 className="mt-3">Space Details</h6>
-          <p>{listing.description}</p>
-          <h6 className="mt-3">Extra Amenities</h6>
-          <p>{listing.extra_amenities}</p>
-        </div>
-
-        {/* Financial Info */}
-        <div className="mb-4">
-          <h5 className="border-bottom pb-2">Financial Details</h5>
-          <ul className="list-unstyled mt-3">
-            <li>
-              <strong>Utilities:</strong> ${listing.utilities_cost} (
-              {listing.utilities_payable_by_tenant
-                ? "Paid by Tenant"
-                : "Included"}
-              )
-            </li>
-            <li>
-              <strong>Property Taxes:</strong> ${listing.property_taxes} (
-              {listing.property_taxes_payable_by_tenant
-                ? "Paid by Tenant"
-                : "Included"}
-              )
-            </li>
-            <li>
-              <strong>Condo Fee:</strong> ${listing.condo_fee} (
-              {listing.condo_fee_payable_by_tenant
-                ? "Paid by Tenant"
-                : "Included"}
-              )
-            </li>
-            <li>
-              <strong>HOA Fee:</strong> ${listing.hoa_fee} (
-              {listing.hoa_fee_payable_by_tenant
-                ? "Paid by Tenant"
-                : "Included"}
-              )
-            </li>
-            <li>
-              <strong>Security Deposit:</strong> ${listing.security_deposit} (
-              {listing.security_deposit_payable_by_tenant
-                ? "Paid by Tenant"
-                : "Included"}
-              )
-            </li>
-          </ul>
+      {/* Block 3: Description */}
+      <div className="card mb-4 shadow-sm">
+        <div className="card-body">
+          <h5 className="border-bottom pb-2">Description</h5>
+          <p className="mt-3"><strong>Space Details:</strong> {listing.description}</p>
+          <p className="mt-3"><strong>Extra Amenities:</strong> {listing.extra_amenities}</p>
         </div>
       </div>
+
+      {/* Block 4: Expandable Details */}
+      <div className="card mb-4 shadow-sm">
+        <div className="card-body">
+          <div className="accordion" id="detailsAccordion">
+
+            {/* Property Details */}
+            <div className="accordion-item">
+              <h2 className="accordion-header" id="headingProperty">
+                <button
+                  className="accordion-button"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseProperty"
+                  aria-expanded="true"
+                  aria-controls="collapseProperty"
+                >
+                  Property Details
+                </button>
+              </h2>
+              <div
+                id="collapseProperty"
+                className="accordion-collapse collapse show"
+                aria-labelledby="headingProperty"
+                data-bs-parent="#detailsAccordion"
+              >
+                <div className="accordion-body">
+                  <div className="row">
+                    <div className="col-md-4 mb-2">
+                      <p><strong>Bedrooms:</strong> {listing.bedrooms}</p>
+                      <p><strong>Bathrooms:</strong> {listing.bathrooms}</p>
+                      <p><strong>Square Feet:</strong> {listing.sqft_area}</p>
+                      <p><strong>Parking Spaces:</strong> {listing.parking_spaces}</p>
+                    </div>
+                    <div className="col-md-4 mb-2">
+                      <p><strong>AC:</strong> {listing.ac ? "Yes" : "No"}</p>
+                      <p><strong>Heating:</strong> {listing.heating ? "Yes" : "No"}</p>
+                      <p><strong>Laundry:</strong> {listing.laundry_type}</p>
+                      <p><strong>Pet Friendly:</strong> {listing.pet_friendly ? "Yes" : "No"}</p>
+                    </div>
+                    <div className="col-md-4 mb-2">
+                      <p><strong>Roommates:</strong> {listing.shareable ? "Yes" : "No"}</p>
+                      <p><strong>Payment Type:</strong> {listing.payment_type}</p>
+                      <p><strong>Verification:</strong> {listing.verification_status}</p>
+                      <p><strong>Move-in Date:</strong> {listing.move_in_date}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Financial Info */}
+            <div className="accordion-item">
+              <h2 className="accordion-header" id="headingFinancial">
+                <button
+                  className="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseFinancial"
+                  aria-expanded="false"
+                  aria-controls="collapseFinancial"
+                >
+                  Financial Details
+                </button>
+              </h2>
+              <div
+                id="collapseFinancial"
+                className="accordion-collapse collapse"
+                aria-labelledby="headingFinancial"
+                data-bs-parent="#detailsAccordion"
+              >
+                <div className="accordion-body">
+                  <ul className="list-unstyled">
+                    <li><strong>Utilities:</strong> ${listing.utilities_cost} ({listing.utilities_payable_by_tenant ? "Tenant" : "Included"})</li>
+                    <li><strong>Property Taxes:</strong> ${listing.property_taxes} ({listing.property_taxes_payable_by_tenant ? "Tenant" : "Included"})</li>
+                    <li><strong>Condo Fee:</strong> ${listing.condo_fee} ({listing.condo_fee_payable_by_tenant ? "Tenant" : "Included"})</li>
+                    <li><strong>HOA Fee:</strong> ${listing.hoa_fee} ({listing.hoa_fee_payable_by_tenant ? "Tenant" : "Included"})</li>
+                    <li><strong>Security Deposit:</strong> ${listing.security_deposit} ({listing.security_deposit_payable_by_tenant ? "Tenant" : "Included"})</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Owner Info */}
+            <div className="accordion-item">
+              <h2 className="accordion-header" id="headingOwner">
+                <button
+                  className="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseOwner"
+                  aria-expanded="false"
+                  aria-controls="collapseOwner"
+                >
+                  Owner Information
+                </button>
+              </h2>
+              <div
+                id="collapseOwner"
+                className="accordion-collapse collapse"
+                aria-labelledby="headingOwner"
+                data-bs-parent="#detailsAccordion"
+              >
+                <div className="accordion-body">
+                  <div className="d-flex align-items-center gap-3 mt-2">
+                    <img
+                      src={owner.profile_picture}
+                      alt="Profile"
+                      className="rounded-circle"
+                      style={{
+                        width: "80px",
+                        height: "80px",
+                        objectFit: "cover",
+                        outline: "1px solid #ccc",
+                      }}
+                    />
+                    <div>
+                      <p className="mb-2 fw-bold">
+                        <Link to={`/profile/${owner.id}`}>
+                          {owner.first_name} {owner.last_name}
+                        </Link>
+                      </p>
+                      {isProfileSelf(owner.id) ? (
+                        <button
+                          className="btn btn-outline-primary btn-sm me-2"
+                          onClick={() => navigate(`/conversations`)}
+                        >
+                          See Conversations
+                        </button>
+                      ) : (
+                        <button
+                          className="btn btn-outline-primary btn-sm me-2"
+                          onClick={() => handleStartConversation(listing.id)}
+                        >
+                          Contact Owner
+                        </button>
+                      )}
+                      <button
+                        className="btn btn-outline-secondary btn-sm"
+                        onClick={() => navigate(`/listings/${listing.id}/groups`)}
+                      >
+                        See Groups
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }

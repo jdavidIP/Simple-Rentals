@@ -17,40 +17,54 @@ function ReviewCard({ review }) {
       : review.comment;
 
   return (
-    <div key={review.id} className="review-card">
-      <p>
-        <strong>
-          {review.reviewer
-            ? `${review.reviewer.first_name} ${review.reviewer.last_name}`
-            : "Anonymous"}
-        </strong>{" "}
-        - Rating: {review.rating}/5
-      </p>
+    <div
+      key={review.id}
+      className="card my-3 shadow-sm"
+      style={{ borderRadius: "10px" }}
+    >
+      <div className="card-body">
+        {/* Reviewer Info */}
+        <div className="d-flex align-items-center mb-2">
+          <div
+            className="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-3"
+            style={{ width: "40px", height: "40px", fontSize: "0.9rem", fontWeight: "bold" }}
+          >
+            {review.reviewer
+              ? review.reviewer.first_name.charAt(0) + review.reviewer.last_name.charAt(0)
+              : "A"}
+          </div>
+          <div>
+            <h6 className="mb-0">
+              {review.reviewer
+                ? `${review.reviewer.first_name} ${review.reviewer.last_name}`
+                : "Anonymous"}
+            </h6>
+            <small className="text-muted">Rating: {review.rating}/5</small>
+          </div>
+        </div>
 
-      <p>{displayComment}</p>
-      {review.comment.length > maxPreviewLength && (
-        <button
-          className="btn btn-link p-0"
-          onClick={toggleExpanded}
-          style={{ fontSize: "0.9rem" }}
-        >
-          {expanded ? "View Less" : "View More"}
-        </button>
-      )}
+        {/* Comment */}
+        <p className="mb-3" style={{ lineHeight: "1.4" }}>
+          {review.comment}
+        </p>
 
-      <p>
-        <em>Reviewed as: {review.reviewee_role_display}</em>
-      </p>
+        {/* Metadata */}
+        <p className="text-muted mb-2">
+          <em>Reviewed as: {review.reviewee_role_display}</em>
+        </p>
 
-      {isProfileSelf(review.reviewer.id) && (
-        <button
-          className="edit-button"
-          onClick={() => navigate(`/reviews/edit/${review.id}`)}
-        >
-          Edit Review
-        </button>
-      )}
+        {/* Edit Button */}
+        {review.reviewer && isProfileSelf(review.reviewer.id) && (
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => navigate(`/reviews/edit/${review.id}`)}
+          >
+            Edit Review
+          </button>
+        )}
+      </div>
     </div>
+
   );
 }
 

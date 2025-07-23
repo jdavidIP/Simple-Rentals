@@ -64,7 +64,8 @@ function ListingCard({ listing, income }) {
   return (
     <div
       key={listing.id}
-      className="card col-3 m-4 shadow-sm position-relative"
+      className="card col-12 col-sm-6 col-md-4 col-lg-3 m-3 shadow-sm position-relative"
+      style={{ minHeight: "100%" }}
     >
       {/* Affordability Tag */}
       {income &&
@@ -79,9 +80,9 @@ function ListingCard({ listing, income }) {
                 backgroundColor: tag.color,
                 color: "white",
                 padding: "5px 10px",
-                borderRadius: "10px",
+                borderRadius: "12px",
                 fontWeight: "bold",
-                fontSize: "0.8rem",
+                fontSize: "0.75rem",
                 zIndex: 10,
               }}
             >
@@ -89,54 +90,51 @@ function ListingCard({ listing, income }) {
             </div>
           ) : null;
         })()}
-
+  
       {/* Image */}
-      {listing.primary_image ? (
-        <img
-          src={listing.primary_image.image}
-          alt="Listing"
-          className="card-img-top border-2 border-bottom my-1"
-          style={{ maxHeight: "20rem", objectFit: "cover" }}
-        />
-      ) : (
-        <img
-          src="/static/img/placeholder.jpg"
-          alt="No Image Available"
-          className="card-img-top my-1"
-          style={{ maxHeight: "20rem", objectFit: "cover" }}
-        />
-      )}
-
-      {/* Body */}
-      <div className="card-body">
-        <h5 className="card-title mb-2">
-          {listing.bedrooms} bedroom {listing.property_type} in {listing.city}
-        </h5>
-
-        <h6 className="text-primary fw-semibold mb-3">${listing.price}</h6>
-
-        <p className="mb-3">
-          <strong>Move-in:</strong> {listing.move_in_date}
-        </p>
-
-        <div className="d-flex justify-content-evenly">
+      <img
+        src={listing.primary_image ? listing.primary_image.image : "/static/img/placeholder.jpg"}
+        alt="Listing"
+        className="card-img-top border-bottom mt-2"
+        style={{ objectFit: "cover", aspectRatio: "4/3" }}
+      />
+  
+      {/* Card Body */}
+      <div className="card-body d-flex flex-column justify-content-between">
+        <div>
+          <h5 className="card-title mb-1 text-capitalize">
+            {listing.bedrooms} bedroom {listing.property_type}
+          </h5>
+          <p className="text-muted mb-2">{listing.city}</p>
+  
+          <h6 className="text-primary fw-bold display-6 mb-3" style={{ fontSize: "1.25rem" }}>
+            ${listing.price.toLocaleString()}
+          </h6>
+  
+          <p className="mb-3">
+            <strong>Move-in:</strong> {listing.move_in_date}
+          </p>
+        </div>
+  
+        {/* Buttons */}
+        <div className="d-flex flex-wrap gap-2 mt-auto">
           <button
-            className="btn btn-outline-primary"
+            className="btn btn-outline-primary flex-fill"
             onClick={() => navigate(`/listings/${listing.id}`)}
           >
             View Details
           </button>
-
+  
           {isProfileSelf(listing.owner.id) ? (
             <button
-              className="edit-button"
+              className="btn btn-outline-warning flex-fill"
               onClick={() => navigate(`/listings/edit/${listing.id}`)}
             >
               Edit Listing
             </button>
           ) : (
             <button
-              className="btn btn-outline-success"
+              className="btn btn-outline-success flex-fill"
               onClick={() => handleStartConversation(listing.id)}
             >
               Contact Owner
@@ -145,7 +143,7 @@ function ListingCard({ listing, income }) {
         </div>
       </div>
     </div>
-  );
+  );  
 }
 
 export default ListingCard;
