@@ -1,9 +1,20 @@
+import { useState } from "react";
 import { useProfileContext } from "../contexts/ProfileContext";
 import { useNavigate } from "react-router-dom";
 
 function ReviewCard({ review }) {
   const { isProfileSelf } = useProfileContext();
   const navigate = useNavigate();
+  const [expanded, setExpanded] = useState(false);
+
+  const toggleExpanded = () => setExpanded((prev) => !prev);
+
+  const maxPreviewLength = 200; // Show first 200 chars
+
+  const displayComment =
+    review.comment.length > maxPreviewLength && !expanded
+      ? review.comment.slice(0, maxPreviewLength) + "..."
+      : review.comment;
 
   return (
     <div

@@ -48,13 +48,15 @@ urlpatterns = [
     path("applications/management", views.ApplicationManagementListView.as_view(), name="manage_applications"),
     path("profile/reviews", views.ReviewListView.as_view(), name="view_reviews"),
     path("profile/reviews/<int:pk>", views.ReviewPosting.as_view(), name="post_review"), # pk = reviewee id
-    path("reviews/<int:pk>", views.ReviewDetailView.as_view(), name="view_review"),
+    path("reviews/<int:pk>", views.ReviewDetailView.as_view(), name="view_review"),# pk = review id
     path("profile/me", views.CurrentUserView.as_view(), name="profile_self"),
     path("reviews/manage/<int:pk>", views.ReviewUpdateDeleteView.as_view(), name="manage_review"), # pk = review id
     path("roommates/", views.RoommateListView.as_view(), name="viewAllRoommates"),
     path("roommates/<int:pk>", views.RoommateDetailView.as_view(), name="view_roommate"), # pk = roommate id
     path("roommates/post", views.CreateRoommateView.as_view(), name="post_roommate"),
-    path("roommates/edit/<int:pk>", views.RoommateEditView.as_view(), name="edit_roommate") # pk - roommate id
+    path("roommates/edit/<int:pk>", views.RoommateEditView.as_view(), name="edit_roommate"), # pk - roommate id
+    path("resend-verification/", views.ResendVerificationEmailView.as_view(), name="resend_verification"),
+    path("verify-email/", views.VerifyEmailView.as_view(), name="verify_email")
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -11,6 +11,7 @@ function Profile() {
   const [profile, setProfile] = useState(null);
   const [listings, setListings] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [averageRating, setAverageRating] = useState(null);
   const [error, setError] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [loadingReviews, setLoadingReviews] = useState(true);
@@ -74,6 +75,7 @@ function Profile() {
         params: { reviewee: id }, // Fetch reviews by reviewee ID
       });
       setReviews(response.data);
+      calculateAverageRating(response.data);
     } catch (err) {
       console.error("Error fetching reviews:", err);
       setError("Failed to fetch reviews.");
@@ -81,6 +83,12 @@ function Profile() {
     } finally {
       setLoadingReviews(false);
     }
+  };
+
+  const calculateAverageRating = (reviews) => {
+    if (!reviews.length) return null;
+    const total = reviews.reduce((acc, review) => acc + review.rating, 0);
+    setAverageRating((total / reviews.length).toFixed(1));
   };
 
   useEffect(() => {
@@ -110,6 +118,7 @@ function Profile() {
               <h4 className="fw-bold">{`${profile.first_name} ${profile.last_name}`}</h4>
               <p className="text-muted mb-1">{profile.email}</p>
               <p className="text-muted">{profile.phone_number}</p>
+
 
               <div className="d-flex flex-wrap justify-content-center gap-2 mt-3">
                 {isProfileSelf(profile.id) ? (

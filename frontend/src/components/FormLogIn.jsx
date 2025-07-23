@@ -70,7 +70,18 @@ function FormLogIn() {
       window.dispatchEvent(new Event("user-logged-in"));
       navigate("/listings");
     } catch (err) {
-      setError("Login failed. Please check your credentials.");
+      // Check if backend says "email not verified"
+      if (
+        err.response &&
+        err.response.data &&
+        typeof err.response.data.detail === "string" &&
+        err.response.data.detail.toLowerCase().includes("not verified")
+      ) {
+        // Go to the verify-pending page with email as a query param
+        navigate(`/verify-pending?email=${encodeURIComponent(email)}`);
+      } else {
+        setError("Login failed. Please check your credentials.");
+      }
     }
   };
 

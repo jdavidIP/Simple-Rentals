@@ -6,7 +6,6 @@ import "../styles/forms.css";
 function FormRegister({ method = "register", profile }) {
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
-
   const [formData, setFormData] = useState({
     email: profile?.email || "",
     password: "",
@@ -40,7 +39,6 @@ function FormRegister({ method = "register", profile }) {
 
   // --- GOOGLE PLACES AUTOCOMPLETE EFFECT ---
   useEffect(() => {
-    // Remove any existing listeners
     if (autocompleteCityRef.current) {
       window.google?.maps?.event?.clearInstanceListeners(autocompleteCityRef.current);
       autocompleteCityRef.current = null;
@@ -50,7 +48,6 @@ function FormRegister({ method = "register", profile }) {
       autocompletePreferredRef.current = null;
     }
 
-    // Attach autocomplete if Google and input refs are ready
     if (window.google && window.google.maps && window.google.maps.places) {
       const options = { types: ["(cities)"] };
 
@@ -95,7 +92,6 @@ function FormRegister({ method = "register", profile }) {
       }
     }
 
-    // Cleanup function
     return () => {
       if (autocompleteCityRef.current) {
         window.google?.maps?.event?.clearInstanceListeners(autocompleteCityRef.current);
