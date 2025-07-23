@@ -262,6 +262,13 @@ function Header() {
                 </div>
               )}
             </li>
+            <li className="nav-item">
+              {profile ? (
+                <a href="/logout" className="nav-link">Logout</a>
+              ) : (
+                <a href="/login" className="nav-link">Login</a>
+              )}
+            </li>
           </ul>
         </div>
       </div>
