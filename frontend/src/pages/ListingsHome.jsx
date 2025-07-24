@@ -98,15 +98,14 @@ function ListingsHome() {
   return (
     <div>
       <div
-        className="d-flex align-items-center justify-content-center min-vh-100"
+        className="d-flex align-items-center justify-content-center vh-100"
         style={{
           background: "linear-gradient(to right, #f8f9fa, #e9ecef)",
-          padding: "20px",
         }}
       >
         <div
           className="card shadow p-4"
-          style={{ maxWidth: "40rem", width: "100%" }}
+          style={{ maxWidth: "40rem", width: "100%", marginTop: "-7.5rem" }}
         >
           <div className="card-body">
             <h2 className="card-title text-center mb-4">
