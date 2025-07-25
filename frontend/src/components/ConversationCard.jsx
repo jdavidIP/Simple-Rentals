@@ -1,6 +1,6 @@
 import { useProfileContext } from "../contexts/ProfileContext";
 import { useNavigate } from "react-router-dom";
-import "../styles/Chat.css";
+import "../styles/chat.css";
 import api from "../api";
 
 function ConversationCard({ conv, onUpdate }) {

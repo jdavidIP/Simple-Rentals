@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import api from "../api";
-import "../styles/Chat.css";
+import "../styles/chat.css";
 import { useProfileContext } from "../contexts/ProfileContext";
 
 function ConversationWindow() {

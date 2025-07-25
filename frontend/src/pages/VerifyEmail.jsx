@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import "../styles/Verify.css";
+import "../styles/verify.css";
 import api from "../api.js";
 
 function VerifyEmail() {
