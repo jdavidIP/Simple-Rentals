@@ -1,0 +1,35 @@
+name: Vitest CI
+
+on:
+  push:
+    branches:
+      - "main"
+      - "test*"
+  pull_request:
+    branches:
+      - "main"
+      - "test*"
+
+jobs:
+  vitest:
+    name: Run Vitest Tests
+    runs-on: ubuntu-22.04
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Vitest tests
+        run: npx vitest run
