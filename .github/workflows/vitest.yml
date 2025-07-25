@@ -32,4 +32,4 @@ jobs:
         run: npm ci
 
       - name: Run Vitest tests
-        run: npx vitest run
+        run: npm test
