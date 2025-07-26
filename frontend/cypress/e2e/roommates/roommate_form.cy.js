@@ -53,10 +53,15 @@ describe("Roommate Form E2E", () => {
     cy.get('input[name="email"]').type("test2@example.com");
     cy.get('input[name="password"]').type("securepassword");
     cy.get('button[type="submit"]').click();
+    cy.url().should("include", "/listings");
+    cy.window().then((win) => {
+      expect(win.localStorage.getItem("access")).to.exist;
+      expect(win.localStorage.getItem("refresh")).to.exist;
+    });
     cy.wait(2000);
 
     cy.visit("/roommates/edit/6");
-    cy.intercept("PATCH", "/roommates/edit/5").as("editRoommate");
+    cy.intercept("PATCH", "/roommates/edit/6").as("editRoommate");
 
     cy.get("textarea[name='description']")
       .clear()

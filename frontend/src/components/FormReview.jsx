@@ -11,7 +11,7 @@ function FormReview({ method, review }) {
   const [rating, setRating] = useState(review?.rating || 5);
   const [comment, setComment] = useState(review?.comment || "");
   const [revieweeRole, setRevieweeRole] = useState(
-    review?.reviewee_role || "T"
+    review?.reviewee_role[0] || "T"
   );
   const [errors, setErrors] = useState([]);
   const [fieldErrors, setFieldErrors] = useState({});
