@@ -23,3 +23,25 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+Cypress.Commands.add("loginViaApi", () => {
+  cy.request({
+    method: "POST",
+    url: "http://localhost:8000/login/", // Or your login API
+    form: true,
+    body: {
+      email: "test@example.com",
+      username: "test",
+      password: "securepassword",
+    },
+  }).then((resp) => {
+    // Grab the session cookie from response and set it manually
+    const cookies = resp.headers["set-cookie"];
+    if (cookies) {
+      cookies.forEach((cookie) => {
+        const [nameValue] = cookie.split(";");
+        const [name, value] = nameValue.split("=");
+        cy.setCookie(name.trim(), value.trim());
+      });
+    }
+  });
+});
