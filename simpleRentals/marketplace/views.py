@@ -516,12 +516,19 @@ class RoommateListView(generics.ListAPIView):
         user = self.request.user
         if user.is_authenticated:
             queryset = queryset.exclude(user=user)
-
         if name:
-            queryset = queryset.filter(
-                Q(user__first_name__icontains=name) |
-                Q(user__last_name__icontains=name)
-            )
+            name_parts = name.strip().split()
+            if len(name_parts) == 1:
+                queryset = queryset.filter(
+                    Q(user__first_name__icontains=name_parts[0]) |
+                    Q(user__last_name__icontains=name_parts[0])
+                )
+            elif len(name_parts) >= 2:
+                first, last = name_parts[0], name_parts[1]
+                queryset = queryset.filter(
+                    Q(user__first_name__icontains=first, user__last_name__icontains=last) |
+                    Q(user__first_name__icontains=last, user__last_name__icontains=first)  # Just in case
+                )
         if gender_preference:
             queryset = queryset.filter(gender_preference=gender_preference)
         if pet_friendly is not None:
