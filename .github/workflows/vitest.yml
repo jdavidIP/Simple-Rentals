@@ -5,6 +5,10 @@ on:
     branches:
       - "main"
       - "test*"
+  pull_request:
+    branches:
+      - "main"
+      - "test*"
 
 jobs:
   vitest:
