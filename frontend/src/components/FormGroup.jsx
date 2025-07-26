@@ -12,7 +12,7 @@ function FormGroup({ method, group }) {
     description: group?.description || "",
     move_in_date: group?.move_in_date || "",
     move_in_ready: group?.move_in_ready || false,
-    group_status: group?.group_status || "O",
+    group_status: group?.group_status[0] || "O",
     member_ids: group?.members ? group.members.map((m) => m.id) : [],
   });
   const [searchName, setSearchName] = useState("");
@@ -40,8 +40,7 @@ function FormGroup({ method, group }) {
     const errors = {};
     if (!data.name || data.name.trim().length < 2)
       errors.name = "Group name must be at least 2 characters.";
-    if (!data.move_in_date)
-      errors.move_in_date = "Move-in date is required.";
+    if (!data.move_in_date) errors.move_in_date = "Move-in date is required.";
     if (data.description && data.description.length > 400)
       errors.description = "Description cannot exceed 400 characters.";
     return errors;
@@ -122,7 +121,8 @@ function FormGroup({ method, group }) {
     setFieldErrors(validationErrors);
     setTouched(Object.fromEntries(Object.keys(formData).map((k) => [k, true])));
     if (Object.keys(validationErrors).length > 0) {
-      if (errorRef.current) errorRef.current.scrollIntoView({ behavior: "smooth" });
+      if (errorRef.current)
+        errorRef.current.scrollIntoView({ behavior: "smooth" });
       return;
     }
 

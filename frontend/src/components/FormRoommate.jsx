@@ -14,7 +14,7 @@ function FormRoommate({ method = "post", roommate }) {
     cannabis_friendly: roommate?.cannabis_friendly ?? false,
     pet_friendly: roommate?.pet_friendly ?? false,
     couple_friendly: roommate?.couple_friendly ?? false,
-    gender_preference: roommate?.gender_preference || "O",
+    gender_preference: roommate?.gender_preference[0] || "O",
     open_to_message: roommate?.open_to_message ?? true,
   });
   const [error, setError] = useState(null);
@@ -26,8 +26,7 @@ function FormRoommate({ method = "post", roommate }) {
     const errors = {};
     if (!data.description || data.description.length < 15)
       errors.description = "Description should be at least 15 characters.";
-    if (!data.move_in_date)
-      errors.move_in_date = "Move-in date is required.";
+    if (!data.move_in_date) errors.move_in_date = "Move-in date is required.";
     if (!data.stay_length || Number(data.stay_length) < 1)
       errors.stay_length = "Stay length must be at least 1 month.";
     if (!["S", "E", "N"].includes(data.occupation))
@@ -68,7 +67,9 @@ function FormRoommate({ method = "post", roommate }) {
     // Validate all before submit
     const validationErrors = validateFields(formData);
     setFieldErrors(validationErrors);
-    setTouched(Object.keys(formData).reduce((obj, k) => ({ ...obj, [k]: true }), {}));
+    setTouched(
+      Object.keys(formData).reduce((obj, k) => ({ ...obj, [k]: true }), {})
+    );
     if (Object.keys(validationErrors).length > 0) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
@@ -77,8 +78,11 @@ function FormRoommate({ method = "post", roommate }) {
     const cleanFormData = {
       ...formData,
       roommate_budget:
-        formData.roommate_budget === "" ? null : Number(formData.roommate_budget),
-      stay_length: formData.stay_length === "" ? null : Number(formData.stay_length),
+        formData.roommate_budget === ""
+          ? null
+          : Number(formData.roommate_budget),
+      stay_length:
+        formData.stay_length === "" ? null : Number(formData.stay_length),
     };
 
     try {
