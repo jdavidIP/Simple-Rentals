@@ -53,7 +53,7 @@ describe("ProfileEdit Page", () => {
     render(<ProfileEdit />, { wrapper: MemoryRouter });
 
     await waitFor(() => {
-      expect(screen.getByText("Mocked FormRegister")).toBeInTheDocument();
+      expect(screen.getByText("Mocked FormEdit")).toBeInTheDocument();
     });
   });
 
