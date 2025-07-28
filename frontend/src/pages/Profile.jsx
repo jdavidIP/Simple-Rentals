@@ -119,7 +119,6 @@ function Profile() {
               <p className="text-muted mb-1">{profile.email}</p>
               <p className="text-muted">{profile.phone_number}</p>
 
-
               <div className="d-flex flex-wrap justify-content-center gap-2 mt-3">
                 {isProfileSelf(profile.id) ? (
                   <>
@@ -144,7 +143,7 @@ function Profile() {
                     Write a Review
                   </button>
                 )}
-                {roommateId && (
+                {roommateId ? (
                   <button
                     onClick={() =>
                       navigate(`/roommates/${profile.roommate_profile}`)
@@ -152,6 +151,13 @@ function Profile() {
                     className="btn btn-outline-info"
                   >
                     See Roommate Profile
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => navigate("/roommates/post")}
+                    className="btn btn-outline-info"
+                  >
+                    Create a Roommate Profile
                   </button>
                 )}
               </div>
@@ -168,7 +174,10 @@ function Profile() {
                     <div key={listing.id} className="col-md-6 col-lg-4 mb-4">
                       <div className="card h-100 shadow-sm">
                         <img
-                          src={listing.pictures?.[0]?.image || "/default-listing.png"}
+                          src={
+                            listing.pictures?.[0]?.image ||
+                            "/default-listing.png"
+                          }
                           alt={listing.title}
                           className="card-img-top"
                           style={{ height: "180px", objectFit: "cover" }}
@@ -178,14 +187,19 @@ function Profile() {
                           <p className="text-muted small flex-grow-1">
                             {listing.description}
                           </p>
-                          <p className="mb-1"><strong>Price:</strong> ${listing.price}</p>
+                          <p className="mb-1">
+                            <strong>Price:</strong> ${listing.price}
+                          </p>
                           <p className="mb-2">
-                            <strong>Location:</strong> {listing.street_address}, {listing.city}, {listing.postal_code || "N/A"}
+                            <strong>Location:</strong> {listing.street_address},{" "}
+                            {listing.city}, {listing.postal_code || "N/A"}
                           </p>
                           <div className="d-flex gap-2 mt-auto">
                             <button
                               className="btn btn-sm btn-outline-primary w-100"
-                              onClick={() => navigate(`/listings/${listing.id}`)}
+                              onClick={() =>
+                                navigate(`/listings/${listing.id}`)
+                              }
                             >
                               View More
                             </button>
@@ -232,7 +246,6 @@ function Profile() {
       )}
     </div>
   );
-
 }
 
 export default Profile;
