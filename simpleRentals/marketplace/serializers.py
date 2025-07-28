@@ -150,6 +150,7 @@ class UserLogInSerializer(serializers.ModelSerializer):
 
 
 class UserEditSerializer(serializers.ModelSerializer):
+    old_password = serializers.CharField(write_only=True, required=False, style={'input_type': 'password'})
     password = serializers.CharField(write_only=True, required=False, style={'input_type': 'password'})
     password_confirmation = serializers.CharField(write_only=True, required=False, style={'input_type': 'password'})
     # Accept a boolean for delete_profile_picture
@@ -158,18 +159,34 @@ class UserEditSerializer(serializers.ModelSerializer):
     class Meta:
         model = MarketplaceUser
         fields = [
-            'id', 'email', 'password', 'password_confirmation', 'first_name', 'last_name', 'age', 'sex',
+            'id', 'email', 'old_password', 'password', 'password_confirmation', 'first_name', 'last_name', 'age', 'sex',
             'city', 'preferred_location', 'budget_min', 'budget_max', "yearly_income", 'profile_picture', 'phone_number',
             'facebook_link', 'instagram_link', 'terms_accepted', 'delete_profile_picture'
         ]
 
     def validate(self, data):
+        old_password = data.get('old_password')
         password = data.get('password')
         password_confirmation = data.get('password_confirmation')
+        user = self.instance
 
         if password or password_confirmation:
+            # Require old password if changing password
+            if not old_password:
+                raise serializers.ValidationError(
+                    {"old_password": "You must provide your current password to set a new one."}
+                )
+
+            if not user.check_password(old_password):
+                raise serializers.ValidationError(
+                    {"old_password": "Old password is incorrect."}
+                )
+
             if password != password_confirmation:
-                raise serializers.ValidationError({"password": "Passwords must match."})
+                raise serializers.ValidationError(
+                    {"password_confirmation": "Passwords do not match."}
+                )
+            
         return data
 
     def update(self, instance, validated_data):

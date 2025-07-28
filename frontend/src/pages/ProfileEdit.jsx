@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import FormListing from "../components/FormListing.jsx";
-import FormRegister from "../components/FormRegister.jsx";
 import api from "../api.js";
 import { useProfileContext } from "../contexts/ProfileContext.jsx";
 import Unauthorized from "./Unauthorized.jsx";
+import FormEdit from "../components/FormEdit.jsx";
 
 function ProfileEdit() {
   const { id } = useParams();
@@ -45,7 +44,7 @@ function ProfileEdit() {
   ) : !authorized ? (
     <Unauthorized />
   ) : profile ? (
-    <FormRegister method="edit" profile={profile} />
+    <FormEdit profile={profile} />
   ) : (
     <div>No profile found.</div>
   );

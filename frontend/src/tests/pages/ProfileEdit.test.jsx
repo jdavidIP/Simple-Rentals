@@ -17,8 +17,8 @@ vi.mock("react-router-dom", async () => {
     useParams: () => ({ id: "3" }),
   };
 });
-vi.mock("../../components/FormRegister.jsx", () => ({
-  default: () => <div>Mocked FormRegister</div>,
+vi.mock("../../components/FormEdit.jsx", () => ({
+  default: () => <div>Mocked FormEdit</div>,
 }));
 vi.mock("../../pages/Unauthorized.jsx", () => ({
   default: () => <div>Mocked Unauthorized</div>,
@@ -53,7 +53,7 @@ describe("ProfileEdit Page", () => {
     render(<ProfileEdit />, { wrapper: MemoryRouter });
 
     await waitFor(() => {
-      expect(screen.getByText("Mocked FormRegister")).toBeInTheDocument();
+      expect(screen.getByText("Mocked FormEdit")).toBeInTheDocument();
     });
   });
 

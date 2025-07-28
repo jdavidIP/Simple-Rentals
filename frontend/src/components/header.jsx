@@ -55,12 +55,15 @@ function Header() {
     .slice(0, 3);
 
   return (
-    <nav className="navbar navbar-expand-lg" style={{ backgroundColor: "#0078FF66" }}>
+    <nav
+      className="navbar navbar-expand-lg"
+      style={{ backgroundColor: "#0078FF66" }}
+    >
       <div className="container">
         <a className="navbar-brand" href="/">
           {/* Simple Rentals */}
           <img
-            src="../transp_full_icon3.png"
+            src="../transp_full_icon.png"
             alt="Logo"
             style={{ height: "60px" }}
           />
@@ -264,9 +267,13 @@ function Header() {
             </li>
             <li className="nav-item">
               {profile ? (
-                <a href="/logout" className="nav-link">Logout</a>
+                <a href="/logout" className="nav-link">
+                  Logout
+                </a>
               ) : (
-                <a href="/login" className="nav-link">Login</a>
+                <a href="/login" className="nav-link">
+                  Login
+                </a>
               )}
             </li>
           </ul>

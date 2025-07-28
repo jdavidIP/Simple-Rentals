@@ -16,6 +16,7 @@ urlpatterns = [
     path("logout/", views.LogoutView.as_view(), name="logout"),
     path("login/", views.LogInView.as_view(), name="login"),
     path("edit-profile/", views.UserEditView.as_view(), name="edit_profile"),
+    path("delete-profile", views.UserDeleteView.as_view(), name="delete_profile"),
     path("", views.home, name="home"),
     path('conversations/', views.ConversationListView.as_view(), name='conversation_list'),
     path('conversations/<int:pk>/', views.ConversationDetailView.as_view(), name='conversation_detail'), # pk = conversation id

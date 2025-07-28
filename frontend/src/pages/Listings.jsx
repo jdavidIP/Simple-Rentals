@@ -35,7 +35,7 @@ function Listings() {
   const autocompleteRef = useRef(null);
   const { profile } = useProfileContext();
 
-  const ITEMS_PER_PAGE = 3; // 👈 Change page size here
+  const ITEMS_PER_PAGE = 15;
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(listings.length / ITEMS_PER_PAGE);
 

@@ -69,6 +69,26 @@ class UserEditView(generics.UpdateAPIView):
     def get_object(self):
         return self.request.user
     
+class UserDeleteView(generics.DestroyAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+    
+    def perform_destroy(self, instance):
+        if instance.profile_picture and hasattr(instance.profile_picture, 'path'):
+            if os.path.isfile(instance.profile_picture.path):
+                os.remove(instance.profile_picture.path)
+        # Delete all listing images
+        for listing in instance.listings.all():
+            for picture in listing.pictures.all():
+                if picture.image and hasattr(picture.image, 'path'):
+                    if os.path.isfile(picture.image.path):
+                        os.remove(picture.image.path)
+        
+        instance.delete()
+    
 class UserProfileView(generics.RetrieveAPIView):
     """API view to handle user profile retrieval."""
     serializer_class = UserSerializer
