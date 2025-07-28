@@ -60,6 +60,27 @@ function FormRoommate({ method = "post", roommate }) {
       <div className="field-error">{fieldErrors[name]}</div>
     ) : null;
 
+  const handleDelete = async (e) => {
+    e.preventDefault();
+    setError(null);
+
+    if (
+      window.confirm(
+        "Are you sure you want to delete your roommate profile? This action cannot be undone."
+      )
+    ) {
+      try {
+        await api.delete(`roommates/delete/${roommate.id}`);
+        navigate(`/profile/${roommate.user.id}`);
+      } catch (err) {
+        console.error("Failed to delete roommate profile.", err);
+        setError("Failed to delete roommate profile");
+      }
+    } else {
+      return;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -261,6 +282,11 @@ function FormRoommate({ method = "post", roommate }) {
       <button type="submit">
         {method === "edit" ? "Save Changes" : "Register Roommate Profile"}
       </button>
+      {method === "edit" && (
+        <button type="delete" className="btn btn-danger" onClick={handleDelete}>
+          Delete Roommate Profile
+        </button>
+      )}
     </form>
   );
 }

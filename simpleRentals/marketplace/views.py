@@ -593,6 +593,27 @@ class CreateRoommateView(generics.CreateAPIView):
         # The `context` is already passed to the serializer by DRF
         serializer.save(user=self.request.user)
 
+class RoommateDeleteView(generics.DestroyAPIView):
+    serializer_class = RoommateUserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        roommate = get_object_or_404(RoommateUser, id=self.kwargs['pk'])
+
+        return roommate
+    
+    def perform_destroy(self, instance):
+        # Remove the roommate from any groups they are a member of
+        Group.objects.filter(members=instance).update()
+        for group in Group.objects.filter(members=instance):
+            group.members.remove(instance)
+
+        # Handle if the user is an owner of any groups
+        Group.objects.filter(owner=instance).delete()
+
+        # Finally delete the roommate
+        instance.delete()
+
 class RoommateEditView(generics.UpdateAPIView):
     serializer_class = RoommateUserRegistrationSerializer
     permission_class = [IsAuthenticated]
