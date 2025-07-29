@@ -148,3 +148,23 @@
 .notification-item:hover {
   background-color: rgba(0, 120, 255, 0.1);
 }
+
+.notification-btn {
+  position: relative;
+  color: white;
+  font-size: 1.4rem;
+  padding: 0 0.5rem; /* match horizontal padding of nav-links */
+  display: flex;
+  align-items: center; /* vertically center content */
+  justify-content: center;
+  height: 100%; /* make button fill nav height */
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.notification-btn i.bi-bell {
+  font-size: 1.1rem; /* match or slightly smaller than text nav-links */
+  line-height: 1;
+  vertical-align: middle; /* just in case */
+}
