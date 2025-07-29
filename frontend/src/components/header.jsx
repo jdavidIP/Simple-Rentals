@@ -98,11 +98,11 @@ function Header() {
               <li className="nav-item">
                 {profile ? (
                   <a href="/logout" className="nav-link">
-                    Logout
+                    Sign Out
                   </a>
                 ) : (
                   <a href="/login" className="nav-link">
-                    Login
+                    Sign In
                   </a>
                 )}
               </li>

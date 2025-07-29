@@ -110,13 +110,20 @@ export const ProfileProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    if (profile) {
+    if (profile && !profileLoading) {
       fetchMessages();
-      fetchApplications();
-      fetchInvitations();
       fetchRoommate();
     }
   }, [profile]);
+
+  useEffect(() => {
+    if (roommate && !roommateLoading) {
+      fetchApplications();
+      fetchInvitations();
+    }
+  }, [roommate]);
+
+  useEffect(() => {}, []);
 
   const isProfileSelf = (id) => profile && id === profile.id;
   const isRoommateSelf = (id) => profile && profile.roommate_profile == id;

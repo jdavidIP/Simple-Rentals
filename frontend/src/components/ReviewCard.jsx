@@ -27,10 +27,16 @@ function ReviewCard({ review }) {
         <div className="d-flex align-items-center mb-2">
           <div
             className="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-3"
-            style={{ width: "40px", height: "40px", fontSize: "0.9rem", fontWeight: "bold" }}
+            style={{
+              width: "40px",
+              height: "40px",
+              fontSize: "0.9rem",
+              fontWeight: "bold",
+            }}
           >
             {review.reviewer
-              ? review.reviewer.first_name.charAt(0) + review.reviewer.last_name.charAt(0)
+              ? review.reviewer.first_name.charAt(0) +
+                review.reviewer.last_name.charAt(0)
               : "A"}
           </div>
           <div>
@@ -44,9 +50,17 @@ function ReviewCard({ review }) {
         </div>
 
         {/* Comment */}
-        <p className="mb-3" style={{ lineHeight: "1.4" }}>
-          {review.comment}
-        </p>
+
+        <p>{displayComment}</p>
+        {review.comment.length > maxPreviewLength && (
+          <button
+            className="btn btn-link p-0"
+            onClick={toggleExpanded}
+            style={{ fontSize: "0.9rem" }}
+          >
+            {expanded ? "View Less" : "View More"}
+          </button>
+        )}
 
         {/* Metadata */}
         <p className="text-muted mb-2">
@@ -64,7 +78,6 @@ function ReviewCard({ review }) {
         )}
       </div>
     </div>
-
   );
 }
 

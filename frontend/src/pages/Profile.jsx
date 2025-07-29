@@ -116,6 +116,39 @@ function Profile() {
                 style={{ width: "120px", height: "120px", objectFit: "cover" }}
               />
               <h4 className="fw-bold">{`${profile.first_name} ${profile.last_name}`}</h4>
+              {averageRating && reviews.length > 0 && (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "0.3rem",
+                    marginTop: "0.5rem",
+                  }}
+                >
+                  {[...Array(5)].map((_, i) => (
+                    <span
+                      key={i}
+                      style={{
+                        color:
+                          i < Math.round(averageRating) ? "#ffc107" : "#e4e5e9",
+                        fontSize: "1.5rem",
+                      }}
+                    >
+                      ★
+                    </span>
+                  ))}
+                  <span
+                    style={{
+                      marginLeft: "0.5rem",
+                      fontSize: "1rem",
+                      color: "#555",
+                    }}
+                  >
+                    ({reviews.length})
+                  </span>
+                </div>
+              )}
               <p className="text-muted mb-1">{profile.email}</p>
               <p className="text-muted">{profile.phone_number}</p>
 
