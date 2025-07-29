@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api.js";
+import { RxCross2 } from "react-icons/rx";
 import "../styles/forms.css";
 
 function FormListing({ method, listing }) {
@@ -294,37 +295,40 @@ function FormListing({ method, listing }) {
     images
       .filter((img) => !formData.delete_images.includes(img.id))
       .map((img) => (
-        <div key={img.id} className="image-container">
-          <img src={img.image} alt="Preview" style={{ maxWidth: "150px" }} />
+        <div key={img.id} className="image-tile">
+          {/* Optional: show a badge for primary images */}
+          {img.is_primary && <span className="image-badge">Primary</span>}
+
+          <img src={img.image} alt="Preview" />
           <button
             type="button"
+            aria-label="Remove image"
+            className="image-remove"
             onClick={() => handleDeleteImage(img.id)}
-            className="btn btn-danger"
+            title="Remove"
           >
-            Delete
+            <span className="image-remove-x">&times;</span>
           </button>
         </div>
       ));
 
   const renderNewImagePreview = () =>
     formData.pictures.map((file, index) => (
-      <div key={index} className="image-container">
-        <img
-          src={URL.createObjectURL(file)}
-          alt="Preview"
-          style={{ maxWidth: "150px" }}
-        />
+      <div key={index} className="image-tile">
+        <img src={URL.createObjectURL(file)} alt="Preview" />
         <button
           type="button"
-          className="btn btn-danger"
+          aria-label="Remove image"
+          className="image-remove"
           onClick={() =>
             setFormData((prevData) => ({
               ...prevData,
               pictures: prevData.pictures.filter((_, i) => i !== index),
             }))
           }
+          title="Remove"
         >
-          Remove
+          <span className="image-remove-x">&times;</span>
         </button>
       </div>
     ));
@@ -713,6 +717,8 @@ function FormListing({ method, listing }) {
 
       {/* Images */}
       <h5 className="form-section-title">Images</h5>
+
+      {/* Primary / Front image */}
       <div className="mb-3">
         <label htmlFor="front_image">Front Image</label>
         <input
@@ -721,10 +727,14 @@ function FormListing({ method, listing }) {
           name="front_image"
           onChange={handleFileInputChange}
         />
-        {renderExistingImagePreview(
-          existingImages.filter((img) => img.is_primary)
-        )}
+        <div className="image-preview-grid">
+          {renderExistingImagePreview(
+            existingImages.filter((img) => img.is_primary)
+          )}
+        </div>
       </div>
+
+      {/* Additional images */}
       <div className="mb-3">
         <label htmlFor="pictures">Additional Images</label>
         <input

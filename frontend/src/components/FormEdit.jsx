@@ -682,7 +682,9 @@ function FormEdit({ profile }) {
       </label>
       {errMsg("terms_accepted")}
 
-      <button type="submit">Save Changes</button>
+      <button type="submit" className="btn btn-primary">
+        Save Changes
+      </button>
       <button type="delete" className="btn btn-danger" onClick={handleDelete}>
         Delete Profile
       </button>

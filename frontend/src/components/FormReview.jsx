@@ -167,7 +167,7 @@ function FormReview({ method, review }) {
         />
         {errMsg("comment")}
 
-        <button type="submit">
+        <button type="submit" className="btn btn-primary">
           {method === "edit" ? "Save Changes" : "Submit Review"}
         </button>
         {method === "edit" && (

@@ -279,7 +279,7 @@ function FormRoommate({ method = "post", roommate }) {
           Open to Message
         </label>
       </div>
-      <button type="submit">
+      <button type="submit" className="btn btn-primary">
         {method === "edit" ? "Save Changes" : "Register Roommate Profile"}
       </button>
       {method === "edit" && (
