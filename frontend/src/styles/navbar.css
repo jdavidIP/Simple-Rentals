@@ -1,0 +1,150 @@
+/* Navbar Base */
+.custom-navbar {
+  background: linear-gradient(90deg, #0078ffcc, #005bb5cc);
+  padding: 0.8rem 1rem;
+  border-radius: 0 0 15px 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Brand */
+.navbar-brand img {
+  height: 55px;
+  transition: transform 0.2s ease;
+}
+.navbar-brand img:hover {
+  transform: scale(1.05);
+}
+
+/* Nav Pills */
+.nav-pills .nav-link {
+  color: white !important;
+  border-radius: 20px;
+  padding: 0.5rem 1rem;
+  margin: 0 0.3rem;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.nav-pills .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+.nav-pills .nav-link.active {
+  background-color: white !important;
+  color: #0078ff !important;
+  font-weight: bold;
+  box-shadow: 0 0 8px rgba(0, 120, 255, 0.4);
+}
+
+/* Notifications */
+.notification-btn {
+  position: relative;
+  color: white;
+  font-size: 1.4rem;
+  padding: 0.4rem;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 0px;
+  right: -3px;
+  font-size: 0.7rem;
+  border-radius: 50%;
+  padding: 3px 6px;
+}
+
+.notification-dropdown {
+  min-width: 320px;
+  max-height: 400px;
+  overflow-y: auto;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+}
+
+/* Dropdown Headers */
+.dropdown-header {
+  font-weight: bold;
+  font-size: 0.95rem;
+  color: #005bb5;
+}
+
+/* Dropdown Items */
+.dropdown-item {
+  font-size: 0.9rem;
+  white-space: normal;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: rgba(0, 120, 255, 0.1);
+}
+
+/* Sidebar Styles */
+.notifications-sidebar {
+  position: fixed;
+  top: 0;
+  right: -350px; /* hidden by default */
+  width: 350px;
+  height: 100%;
+  background: #fff;
+  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.2);
+  transition: right 0.3s ease;
+  z-index: 1050;
+  display: flex;
+  flex-direction: column;
+}
+
+.notifications-sidebar.open {
+  right: 0; /* slide in */
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: linear-gradient(90deg, #0078ff, #005bb5);
+  color: white;
+}
+
+.sidebar-header h5 {
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: white;
+  cursor: pointer;
+}
+
+.sidebar-content {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.sidebar-content section {
+  margin-bottom: 1rem;
+}
+
+.sidebar-content h6 {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #005bb5;
+}
+
+.notification-item {
+  display: block;
+  padding: 0.5rem;
+  border-radius: 8px;
+  color: #333;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: background 0.2s ease;
+}
+
+.notification-item:hover {
+  background-color: rgba(0, 120, 255, 0.1);
+}
