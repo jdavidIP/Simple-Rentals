@@ -108,8 +108,7 @@ function FormListing({ method, listing }) {
     const errors = {};
     if (!data.street_address || data.street_address.length < 3)
       errors.street_address = "Street address is required.";
-    if (!data.city || data.city.length < 2)
-      errors.city = "City is required.";
+    if (!data.city || data.city.length < 2) errors.city = "City is required.";
     if (!data.postal_code || data.postal_code.length < 5)
       errors.postal_code = "Postal code is required.";
     if (!data.price || Number(data.price) <= 0)
@@ -118,18 +117,15 @@ function FormListing({ method, listing }) {
       errors.property_type = "Property type is required.";
     if (!data.sqft_area || Number(data.sqft_area) <= 0)
       errors.sqft_area = "Area must be greater than 0.";
-    if (!data.payment_type)
-      errors.payment_type = "Payment type is required.";
-    if (!data.laundry_type)
-      errors.laundry_type = "Laundry type is required.";
+    if (!data.payment_type) errors.payment_type = "Payment type is required.";
+    if (!data.laundry_type) errors.laundry_type = "Laundry type is required.";
     if (!data.bedrooms || Number(data.bedrooms) < 0)
       errors.bedrooms = "Bedrooms required.";
     if (!data.bathrooms || Number(data.bathrooms) < 0)
       errors.bathrooms = "Bathrooms required.";
     if (!data.parking_spaces || Number(data.parking_spaces) < 0)
       errors.parking_spaces = "Parking spaces required.";
-    if (!data.move_in_date)
-      errors.move_in_date = "Move-in date is required.";
+    if (!data.move_in_date) errors.move_in_date = "Move-in date is required.";
     if (!data.description || data.description.length < 10)
       errors.description = "Description must be at least 10 characters.";
     return errors;
@@ -246,11 +242,10 @@ function FormListing({ method, listing }) {
 
     const validationErrors = validateFields(formData);
     setFieldErrors(validationErrors);
-    setTouched(
-      Object.fromEntries(Object.keys(formData).map((k) => [k, true]))
-    );
+    setTouched(Object.fromEntries(Object.keys(formData).map((k) => [k, true])));
     if (Object.keys(validationErrors).length > 0) {
-      if (errorRef.current) errorRef.current.scrollIntoView({ behavior: "smooth" });
+      if (errorRef.current)
+        errorRef.current.scrollIntoView({ behavior: "smooth" });
       return;
     }
 
@@ -349,6 +344,8 @@ function FormListing({ method, listing }) {
         </div>
       )}
 
+      {/* Location Section */}
+      <h5 className="form-section-title">Location</h5>
       <div className="mb-3">
         <label htmlFor="street_address">Street Address</label>
         <input
@@ -363,153 +360,184 @@ function FormListing({ method, listing }) {
         />
         {errMsg("street_address")}
       </div>
-
-      <div className="mb-3">
-        <label htmlFor="city">City</label>
-        <input
-          type="text"
-          id="city"
-          name="city"
-          value={formData.city}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
-        />
-        {errMsg("city")}
+      <div className="form-grid">
+        <div>
+          <label htmlFor="city">City</label>
+          <input
+            type="text"
+            id="city"
+            name="city"
+            value={formData.city}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            required
+          />
+          {errMsg("city")}
+        </div>
+        <div>
+          <label htmlFor="postal_code">Postal Code</label>
+          <input
+            type="text"
+            id="postal_code"
+            name="postal_code"
+            value={formData.postal_code}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            required
+          />
+          {errMsg("postal_code")}
+        </div>
       </div>
 
-      <div className="mb-3">
-        <label htmlFor="postal_code">Postal Code</label>
-        <input
-          type="text"
-          id="postal_code"
-          name="postal_code"
-          value={formData.postal_code}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
-        />
-        {errMsg("postal_code")}
+      {/* Property Details */}
+      <h5 className="form-section-title">Property Details</h5>
+      <div className="form-grid">
+        <div>
+          <label htmlFor="price">Price</label>
+          <input
+            type="number"
+            id="price"
+            name="price"
+            value={formData.price}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            required
+          />
+          {errMsg("price")}
+        </div>
+        <div>
+          <label htmlFor="property_type">Property Type</label>
+          <select
+            id="property_type"
+            name="property_type"
+            value={formData.property_type}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            required
+          >
+            <option value="">Select</option>
+            <option value="H">House</option>
+            <option value="A">Apartment</option>
+            <option value="C">Condo</option>
+            <option value="T">Townhouse</option>
+            <option value="O">Other</option>
+          </select>
+          {errMsg("property_type")}
+        </div>
+        <div>
+          <label htmlFor="sqft_area">Square Footage</label>
+          <input
+            type="number"
+            id="sqft_area"
+            name="sqft_area"
+            value={formData.sqft_area}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            required
+          />
+          {errMsg("sqft_area")}
+        </div>
       </div>
 
-      <div className="mb-3">
-        <label htmlFor="price">Price</label>
-        <input
-          type="number"
-          id="price"
-          name="price"
-          value={formData.price}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
-        />
-        {errMsg("price")}
-      </div>
-      <div className="mb-3">
-        <label htmlFor="property_type">Property Type</label>
-        <select
-          id="property_type"
-          name="property_type"
-          value={formData.property_type[0]}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
-        >
-          <option value="">Select</option>
-          <option value="H">House</option>
-          <option value="A">Apartment</option>
-          <option value="C">Condo</option>
-          <option value="T">Townhouse</option>
-          <option value="O">Other</option>
-        </select>
-        {errMsg("property_type")}
-      </div>
-
-      <div className="mb-3">
-        <label htmlFor="sqft_area">Square Footage</label>
-        <input
-          type="number"
-          id="sqft_area"
-          name="sqft_area"
-          value={formData.sqft_area}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
-        />
-        {errMsg("sqft_area")}
+      <div className="form-grid">
+        <div>
+          <label htmlFor="bedrooms">Bedrooms</label>
+          <input
+            type="number"
+            id="bedrooms"
+            name="bedrooms"
+            value={formData.bedrooms}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            required
+          />
+          {errMsg("bedrooms")}
+        </div>
+        <div>
+          <label htmlFor="bathrooms">Bathrooms</label>
+          <input
+            type="number"
+            id="bathrooms"
+            name="bathrooms"
+            value={formData.bathrooms}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            required
+          />
+          {errMsg("bathrooms")}
+        </div>
+        <div>
+          <label htmlFor="parking_spaces">Parking Spaces</label>
+          <input
+            type="number"
+            id="parking_spaces"
+            name="parking_spaces"
+            value={formData.parking_spaces}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            required
+          />
+          {errMsg("parking_spaces")}
+        </div>
       </div>
 
-      <div className="mb-3">
-        <label htmlFor="payment_type">Payment Type</label>
-        <select
-          id="payment_type"
-          name="payment_type"
-          value={
-            formData.payment_type === "Chexy" ? "X" : formData.payment_type[0]
-          }
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
-        >
-          <option value="">Select</option>
-          <option value="C">Cheque</option>
-          <option value="D">Direct Deposit</option>
-          <option value="I">Interac / Wire Transfer</option>
-          <option value="P">PayPal</option>
-          <option value="X">Chexy</option>
-          <option value="O">Other</option>
-        </select>
-        {errMsg("payment_type")}
+      <div className="form-grid">
+        <div>
+          <label htmlFor="payment_type">Payment Type</label>
+          <select
+            id="payment_type"
+            name="payment_type"
+            value={formData.payment_type}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            required
+          >
+            <option value="">Select</option>
+            <option value="C">Cheque</option>
+            <option value="D">Direct Deposit</option>
+            <option value="I">Interac / Wire Transfer</option>
+            <option value="P">PayPal</option>
+            <option value="X">Chexy</option>
+            <option value="O">Other</option>
+          </select>
+          {errMsg("payment_type")}
+        </div>
+        <div>
+          <label htmlFor="laundry_type">Laundry Type</label>
+          <select
+            id="laundry_type"
+            name="laundry_type"
+            value={formData.laundry_type}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            required
+          >
+            <option value="">Select</option>
+            <option value="I">In-Unit</option>
+            <option value="S">Shared</option>
+            <option value="N">None</option>
+          </select>
+          {errMsg("laundry_type")}
+        </div>
+        <div>
+          <label htmlFor="move_in_date">Move-in Date</label>
+          <input
+            type="date"
+            id="move_in_date"
+            name="move_in_date"
+            value={formData.move_in_date}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            required
+          />
+          {errMsg("move_in_date")}
+        </div>
       </div>
 
-      <div className="mb-3">
-        <label htmlFor="laundry_type">Laundry Type</label>
-        <select
-          id="laundry_type"
-          name="laundry_type"
-          value={formData.laundry_type}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
-        >
-          <option value="">Select</option>
-          <option value="I">In-Unit</option>
-          <option value="S">Shared</option>
-          <option value="N">None</option>
-        </select>
-        {errMsg("laundry_type")}
-      </div>
-
-      <div className="mb-3">
-        <label htmlFor="bedrooms">Bedrooms</label>
-        <input
-          type="number"
-          id="bedrooms"
-          name="bedrooms"
-          value={formData.bedrooms}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
-        />
-        {errMsg("bedrooms")}
-      </div>
-
-      <div className="mb-3">
-        <label htmlFor="bathrooms">Bathrooms</label>
-        <input
-          type="number"
-          id="bathrooms"
-          name="bathrooms"
-          value={formData.bathrooms}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
-        />
-        {errMsg("bathrooms")}
-      </div>
-
-      <div className="mb-3">
-        <label htmlFor="ac">
+      {/* Amenities */}
+      <h5 className="form-section-title">Amenities</h5>
+      <div className="checkbox-grid">
+        <label>
           <input
             type="checkbox"
             name="ac"
@@ -518,10 +546,7 @@ function FormListing({ method, listing }) {
           />
           Air Conditioning
         </label>
-      </div>
-
-      <div className="mb-3">
-        <label htmlFor="heating">
+        <label>
           <input
             type="checkbox"
             name="heating"
@@ -530,10 +555,7 @@ function FormListing({ method, listing }) {
           />
           Heating
         </label>
-      </div>
-
-      <div className="mb-3">
-        <label htmlFor="pet_friendly">
+        <label>
           <input
             type="checkbox"
             name="pet_friendly"
@@ -542,49 +564,30 @@ function FormListing({ method, listing }) {
           />
           Pet Friendly
         </label>
+        <label>
+          <input
+            type="checkbox"
+            name="shareable"
+            checked={formData.shareable}
+            onChange={handleChange}
+          />
+          Roommates Allowed
+        </label>
       </div>
 
-      <div className="mb-3">
-        <label htmlFor="parking_spaces">Parking Spaces</label>
-        <input
-          type="number"
-          id="parking_spaces"
-          name="parking_spaces"
-          value={formData.parking_spaces}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
-        />
-        {errMsg("parking_spaces")}
-      </div>
+      {/* Description */}
+      <h5 className="form-section-title">Description</h5>
+      <textarea
+        id="description"
+        name="description"
+        value={formData.description}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        required
+      ></textarea>
+      {errMsg("description")}
 
-      <div className="mb-3">
-        <label htmlFor="move_in_date">Move-in Date</label>
-        <input
-          type="date"
-          id="move_in_date"
-          name="move_in_date"
-          value={formData.move_in_date}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
-        />
-        {errMsg("move_in_date")}
-      </div>
-
-      <div className="mb-3">
-        <label htmlFor="description">Description</label>
-        <textarea
-          id="description"
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
-        ></textarea>
-        {errMsg("description")}
-      </div>
-
+      {/* Extra Amenities */}
       <div className="mb-3">
         <label htmlFor="extra_amenities">Extra Amenities</label>
         <textarea
@@ -596,19 +599,120 @@ function FormListing({ method, listing }) {
         ></textarea>
       </div>
 
-      <div className="mb-3">
+      {/* Costs & Fees */}
+      <h5 className="form-section-title">Costs & Fees</h5>
+      <div className="form-grid">
+        <div>
+          <label htmlFor="utilities_cost">Utilities Cost</label>
+          <input
+            type="number"
+            id="utilities_cost"
+            name="utilities_cost"
+            value={formData.utilities_cost}
+            onChange={handleChange}
+          />
+        </div>
         <label>
           <input
             type="checkbox"
-            name="shareable"
-            checked={formData.shareable}
+            name="utilities_payable_by_tenant"
+            checked={formData.utilities_payable_by_tenant}
             onChange={handleChange}
           />
-          Are roommates allowed?
+          Payable by Tenant
         </label>
       </div>
 
-      {/* Front Image */}
+      <div className="form-grid">
+        <div>
+          <label htmlFor="property_taxes">Property Taxes</label>
+          <input
+            type="number"
+            id="property_taxes"
+            name="property_taxes"
+            value={formData.property_taxes}
+            onChange={handleChange}
+          />
+        </div>
+        <label>
+          <input
+            type="checkbox"
+            name="property_taxes_payable_by_tenant"
+            checked={formData.property_taxes_payable_by_tenant}
+            onChange={handleChange}
+          />
+          Payable by Tenant
+        </label>
+      </div>
+
+      <div className="form-grid">
+        <div>
+          <label htmlFor="condo_fee">Condo Fee</label>
+          <input
+            type="number"
+            id="condo_fee"
+            name="condo_fee"
+            value={formData.condo_fee}
+            onChange={handleChange}
+          />
+        </div>
+        <label>
+          <input
+            type="checkbox"
+            name="condo_fee_payable_by_tenant"
+            checked={formData.condo_fee_payable_by_tenant}
+            onChange={handleChange}
+          />
+          Payable by Tenant
+        </label>
+      </div>
+
+      <div className="form-grid">
+        <div>
+          <label htmlFor="hoa_fee">HOA Fee</label>
+          <input
+            type="number"
+            id="hoa_fee"
+            name="hoa_fee"
+            value={formData.hoa_fee}
+            onChange={handleChange}
+          />
+        </div>
+        <label>
+          <input
+            type="checkbox"
+            name="hoa_fee_payable_by_tenant"
+            checked={formData.hoa_fee_payable_by_tenant}
+            onChange={handleChange}
+          />
+          Payable by Tenant
+        </label>
+      </div>
+
+      <div className="form-grid">
+        <div>
+          <label htmlFor="security_deposit">Security Deposit</label>
+          <input
+            type="number"
+            id="security_deposit"
+            name="security_deposit"
+            value={formData.security_deposit}
+            onChange={handleChange}
+          />
+        </div>
+        <label>
+          <input
+            type="checkbox"
+            name="security_deposit_payable_by_tenant"
+            checked={formData.security_deposit_payable_by_tenant}
+            onChange={handleChange}
+          />
+          Payable by Tenant
+        </label>
+      </div>
+
+      {/* Images */}
+      <h5 className="form-section-title">Images</h5>
       <div className="mb-3">
         <label htmlFor="front_image">Front Image</label>
         <input
@@ -621,7 +725,6 @@ function FormListing({ method, listing }) {
           existingImages.filter((img) => img.is_primary)
         )}
       </div>
-
       <div className="mb-3">
         <label htmlFor="pictures">Additional Images</label>
         <input
@@ -631,12 +734,15 @@ function FormListing({ method, listing }) {
           onChange={handleFileInputChange}
           multiple
         />
-        {renderExistingImagePreview(
-          existingImages.filter((img) => !img.is_primary)
-        )}
-        {renderNewImagePreview()}
+        <div className="image-preview-grid">
+          {renderExistingImagePreview(
+            existingImages.filter((img) => !img.is_primary)
+          )}
+          {renderNewImagePreview()}
+        </div>
       </div>
 
+      {/* Buttons */}
       <button type="submit" className="btn btn-primary">
         {method === "post" ? "Create Listing" : "Save Changes"}
       </button>
