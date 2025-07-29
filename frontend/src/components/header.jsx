@@ -1,18 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { useProfileContext } from "../contexts/ProfileContext";
 import NotificationSidebar from "./NotificationSidebar";
 import "../styles/navbar.css";
 
 function Header() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
   const {
     profile,
     messages = [],
     applications = [],
     invitations = {},
   } = useProfileContext();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const sidebarRef = useRef(null);
+
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    function handleClickOutside(event) {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+        setSidebarOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [sidebarOpen]);
 
   const receivedInvitations = Array.isArray(invitations.received)
     ? invitations.received
@@ -114,8 +125,8 @@ function Header() {
         </div>
       </nav>
 
-      {/* Sidebar */}
       <NotificationSidebar
+        ref={sidebarRef}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         messages={messages}
