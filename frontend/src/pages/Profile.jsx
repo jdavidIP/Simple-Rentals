@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import api from "../api.js";
+import api from "../api";
 import "../styles/profile.css";
-import { useProfileContext } from "../contexts/ProfileContext.jsx";
-import ReviewCard from "../components/ReviewCard.jsx";
+import { useProfileContext } from "../contexts/ProfileContext";
+import ReviewCard from "../components/ReviewCard";
 
 function Profile() {
   const { id } = useParams();
@@ -13,157 +13,124 @@ function Profile() {
   const [reviews, setReviews] = useState([]);
   const [averageRating, setAverageRating] = useState(null);
   const [error, setError] = useState(null);
-  const [loadingProfile, setLoadingProfile] = useState(true);
-  const [loadingReviews, setLoadingReviews] = useState(true);
-  const [loadingListings, setLoadingListings] = useState(true);
-  const [roommateId, setRoommateId] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [selectedTab, setSelectedTab] = useState("listings");
   const { isProfileSelf } = useProfileContext();
 
-  const fetchProfile = async () => {
-    setLoadingProfile(true);
-    try {
-      const response = await api.get(`/profile/${id}`);
-      setProfile(response.data);
-      setRoommateId(response.data.roommate_profile);
-    } catch (err) {
-      console.error("Error fetching profile:", err);
-      setError("Failed to fetch profile.");
-      setProfile(null);
-    } finally {
-      setLoadingProfile(false);
-    }
-  };
-
-  const fetchListings = async () => {
-    setLoadingListings(true);
-    try {
-      const response = await api.get(`/listings/viewAll`, {
-        params: { owner: id },
-      });
-      const processedListings = response.data.map((listing) => {
-        // Find the primary image
-        const primaryImage = listing.pictures.find((p) => p.is_primary);
-        // If primary image exists, put it first in the array
-        let orderedPictures = listing.pictures;
-        if (primaryImage) {
-          orderedPictures = [
-            primaryImage,
-            ...listing.pictures.filter((p) => p.id !== primaryImage.id),
-          ];
-        }
-        return {
-          ...listing,
-          pictures: orderedPictures,
-          primary_image: primaryImage,
-        };
-      });
-
-      setListings(processedListings);
-    } catch (err) {
-      console.error("Error fetching listings:", err);
-      setError(err.response?.data?.Location || "Failed to fetch Listings.");
-      setListings([]);
-    } finally {
-      setLoadingListings(false);
-    }
-  };
-
-  const fetchReviews = async () => {
-    setLoadingReviews(true);
-    try {
-      const response = await api.get(`/profile/reviews`, {
-        params: { reviewee: id }, // Fetch reviews by reviewee ID
-      });
-      setReviews(response.data);
-      calculateAverageRating(response.data);
-    } catch (err) {
-      console.error("Error fetching reviews:", err);
-      setError("Failed to fetch reviews.");
-      setReviews([]);
-    } finally {
-      setLoadingReviews(false);
-    }
-  };
-
-  const calculateAverageRating = (reviews) => {
-    if (!reviews.length) return null;
-    const total = reviews.reduce((acc, review) => acc + review.rating, 0);
-    setAverageRating((total / reviews.length).toFixed(1));
-  };
-
   useEffect(() => {
-    fetchProfile();
-    fetchListings();
-    fetchReviews(); // Fetch reviews
+    const fetchData = async () => {
+      try {
+        const [profileRes, listingsRes, reviewsRes] = await Promise.all([
+          api.get(`/profile/${id}`),
+          api.get(`/listings/viewAll`, { params: { owner: id } }),
+          api.get(`/profile/reviews`, { params: { reviewee: id } }),
+        ]);
+
+        setProfile(profileRes.data);
+
+        const processedListings = listingsRes.data.map((listing) => {
+          const primaryImage = listing.pictures.find((p) => p.is_primary);
+          return {
+            ...listing,
+            pictures: primaryImage
+              ? [
+                  primaryImage,
+                  ...listing.pictures.filter((p) => p.id !== primaryImage.id),
+                ]
+              : listing.pictures,
+          };
+        });
+        setListings(processedListings);
+
+        setReviews(reviewsRes.data);
+        const total = reviewsRes.data.reduce((acc, r) => acc + r.rating, 0);
+        setAverageRating((total / reviewsRes.data.length).toFixed(1));
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load profile data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [id]);
+
   return (
-    <div className="container my-5">
+    <div className="profile-layout container my-5">
       {error ? (
-        <div className="alert alert-danger">{error}</div>
-      ) : loadingListings || loadingProfile || loadingReviews ? (
+        <div className="alert alert-danger text-center">{error}</div>
+      ) : loading ? (
         <div className="d-flex justify-content-center py-5">
           <div className="spinner-border text-primary" role="status" />
         </div>
       ) : (
-        <>
-          {/* Profile Header */}
-          <div className="card shadow-sm mb-4">
-            <div className="card-body d-flex flex-column align-items-center text-center">
+        <div className="row">
+          {/* Left Sidebar */}
+          <div className="col-md-4 col-lg-3 profile-sidebar">
+            <div className="card shadow-sm text-center p-3">
               <img
                 src={profile.profile_picture || "/default-avatar.png"}
                 alt={`${profile.first_name} ${profile.last_name}`}
-                className="rounded-circle mb-3"
-                style={{ width: "120px", height: "120px", objectFit: "cover" }}
+                className="rounded-circle mx-auto"
+                style={{ width: "100px", height: "100px", objectFit: "cover" }}
               />
-              <h4 className="fw-bold">{`${profile.first_name} ${profile.last_name}`}</h4>
-              {averageRating && reviews.length > 0 && (
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    gap: "0.3rem",
-                    marginTop: "0.5rem",
-                  }}
-                >
+              <h5 className="mt-2">{`${profile.first_name} ${profile.last_name}`}</h5>
+              <p className="text-muted small mb-1">{profile.email}</p>
+              <p className="text-muted small">{profile.phone_number}</p>
+
+              {averageRating && (
+                <div className="rating mt-2">
                   {[...Array(5)].map((_, i) => (
                     <span
                       key={i}
                       style={{
                         color:
                           i < Math.round(averageRating) ? "#ffc107" : "#e4e5e9",
-                        fontSize: "1.5rem",
                       }}
                     >
                       ★
                     </span>
                   ))}
-                  <span
-                    style={{
-                      marginLeft: "0.5rem",
-                      fontSize: "1rem",
-                      color: "#555",
-                    }}
-                  >
-                    ({reviews.length})
-                  </span>
+                  <span className="ms-2 text-muted">({reviews.length})</span>
                 </div>
               )}
-              <p className="text-muted mb-1">{profile.email}</p>
-              <p className="text-muted">{profile.phone_number}</p>
 
-              <div className="d-flex flex-wrap justify-content-center gap-2 mt-3">
+              <div className="btn-group mt-3 w-100">
+                <button
+                  className={`btn btn-sm ${
+                    selectedTab === "listings"
+                      ? "btn-primary"
+                      : "btn-outline-primary"
+                  }`}
+                  onClick={() => setSelectedTab("listings")}
+                >
+                  Listings
+                </button>
+                <button
+                  className={`btn btn-sm ${
+                    selectedTab === "reviews"
+                      ? "btn-primary"
+                      : "btn-outline-primary"
+                  }`}
+                  onClick={() => setSelectedTab("reviews")}
+                >
+                  Reviews
+                </button>
+              </div>
+
+              <div className="mt-3 d-grid gap-2">
                 {isProfileSelf(profile.id) ? (
                   <>
                     <button
                       onClick={() => navigate(`/listings/post`)}
-                      className="btn btn-primary"
+                      className="btn btn-outline-success btn-sm"
                     >
                       Create Listing
                     </button>
                     <button
                       onClick={() => navigate(`/profile/edit/${id}`)}
-                      className="btn btn-outline-secondary"
+                      className="btn btn-outline-secondary btn-sm"
                     >
                       Edit Profile
                     </button>
@@ -171,111 +138,93 @@ function Profile() {
                 ) : (
                   <button
                     onClick={() => navigate(`/profile/${id}/reviews`)}
-                    className="btn btn-primary"
+                    className="btn btn-outline-primary btn-sm"
                   >
                     Write a Review
-                  </button>
-                )}
-                {roommateId ? (
-                  <button
-                    onClick={() =>
-                      navigate(`/roommates/${profile.roommate_profile}`)
-                    }
-                    className="btn btn-outline-info"
-                  >
-                    See Roommate Profile
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => navigate("/roommates/post")}
-                    className="btn btn-outline-info"
-                  >
-                    Create a Roommate Profile
                   </button>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Listings Section */}
-          <div className="card shadow-sm mb-4">
-            <div className="card-body">
-              <h5 className="mb-4 border-bottom pb-2">Listings</h5>
-              {listings.length > 0 ? (
-                <div className="row">
-                  {listings.map((listing) => (
-                    <div key={listing.id} className="col-md-6 col-lg-4 mb-4">
-                      <div className="card h-100 shadow-sm">
-                        <img
-                          src={
-                            listing.pictures?.[0]?.image ||
-                            "/default-listing.png"
-                          }
-                          alt={listing.title}
-                          className="card-img-top"
-                          style={{ height: "180px", objectFit: "cover" }}
-                        />
-                        <div className="card-body d-flex flex-column">
-                          <h6 className="card-title">{listing.title}</h6>
-                          <p className="text-muted small flex-grow-1">
-                            {listing.description}
-                          </p>
-                          <p className="mb-1">
-                            <strong>Price:</strong> ${listing.price}
-                          </p>
-                          <p className="mb-2">
-                            <strong>Location:</strong> {listing.street_address},{" "}
-                            {listing.city}, {listing.postal_code || "N/A"}
-                          </p>
-                          <div className="d-flex gap-2 mt-auto">
-                            <button
-                              className="btn btn-sm btn-outline-primary w-100"
-                              onClick={() =>
-                                navigate(`/listings/${listing.id}`)
-                              }
-                            >
-                              View More
-                            </button>
-                            {isProfileSelf(profile.id) && (
+          {/* Right Content */}
+          <div className="col-md-8 col-lg-9">
+            {selectedTab === "listings" ? (
+              <>
+                <h5 className="mb-3 border-bottom pb-2">Listings</h5>
+                {listings.length > 0 ? (
+                  <div className="row">
+                    {listings.map((listing) => (
+                      <div key={listing.id} className="col-md-6 mb-4">
+                        <div className="card h-100 shadow-sm">
+                          <img
+                            src={
+                              listing.pictures?.[0]?.image ||
+                              "/default-listing.png"
+                            }
+                            alt={listing.title}
+                            className="card-img-top"
+                            style={{ height: "180px", objectFit: "cover" }}
+                          />
+                          <div className="card-body d-flex flex-column">
+                            <h6 className="card-title">{listing.title}</h6>
+                            <p className="text-muted small flex-grow-1">
+                              {listing.description}
+                            </p>
+                            <p className="mb-1">
+                              <strong>Price:</strong> ${listing.price}
+                            </p>
+                            <p className="mb-2">
+                              <strong>Location:</strong>{" "}
+                              {listing.street_address}, {listing.city}
+                            </p>
+                            <div className="d-flex gap-2 mt-auto">
                               <button
-                                className="btn btn-sm btn-outline-secondary w-100"
+                                className="btn btn-sm btn-outline-primary w-100"
                                 onClick={() =>
-                                  navigate(`/listings/edit/${listing.id}`)
+                                  navigate(`/listings/${listing.id}`)
                                 }
                               >
-                                Edit
+                                View More
                               </button>
-                            )}
+                              {isProfileSelf(profile.id) && (
+                                <button
+                                  className="btn btn-sm btn-outline-secondary w-100"
+                                  onClick={() =>
+                                    navigate(`/listings/edit/${listing.id}`)
+                                  }
+                                >
+                                  Edit
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted fst-italic">No listings found.</p>
-              )}
-            </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted fst-italic">No listings found.</p>
+                )}
+              </>
+            ) : (
+              <>
+                <h5 className="mb-3 border-bottom pb-2">Reviews</h5>
+                {reviews.length > 0 ? (
+                  <div className="row">
+                    {reviews.map((review) => (
+                      <div key={review.id} className="col-md-6 mb-4">
+                        <ReviewCard review={review} />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted fst-italic">No reviews yet.</p>
+                )}
+              </>
+            )}
           </div>
-
-          {/* Reviews Section */}
-          <div className="card shadow-sm mb-4">
-            <div className="card-body">
-              <h5 className="mb-4 border-bottom pb-2">Reviews</h5>
-              {reviews.length > 0 ? (
-                <div className="row">
-                  {reviews.map((review) => (
-                    <div className="col-md-6 col-lg-4 mb-4" key={review.id}>
-                      <ReviewCard review={review} />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted fst-italic">No reviews yet.</p>
-              )}
-            </div>
-          </div>
-        </>
+        </div>
       )}
     </div>
   );
