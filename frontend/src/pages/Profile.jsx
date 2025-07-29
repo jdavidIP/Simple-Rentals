@@ -15,7 +15,7 @@ function Profile() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState("listings");
-  const { isProfileSelf } = useProfileContext();
+  const { isProfileSelf, roommate } = useProfileContext();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -67,82 +67,108 @@ function Profile() {
       ) : (
         <div className="row">
           {/* Left Sidebar */}
-          <div className="col-md-4 col-lg-3 profile-sidebar">
-            <div className="card shadow-sm text-center p-3">
-              <img
-                src={profile.profile_picture || "/default-avatar.png"}
-                alt={`${profile.first_name} ${profile.last_name}`}
-                className="rounded-circle mx-auto"
-                style={{ width: "100px", height: "100px", objectFit: "cover" }}
-              />
-              <h5 className="mt-2">{`${profile.first_name} ${profile.last_name}`}</h5>
-              <p className="text-muted small mb-1">{profile.email}</p>
-              <p className="text-muted small">{profile.phone_number}</p>
+          <div className="col-md-4 col-lg-3">
+            <div
+              className="profile-sidebar rounded sticky-top"
+              style={{ top: "100px" }}
+            >
+              <div className="card shadow-sm text-center p-3">
+                <img
+                  src={profile.profile_picture || "/default-avatar.png"}
+                  alt={`${profile.first_name} ${profile.last_name}`}
+                  className="rounded-circle mx-auto"
+                  style={{
+                    width: "100px",
+                    height: "100px",
+                    objectFit: "cover",
+                  }}
+                />
+                <h5 className="mt-2">{`${profile.first_name} ${profile.last_name}`}</h5>
+                <p className="text-muted small mb-1">{profile.email}</p>
+                <p className="text-muted small">{profile.phone_number}</p>
 
-              {averageRating && (
-                <div className="rating mt-2">
-                  {[...Array(5)].map((_, i) => (
-                    <span
-                      key={i}
-                      style={{
-                        color:
-                          i < Math.round(averageRating) ? "#ffc107" : "#e4e5e9",
-                      }}
-                    >
-                      ★
-                    </span>
-                  ))}
-                  <span className="ms-2 text-muted">({reviews.length})</span>
-                </div>
-              )}
-
-              <div className="btn-group mt-3 w-100">
-                <button
-                  className={`btn btn-sm ${
-                    selectedTab === "listings"
-                      ? "btn-primary"
-                      : "btn-outline-primary"
-                  }`}
-                  onClick={() => setSelectedTab("listings")}
-                >
-                  Listings
-                </button>
-                <button
-                  className={`btn btn-sm ${
-                    selectedTab === "reviews"
-                      ? "btn-primary"
-                      : "btn-outline-primary"
-                  }`}
-                  onClick={() => setSelectedTab("reviews")}
-                >
-                  Reviews
-                </button>
-              </div>
-
-              <div className="mt-3 d-grid gap-2">
-                {isProfileSelf(profile.id) ? (
-                  <>
-                    <button
-                      onClick={() => navigate(`/listings/post`)}
-                      className="btn btn-outline-success btn-sm"
-                    >
-                      Create Listing
-                    </button>
-                    <button
-                      onClick={() => navigate(`/profile/edit/${id}`)}
-                      className="btn btn-outline-secondary btn-sm"
-                    >
-                      Edit Profile
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => navigate(`/profile/${id}/reviews`)}
-                    className="btn btn-outline-primary btn-sm"
-                  >
-                    Write a Review
-                  </button>
+                {averageRating && (
+                  <div className="rating mt-2">
+                    {[...Array(5)].map((_, i) => (
+                      <span
+                        key={i}
+                        style={{
+                          color:
+                            i < Math.round(averageRating)
+                              ? "#ffc107"
+                              : "#e4e5e9",
+                        }}
+                      >
+                        ★
+                      </span>
+                    ))}
+                    <span className="ms-2 text-muted">({reviews.length})</span>
+                  </div>
                 )}
+
+                <div className="btn-group mt-3 w-100">
+                  <button
+                    className={`btn btn-sm ${
+                      selectedTab === "listings"
+                        ? "btn-primary"
+                        : "btn-outline-primary"
+                    }`}
+                    onClick={() => setSelectedTab("listings")}
+                  >
+                    Listings
+                  </button>
+                  <button
+                    className={`btn btn-sm ${
+                      selectedTab === "reviews"
+                        ? "btn-primary"
+                        : "btn-outline-primary"
+                    }`}
+                    onClick={() => setSelectedTab("reviews")}
+                  >
+                    Reviews
+                  </button>
+                </div>
+
+                <div className="mt-3 d-grid gap-2">
+                  {isProfileSelf(profile.id) ? (
+                    <>
+                      <button
+                        onClick={() => navigate(`/listings/post`)}
+                        className="btn btn-outline-success btn-sm"
+                      >
+                        Create Listing
+                      </button>
+                      {roommate ? (
+                        <button
+                          onClick={() => navigate(`/roommates/${roommate.id}`)}
+                          className="btn btn-outline-success btn-sm"
+                        >
+                          See Roommate Profile
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => navigate("/roommates/post")}
+                          className="btn btn-outline-success btn-sm"
+                        >
+                          Create Roommate Profile
+                        </button>
+                      )}
+                      <button
+                        onClick={() => navigate(`/profile/edit/${id}`)}
+                        className="btn btn-outline-secondary btn-sm"
+                      >
+                        Edit Profile
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => navigate(`/profile/${id}/reviews`)}
+                      className="btn btn-outline-primary btn-sm"
+                    >
+                      Write a Review
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
