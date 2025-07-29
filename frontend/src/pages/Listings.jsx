@@ -484,7 +484,7 @@ function Listings() {
             {paginatedListings.length === 0 ? (
               <p className="text-muted text-center">No listings found.</p>
             ) : (
-              <div className="row g-4">
+              <div className="row gx-3">
                 {paginatedListings.map((listing) => (
                   <ListingCard
                     key={listing.id}

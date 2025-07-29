@@ -64,7 +64,7 @@ function ListingCard({ listing, income }) {
   return (
     <div
       key={listing.id}
-      className="card col-12 col-sm-6 col-md-4 col-lg-3 m-3 shadow-sm position-relative"
+      className="card col-12 col-sm-6 col-md-4 col-lg-4 mb-4 shadow-sm position-relative"
       style={{ minHeight: "100%" }}
     >
       {/* Affordability Tag */}
@@ -90,15 +90,19 @@ function ListingCard({ listing, income }) {
             </div>
           ) : null;
         })()}
-  
+
       {/* Image */}
       <img
-        src={listing.primary_image ? listing.primary_image.image : "/static/img/placeholder.jpg"}
+        src={
+          listing.primary_image
+            ? listing.primary_image.image
+            : "/static/img/placeholder.jpg"
+        }
         alt="Listing"
         className="card-img-top border-bottom mt-2"
         style={{ objectFit: "cover", aspectRatio: "4/3" }}
       />
-  
+
       {/* Card Body */}
       <div className="card-body d-flex flex-column justify-content-between">
         <div>
@@ -106,16 +110,19 @@ function ListingCard({ listing, income }) {
             {listing.bedrooms} bedroom {listing.property_type}
           </h5>
           <p className="text-muted mb-2">{listing.city}</p>
-  
-          <h6 className="text-primary fw-bold display-6 mb-3" style={{ fontSize: "1.25rem" }}>
+
+          <h6
+            className="text-primary fw-bold display-6 mb-3"
+            style={{ fontSize: "1.25rem" }}
+          >
             ${listing.price.toLocaleString()}
           </h6>
-  
+
           <p className="mb-3">
             <strong>Move-in:</strong> {listing.move_in_date}
           </p>
         </div>
-  
+
         {/* Buttons */}
         <div className="d-flex flex-wrap gap-2 mt-auto">
           <button
@@ -124,7 +131,7 @@ function ListingCard({ listing, income }) {
           >
             View Details
           </button>
-  
+
           {isProfileSelf(listing.owner.id) ? (
             <button
               className="btn btn-outline-warning flex-fill"
@@ -143,7 +150,7 @@ function ListingCard({ listing, income }) {
         </div>
       </div>
     </div>
-  );  
+  );
 }
 
 export default ListingCard;

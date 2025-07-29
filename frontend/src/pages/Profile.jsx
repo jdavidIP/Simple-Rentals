@@ -169,7 +169,9 @@ function Profile() {
                           <div className="card-body d-flex flex-column">
                             <h6 className="card-title">{listing.title}</h6>
                             <p className="text-muted small flex-grow-1">
-                              {listing.description}
+                              {listing.description.length > 100
+                                ? listing.description.slice(0, 100) + "..."
+                                : listing.description}
                             </p>
                             <p className="mb-1">
                               <strong>Price:</strong> ${listing.price}
