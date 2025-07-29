@@ -35,6 +35,8 @@ def save_images(listing, images, front_image):
 # User management serializers
 
 class UserSerializer(serializers.ModelSerializer):
+    sex = serializers.CharField(source='get_sex_display')
+
     class Meta:
         model = MarketplaceUser
         fields = [
@@ -116,7 +118,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         validated_data.pop('password_confirmation')  # Remove password_confirmation before creating the user
         validated_data['username'] = validated_data['email']  # Set username to email
         user = MarketplaceUser.objects.create_user(**validated_data)
-        # --- Send confirmation email here! ---
+
         request = self.context.get("request")
         send_verification_email(user, request)
         return user

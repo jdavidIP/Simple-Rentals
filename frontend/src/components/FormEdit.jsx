@@ -14,7 +14,7 @@ function FormEdit({ profile }) {
     first_name: profile?.first_name || "",
     last_name: profile?.last_name || "",
     age: profile?.age || "",
-    sex: profile?.sex || "",
+    sex: profile?.sex[0] || "",
     budget_min: profile?.budget_min ?? "",
     budget_max: profile?.budget_max ?? "",
     yearly_income: profile?.yearly_income ?? "",
@@ -536,7 +536,7 @@ function FormEdit({ profile }) {
       <select
         id="sex"
         name="sex"
-        value={formData.sex}
+        value={formData.sex[0]}
         onChange={handleChange}
         onBlur={handleBlur}
         required

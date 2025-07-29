@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import api from "../api.js";
 import { useNavigate } from "react-router-dom";
+import RoommateCard from "../components/RoommateCard.jsx";
 
 function Roommates() {
   const [roommates, setRoommates] = useState([]);
@@ -342,69 +343,7 @@ function Roommates() {
           ) : (
             <div className="row g-4">
               {roommates.map((roommate) => (
-                <div
-                  key={roommate.id}
-                  className="card col-12 col-sm-6 col-md-4 col-lg-3 m-3 shadow-sm"
-                  style={{
-                    cursor: "pointer",
-                    transition: "transform 0.1s",
-                    borderRadius: "10px",
-                    minHeight: "100%",
-                  }}
-                  onClick={() => navigate(`/roommates/${roommate.id}`)}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.transform = "scale(1.01)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.transform = "scale(1)")
-                  }
-                >
-                  {/* Profile Picture */}
-                  <img
-                    src={
-                      roommate.user.profile_picture ||
-                      "/static/img/placeholder.jpg"
-                    }
-                    alt="Roommate Profile"
-                    className="card-img-top border-bottom mt-2"
-                    style={{ objectFit: "cover", aspectRatio: "4/3" }}
-                  />
-
-                  <div className="card-body d-flex flex-column justify-content-between">
-                    {/* Name & Budget */}
-                    <div>
-                      <h5 className="card-title text-capitalize mb-1">
-                        {roommate.user.first_name} {roommate.user.last_name}
-                      </h5>
-                      <h6 className="text-primary fw-bold mb-2">
-                        Budget: ${roommate.roommate_budget.toLocaleString()}
-                      </h6>
-
-                      {/* City & Gender */}
-                      <p className="mb-2">
-                        <strong>City:</strong>{" "}
-                        {roommate.user.preferred_location || "N/A"}
-                      </p>
-                      <p className="mb-2">
-                        <strong>Gender:</strong> {roommate.user.sex}
-                      </p>
-
-                      {/* Description */}
-                      <p
-                        className="text-muted mb-3"
-                        style={{ fontSize: "0.9rem" }}
-                      >
-                        <strong>Description:</strong>{" "}
-                        {roommate.description || "No description provided."}
-                      </p>
-                    </div>
-
-                    {/* CTA */}
-                    <button className="btn btn-outline-primary w-100 mt-auto">
-                      View Roommate
-                    </button>
-                  </div>
-                </div>
+                <RoommateCard key={roommate.id} roommate={roommate} />
               ))}
             </div>
           )}
