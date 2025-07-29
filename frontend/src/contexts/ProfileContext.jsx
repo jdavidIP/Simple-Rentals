@@ -1,11 +1,14 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import api from "../api";
+import { useLocation } from "react-router-dom";
 
 const ProfileContext = createContext();
 
 export const useProfileContext = () => useContext(ProfileContext);
 
 export const ProfileProvider = ({ children }) => {
+  const location = useLocation();
+
   // Data states
   const [profile, setProfile] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -123,7 +126,9 @@ export const ProfileProvider = ({ children }) => {
     }
   }, [roommate]);
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    fetchUser();
+  }, [location]);
 
   const isProfileSelf = (id) => profile && id === profile.id;
   const isRoommateSelf = (id) => profile && profile.roommate_profile == id;

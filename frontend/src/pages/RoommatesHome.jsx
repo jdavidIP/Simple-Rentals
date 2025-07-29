@@ -32,7 +32,9 @@ function Roommates() {
     ) {
       // Remove previous listeners if any
       if (autocompleteRef.current) {
-        window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
+        window.google.maps.event.clearInstanceListeners(
+          autocompleteRef.current
+        );
       }
       const options = { types: ["(cities)"] };
       autocompleteRef.current = new window.google.maps.places.Autocomplete(
@@ -42,9 +44,8 @@ function Roommates() {
       autocompleteRef.current.addListener("place_changed", () => {
         const place = autocompleteRef.current.getPlace();
         const cityName =
-          place.address_components?.find((c) =>
-            c.types.includes("locality")
-          )?.long_name ||
+          place.address_components?.find((c) => c.types.includes("locality"))
+            ?.long_name ||
           place.address_components?.find((c) =>
             c.types.includes("administrative_area_level_1")
           )?.long_name ||
@@ -75,7 +76,9 @@ function Roommates() {
     return () => {
       clearInterval(checkInterval);
       if (autocompleteRef.current && window.google) {
-        window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
+        window.google.maps.event.clearInstanceListeners(
+          autocompleteRef.current
+        );
       }
     };
     // eslint-disable-next-line
@@ -101,8 +104,10 @@ function Roommates() {
     try {
       const params = {};
       if (customFilters.city) params.city = customFilters.city;
-      if (customFilters.budget_min) params.budget_min = customFilters.budget_min;
-      if (customFilters.budget_max) params.budget_max = customFilters.budget_max;
+      if (customFilters.budget_min)
+        params.budget_min = customFilters.budget_min;
+      if (customFilters.budget_max)
+        params.budget_max = customFilters.budget_max;
       if (customFilters.gender_preference)
         params.gender_preference = customFilters.gender_preference;
       if (customFilters.pet_friendly)
@@ -176,7 +181,9 @@ function Roommates() {
           {error}
         </div>
       ) : loading ? (
-        <div className="loading">Loading...</div>
+        <div className="d-flex justify-content-center py-5">
+          <div className="spinner-border text-primary" role="status" />
+        </div>
       ) : (
         <>
           {/* Filters */}
@@ -345,12 +352,19 @@ function Roommates() {
                     minHeight: "100%",
                   }}
                   onClick={() => navigate(`/roommates/${roommate.id}`)}
-                  onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.01)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.transform = "scale(1.01)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.transform = "scale(1)")
+                  }
                 >
                   {/* Profile Picture */}
                   <img
-                    src={roommate.user.profile_picture || "/static/img/placeholder.jpg"}
+                    src={
+                      roommate.user.profile_picture ||
+                      "/static/img/placeholder.jpg"
+                    }
                     alt="Roommate Profile"
                     className="card-img-top border-bottom mt-2"
                     style={{ objectFit: "cover", aspectRatio: "4/3" }}
@@ -368,14 +382,18 @@ function Roommates() {
 
                       {/* City & Gender */}
                       <p className="mb-2">
-                        <strong>City:</strong> {roommate.user.preferred_location || "N/A"}
+                        <strong>City:</strong>{" "}
+                        {roommate.user.preferred_location || "N/A"}
                       </p>
                       <p className="mb-2">
                         <strong>Gender:</strong> {roommate.user.sex}
                       </p>
 
                       {/* Description */}
-                      <p className="text-muted mb-3" style={{ fontSize: "0.9rem" }}>
+                      <p
+                        className="text-muted mb-3"
+                        style={{ fontSize: "0.9rem" }}
+                      >
                         <strong>Description:</strong>{" "}
                         {roommate.description || "No description provided."}
                       </p>
@@ -388,7 +406,6 @@ function Roommates() {
                   </div>
                 </div>
               ))}
-
             </div>
           )}
         </>

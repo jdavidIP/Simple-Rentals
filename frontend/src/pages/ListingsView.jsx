@@ -6,10 +6,12 @@ import { useProfileContext } from "../contexts/ProfileContext.jsx";
 function ListingsView() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [userIncome, setUserIncome] = useState(null);
+  const [income, setIncome] = useState(null);
   const [listing, setListing] = useState();
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [reviews, setReviews] = useState([]);
+  const [averageRating, setAverageRating] = useState(null);
   const { profile, isProfileSelf } = useProfileContext();
 
   const fetchListing = async () => {
@@ -33,7 +35,6 @@ function ListingsView() {
         pictures: orderedPictures,
         primary_image: primaryImage,
       };
-
       setListing(processedListing);
     } catch (err) {
       console.error("Error fetching listings:", err);
@@ -44,13 +45,26 @@ function ListingsView() {
     }
   };
 
+  const fetchReviews = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get(`/profile/reviews`, {
+        params: { reviewee: id },
+      });
+      setReviews(response.data);
+      const total = response.data.reduce((acc, r) => acc + r.rating, 0);
+      setAverageRating((total / response.data.length).toFixed(1));
+    } catch (err) {}
+  };
+
   useEffect(() => {
     fetchListing();
+    fetchReviews();
   }, [id]);
 
   useEffect(() => {
     if (profile) {
-      setUserIncome(profile.yearly_income);
+      setIncome(profile.yearly_income);
     }
   }, [profile]);
 
@@ -94,15 +108,21 @@ function ListingsView() {
   };
   const owner = listing.owner;
 
-  const getAffordability = () => {
-    if (!userIncome || !listing?.price) return null;
+  const getAffordabilityTag = (price) => {
+    if (!income) {
+      console.log("User income not loaded yet");
+      return null;
+    }
 
-    const monthlyIncome = userIncome / 12;
-    const rentRatio = listing.price / monthlyIncome;
+    const monthlyIncome = income / 12;
 
-    if (rentRatio > 0.5) return { icon: "❌", label: "Too Expensive" };
-    if (rentRatio < 0.3) return { icon: "💰", label: "Affordable" };
-    return { icon: "✅", label: "Recommended" };
+    if (price > monthlyIncome * 0.4) {
+      return { label: "❌ Too Expensive", color: "#dc3545" };
+    } else if (price <= monthlyIncome * 0.25) {
+      return { label: "💰 Affordable", color: "#0d6efd" };
+    } else {
+      return { label: "✅ Recommended", color: "#198754" };
+    }
   };
 
   return error ? (
@@ -168,13 +188,25 @@ function ListingsView() {
               <h5 className="text-primary fw-bold mb-2">
                 ${listing.price} / month
               </h5>
-              {userIncome &&
+              {income &&
                 (() => {
-                  const affordability = getAffordability();
-                  return affordability ? (
-                    <div className="alert alert-info py-2 px-3 d-inline-flex align-items-center mb-0">
-                      {affordability.icon}
-                      <span className="ms-2">{affordability.label}</span>
+                  const tag = getAffordabilityTag(listing.price);
+                  return tag ? (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "20px",
+                        right: "10px",
+                        backgroundColor: tag.color,
+                        color: "white",
+                        padding: "5px 10px",
+                        borderRadius: "12px",
+                        fontWeight: "bold",
+                        fontSize: "0.75rem",
+                        zIndex: 10,
+                      }}
+                    >
+                      {tag.label}
                     </div>
                   ) : null;
                 })()}
@@ -359,6 +391,24 @@ function ListingsView() {
                   {owner.first_name} {owner.last_name}
                 </Link>
               </h5>
+              <p className="text-muted small mb-1">{profile.email}</p>
+              <p className="text-muted small">{profile.phone_number}</p>
+              {averageRating && (
+                <div className="rating mt-2">
+                  {[...Array(5)].map((_, i) => (
+                    <span
+                      key={i}
+                      style={{
+                        color:
+                          i < Math.round(averageRating) ? "#ffc107" : "#e4e5e9",
+                      }}
+                    >
+                      ★
+                    </span>
+                  ))}
+                  <span className="ms-2 text-muted">({reviews.length})</span>
+                </div>
+              )}
             </div>
 
             <div className="d-grid gap-2 mt-3">

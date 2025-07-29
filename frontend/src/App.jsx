@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-} from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home";
@@ -40,8 +36,8 @@ import AuthLayout from "./components/AuthLayout";
 
 function App() {
   return (
-    <ProfileProvider>
-      <Router>
+    <Router>
+      <ProfileProvider>
         <Routes>
           {/* Main site layout with header/footer */}
           <Route element={<Layout />}>
@@ -207,15 +203,15 @@ function App() {
             />
             <Route path="*" element={<NotFound />} />
           </Route>
-          
+
           {/* Auth-only layout (no header/footer) */}
           <Route element={<AuthLayout />}>
             <Route path="/verify-pending" element={<VerifyPending />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
           </Route>
         </Routes>
-      </Router>
-    </ProfileProvider>
+      </ProfileProvider>
+    </Router>
   );
 }
 

@@ -40,7 +40,9 @@ function ReviewsEdit() {
   return error ? (
     <div className="alert alert-danger">{error}</div>
   ) : loading ? (
-    <div className="loading">Loading...</div>
+    <div className="d-flex justify-content-center py-5">
+      <div className="spinner-border text-primary" role="status" />
+    </div>
   ) : !authorized ? (
     <Unauthorized />
   ) : review ? (
