@@ -49,3 +49,80 @@
   margin-bottom: 10px;
   color: #555;
 }
+
+/* Sections */
+.group-section {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+
+.group-section-title {
+  margin: 0 0 10px;
+  color: #2c3e50;
+  font-weight: 700;
+}
+
+/* Meta rows */
+.meta-label {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.meta-value {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* Status pills */
+.status-badge {
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.status-open {
+  background: #d1e7dd; /* success-100 */
+  color: #0f5132; /* success-800 */
+}
+
+.status-private {
+  background: #e2e3e5; /* secondary-100 */
+  color: #41464b; /* secondary-800 */
+}
+
+.status-filled {
+  background: #f8d7da; /* danger-100 */
+  color: #842029; /* danger-800 */
+}
+
+.status-sent {
+  background: #cff4fc; /* info-100 */
+  color: #055160; /* info-800 */
+}
+
+.status-review {
+  background: #fff3cd; /* warning-100 */
+  color: #664d03; /* warning-800 */
+}
+
+.status-rejected {
+  background: #dc3545; /* danger solid for strong signal */
+  color: #ffffff;
+}
+
+.status-invited {
+  background: #cfe2ff; /* primary-100 */
+  color: #084298; /* primary-800 */
+}
+
+/* Compact buttons */
+.btn-compact {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.9rem;
+}
+
+/* Member card spacing inside grid without using m-3 */
+.member-card {
+  margin: 0 12px;
+}

@@ -221,250 +221,367 @@ function GroupView() {
         </div>
       ) : (
         <>
-          <h2 className="groups-title mb-0">{group.name}</h2>
-          <p className="text-center text-muted mt-1">
-            {group.description || "No description provided."}
-          </p>
-          <hr />
-          <div className="text-center mb-4">
-            <h4 className="mb-3"> ℹ️ Group Details</h4>
-            <div className="row gx-4">
-              <p className="col-4">
-                <strong>Move-in Date:</strong> {group.move_in_date}
-              </p>
-              <p className="col-4">
-                <strong>Status:</strong> {group.group_status}
-              </p>
-              <p className="col-4">
-                <strong>Move-in Ready:</strong>{" "}
-                {group.move_in_ready ? "Yes" : "No"}
-              </p>
+          {/* Header */}
+          <h2 className="groups-title mb-1">{group.name}</h2>
+
+          {/* Listing Preview */}
+          <div
+            className="group-section mt-3 p-3"
+            role="button"
+            onClick={() => navigate(`/listings/${group.listing}`)}
+            onKeyDown={(e) =>
+              (e.key === "Enter" || e.key === " ") &&
+              navigate(`/listings/${group.listing}`)
+            }
+            tabIndex={0}
+            style={{ cursor: "pointer" }}
+            aria-label="Open listing"
+          >
+            <h5 className="group-section-title">Listing</h5>
+
+            {listing ? (
+              <div className="d-flex align-items-center gap-3 px-1">
+                {" "}
+                {/* ⬅️ small inner pad */}
+                {/* Thumbnail */}
+                <div
+                  className="rounded overflow-hidden flex-shrink-0"
+                  style={{
+                    width: 160,
+                    height: 106,
+                    background: "#f1f3f5",
+                    border: "1px solid #e9ecef",
+                  }}
+                >
+                  <img
+                    src={
+                      listing.pictures?.find((p) => p.is_primary)?.image ||
+                      "/static/img/placeholder.jpg"
+                    }
+                    alt="Listing preview"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                </div>
+                {/* Text content */}
+                <div className="flex-grow-1">
+                  <div className="d-flex justify-content-between align-items-start">
+                    <h6 className="mb-1 me-2">
+                      {`${listing.property_type} for Rent in ${listing.city}`}
+                    </h6>
+                    <div
+                      className="fw-bold text-primary ms-2"
+                      style={{ whiteSpace: "nowrap" }}
+                    >
+                      ${Number(listing.price).toLocaleString()}
+                    </div>
+                  </div>
+
+                  <div className="text-muted small">
+                    {listing.street_address}, {listing.city},{" "}
+                    {listing.postal_code}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-3 text-muted small">Loading listing…</div>
+            )}
+          </div>
+
+          {/* Top sections: About + Details */}
+          <div className="row g-4 mt-1">
+            {/* About */}
+            <div className="col-md-7">
+              <div className="group-section">
+                <h5 className="group-section-title">About this group</h5>
+                <p className="mb-0 text-muted">
+                  {group.description || "No description provided."}
+                </p>
+              </div>
             </div>
 
-            <p>
-              {listing ? (
-                <Link
-                  to={`/listings/${group.listing}`}
-                  className="btn btn-primary text-center w-100"
-                >
-                  View Listing
-                </Link>
-              ) : (
-                "Loading listing..."
-              )}
-            </p>
+            {/* Details */}
+            <div className="col-md-5">
+              <div className="group-section">
+                <h5 className="group-section-title mb-3">Details</h5>
+
+                <div className="row gy-2">
+                  <div className="col-6">
+                    <div className="meta">
+                      <div className="meta-label">Move-in Date</div>
+                      <div className="meta-value">
+                        {group.move_in_date || "—"}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-6">
+                    <div className="meta">
+                      <div className="meta-label">Status</div>
+                      <div className="meta-value">
+                        <span
+                          className={`badge status-badge ${
+                            group.group_status === "O"
+                              ? "status-open"
+                              : group.group_status === "P"
+                              ? "status-pending"
+                              : group.group_status === "PR"
+                              ? "status-private"
+                              : group.group_status === "F"
+                              ? "status-filled"
+                              : ""
+                          }`}
+                        >
+                          {/* Map your internal code to label if needed */}
+                          {group.group_status === "O"
+                            ? "Open"
+                            : group.group_status === "P"
+                            ? "Pending"
+                            : group.group_status === "PR"
+                            ? "Private"
+                            : group.group_status === "F"
+                            ? "Filled"
+                            : group.group_status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-12">
+                    <div className="meta">
+                      <div className="meta-label">Move-in Ready</div>
+                      <div className="meta-value">
+                        <span
+                          className={`badge ${
+                            group.move_in_ready ? "bg-success" : "bg-secondary"
+                          }`}
+                        >
+                          {group.move_in_ready ? "Yes" : "No"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <hr />
 
-          <div className="text-center mb-4">
-            <h4 className="mb-3"> 👥 Group Members</h4>
-            <ul>
-              {members.length === 0 ? (
-                <li>No members yet.</li>
-              ) : (
-                <div className="row g-4 text-center justify-content-center">
-                  {members.map((roommate) => {
-                    const fit = isListingOwner
-                      ? getFitRanking(roommate.user?.yearly_income)
-                      : null;
-                    return (
-                      <div
-                        key={roommate.id}
-                        className="card col-12 col-sm-6 col-md-4 col-lg-3 m-3 shadow-sm"
-                        style={{
-                          cursor: "pointer",
-                          transition: "transform 0.1s",
-                          borderRadius: "10px",
-                          minHeight: "100%",
-                        }}
-                        onClick={() => navigate(`/roommates/${roommate.id}`)}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.transform = "scale(1.01)")
+          {/* Members */}
+          <div className="group-section mt-3">
+            <h5 className="group-section-title">Group Members</h5>
+            {members.length === 0 ? (
+              <p className="text-muted mb-0">No members yet.</p>
+            ) : (
+              <div className="row g-4 justify-content-center">
+                {members.map((roommate) => {
+                  const fit = isListingOwner
+                    ? getFitRanking(roommate.user?.yearly_income)
+                    : null;
+
+                  return (
+                    <div
+                      key={roommate.id}
+                      className="card col-12 col-sm-6 col-md-4 col-lg-3 shadow-sm member-card"
+                      onClick={() => navigate(`/roommates/${roommate.id}`)}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.transform = "translateY(-2px)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.transform = "translateY(0)")
+                      }
+                      style={{
+                        cursor: "pointer",
+                        transition: "transform 0.12s ease",
+                        borderRadius: "10px",
+                      }}
+                    >
+                      <img
+                        src={
+                          roommate.user.profile_picture ||
+                          "/static/img/placeholder.jpg"
                         }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.transform = "scale(1)")
-                        }
-                      >
-                        {/* Profile Picture */}
-                        <img
-                          src={
-                            roommate.user.profile_picture ||
-                            "/static/img/placeholder.jpg"
-                          }
-                          alt="Roommate Profile"
-                          className="card-img-top border-bottom mt-2"
-                          style={{ objectFit: "cover", aspectRatio: "4/3" }}
-                        />
+                        alt="Roommate Profile"
+                        className="card-img-top border-bottom mt-2"
+                        style={{ objectFit: "cover", aspectRatio: "4/3" }}
+                      />
 
-                        <div className="card-body d-flex flex-column justify-content-between">
-                          {/* Name & Budget */}
-                          <div>
-                            <h5 className="card-title text-capitalize mb-1">
-                              {roommate.user.first_name}{" "}
-                              {roommate.user.last_name}
-                            </h5>
-                            <h6 className="text-primary fw-bold mb-2">
-                              Budget: $
-                              {roommate.roommate_budget.toLocaleString()}
-                            </h6>
-                            {fit && (
-                              <span
-                                className="ms-2"
-                                style={{
-                                  padding: "4px 8px",
-                                  borderRadius: "8px",
-                                  backgroundColor: fit.color,
-                                  color: "#fff",
-                                  fontSize: "0.8rem",
-                                  fontWeight: "bold",
-                                }}
-                              >
-                                {fit.icon} {fit.label}
-                                {fit.percent !== null &&
-                                  ` — ${fit.percent}% income`}
-                              </span>
-                            )}
+                      <div className="card-body d-flex flex-column">
+                        <h5 className="card-title text-capitalize mb-1">
+                          {roommate.user.first_name} {roommate.user.last_name}
+                        </h5>
 
-                            {/* City & Gender */}
-                            <p className="mb-2">
-                              <strong>City:</strong>{" "}
-                              {roommate.user.preferred_location || "N/A"}
-                            </p>
-                            <p className="mb-2">
-                              <strong>Gender:</strong> {roommate.user.sex}
-                            </p>
-
-                            {/* Description */}
-                            <p
-                              className="text-muted mb-3"
-                              style={{ fontSize: "0.9rem" }}
-                            >
-                              <strong>Description:</strong>{" "}
-                              {roommate.description ||
-                                "No description provided."}
-                            </p>
+                        <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
+                          <div className="text-primary fw-bold">
+                            Budget: ${roommate.roommate_budget.toLocaleString()}
                           </div>
 
-                          {/* CTA */}
-                          <button className="btn btn-outline-primary w-100 mt-auto">
-                            View Roommate
-                          </button>
+                          {fit && (
+                            <span
+                              className="badge d-inline-block text-truncate"
+                              style={{
+                                backgroundColor: fit.color,
+                                color: "#fff",
+                                fontSize: "0.8rem",
+                                maxWidth: "100%", // so it never exceeds the card body width
+                              }}
+                              title={`${fit.label}${
+                                fit.percent !== null ? ` — ${fit.percent}%` : ""
+                              }`}
+                            >
+                              {fit.icon} {fit.label}
+                              {fit.percent !== null && ` — ${fit.percent}%`}
+                            </span>
+                          )}
                         </div>
+
+                        <div className="small text-muted mb-1">
+                          <strong>City:</strong>{" "}
+                          {roommate.user.preferred_location || "N/A"}
+                        </div>
+                        <div className="small text-muted mb-2">
+                          <strong>Gender:</strong> {roommate.user.sex}
+                        </div>
+
+                        <p
+                          className="text-muted mb-3"
+                          style={{ fontSize: "0.9rem" }}
+                        >
+                          <strong>Description:</strong>{" "}
+                          {roommate.description || "No description provided."}
+                        </p>
+
+                        <button className="btn btn-outline-primary btn-sm mt-auto">
+                          View Roommate
+                        </button>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </ul>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-          <button
-            className="btn btn-primary mt-3"
-            onClick={
-              !roommate
-                ? () => navigate("/roommates/post")
+
+          {/* Actions */}
+          <div className="action-bar d-flex flex-wrap gap-2 mt-4">
+            <button
+              className={`btn ${
+                isOwner
+                  ? "btn-danger"
+                  : isMember
+                  ? "btn-outline-danger"
+                  : "btn-primary"
+              } btn-sm`}
+              onClick={
+                !roommate
+                  ? () => navigate("/roommates/post")
+                  : isMember
+                  ? handleLeave
+                  : handleJoin
+              }
+              disabled={
+                (group.group_status !== "O" && !isMember) ||
+                joining ||
+                leaving ||
+                profile === null ||
+                isListingOwner
+              }
+            >
+              {isOwner
+                ? "Delete Group"
                 : isMember
-                ? handleLeave
-                : handleJoin
-            }
-            disabled={
-              (group.group_status !== "O" && !isMember) ||
-              joining ||
-              leaving ||
-              profile === null ||
-              isListingOwner
-            }
-          >
-            {isOwner
-              ? "Delete Group"
-              : isMember
-              ? "Leave Group"
-              : group.group_status !== "O"
-              ? "Group not open"
-              : joining
-              ? "Joining..."
-              : isListingOwner
-              ? "Listing is yours"
-              : !roommate
-              ? "Create Roommate Profile"
-              : "Join Group"}
-          </button>
-          {isOwner &&
-            (group.group_status === "O" ||
-              group.group_status === "P" ||
-              group.group_status === "F") && (
-              <>
-                <button
-                  onClick={handleApplication}
-                  className="btn btn-primary mt-3 ms-2"
-                  disabled={
-                    group.group_status !== "O" &&
-                    group.group_status !== "P" &&
-                    group.group_status !== "F"
-                  }
-                >
-                  Apply
-                </button>
-                <button
-                  onClick={() => navigate(`/groups/edit/${id}`)}
-                  className="btn btn-secondary mt-3 ms-2"
-                >
-                  Edit Group
-                </button>
-              </>
+                ? leaving
+                  ? "Leaving..."
+                  : "Leave Group"
+                : group.group_status !== "O"
+                ? "Group not open"
+                : joining
+                ? "Joining..."
+                : isListingOwner
+                ? "Listing is yours"
+                : !roommate
+                ? "Create Roommate Profile"
+                : "Join Group"}
+            </button>
+
+            {isOwner &&
+              (group.group_status === "O" ||
+                group.group_status === "P" ||
+                group.group_status === "F") && (
+                <>
+                  <button
+                    onClick={handleApplication}
+                    className="btn btn-outline-success btn-sm"
+                    disabled={
+                      group.group_status !== "O" &&
+                      group.group_status !== "P" &&
+                      group.group_status !== "F"
+                    }
+                  >
+                    Apply
+                  </button>
+                  <button
+                    onClick={() => navigate(`/groups/edit/${id}`)}
+                    className="btn btn-outline-secondary btn-sm"
+                  >
+                    Edit Group
+                  </button>
+                </>
+              )}
+
+            {isOwner && !conversation && (
+              <button
+                onClick={handleStartConversation}
+                className="btn btn-outline-secondary btn-sm"
+              >
+                Start Chat
+              </button>
             )}
 
-          {isOwner && !conversation && (
-            <button
-              onClick={handleStartConversation}
-              className="btn btn-secondary mt-3 ms-2"
-            >
-              Start Chat
-            </button>
-          )}
+            {conversation && isMember && (
+              <button
+                onClick={handleStartConversation}
+                className="btn btn-outline-secondary btn-sm"
+              >
+                See Chat
+              </button>
+            )}
 
-          {conversation && isMember && (
-            <button
-              onClick={handleStartConversation}
-              className="btn btn-secondary mt-3 ms-2"
-            >
-              See Chat
-            </button>
-          )}
-
-          {isProfileSelf(listing.owner.id) ? (
-            <>
+            {isProfileSelf(listing.owner.id) ? (
+              <>
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={() => navigate(`/listings/${group.listing}/groups`)}
+                >
+                  See Groups for this Listing
+                </button>
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={() => navigate(`/applications`)}
+                >
+                  See All Applications
+                </button>
+                <button
+                  onClick={() => navigate(`/groups/manage/${group.id}`)}
+                  className="btn btn-outline-warning btn-sm"
+                  disabled={
+                    group.group_status === "O" ||
+                    group.group_status === "P" ||
+                    group.group_status === "F"
+                  }
+                >
+                  Manage Application
+                </button>
+              </>
+            ) : (
               <button
-                className="btn btn-secondary mt-3 ms-2"
-                onClick={() => navigate(`/listings/${group.listing}/groups`)}
+                className="btn btn-outline-secondary btn-sm"
+                onClick={() => navigate(-1)}
               >
-                See Groups for this Listing
+                Back
               </button>
-              <button
-                className="btn btn-secondary mt-3 ms-2"
-                onClick={() => navigate(`/applications`)}
-              >
-                See All Applications
-              </button>
-              <button
-                onClick={() => navigate(`/groups/manage/${group.id}`)}
-                className="btn btn-secondary mt-3 ms-2"
-                disabled={
-                  group.group_status === "O" ||
-                  group.group_status === "P" ||
-                  group.group_status === "F"
-                }
-              >
-                Manage Application
-              </button>
-            </>
-          ) : (
-            <button
-              className="btn btn-secondary mt-3 ms-2"
-              onClick={() => navigate(-1)}
-            >
-              Back
-            </button>
-          )}
+            )}
+          </div>
         </>
       )}
     </div>
