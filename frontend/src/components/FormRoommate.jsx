@@ -8,7 +8,7 @@ function FormRoommate({ method = "post", roommate }) {
     description: roommate?.description || "",
     move_in_date: roommate?.move_in_date || "",
     stay_length: roommate?.stay_length ?? "",
-    occupation: roommate?.occupation || "",
+    occupation: roommate?.occupation[0] || "",
     roommate_budget: roommate?.roommate_budget ?? "",
     smoke_friendly: roommate?.smoke_friendly ?? false,
     cannabis_friendly: roommate?.cannabis_friendly ?? false,

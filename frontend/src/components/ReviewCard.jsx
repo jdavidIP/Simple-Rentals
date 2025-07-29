@@ -9,50 +9,92 @@ function ReviewCard({ review }) {
 
   const toggleExpanded = () => setExpanded((prev) => !prev);
 
-  const maxPreviewLength = 200; // Show first 200 chars
-
+  const maxPreviewLength = 200;
+  const comment = review.comment || "";
   const displayComment =
-    review.comment.length > maxPreviewLength && !expanded
-      ? review.comment.slice(0, maxPreviewLength) + "..."
-      : review.comment;
+    comment.length > maxPreviewLength && !expanded
+      ? comment.slice(0, maxPreviewLength) + "..."
+      : comment;
+
+  const rating = Number(review.rating) || 0;
+  const stars = Array.from({ length: 5 }, (_, i) => i < Math.round(rating));
 
   return (
     <div
       key={review.id}
       className="card my-3 shadow-sm"
-      style={{ borderRadius: "10px" }}
+      style={{ borderRadius: "12px" }}
     >
       <div className="card-body">
-        {/* Reviewer Info */}
-        <div className="d-flex align-items-center mb-2">
-          <div
-            className="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-3"
+        {/* Header: Avatar + Name + Big Rating Badge */}
+        <div className="d-flex align-items-center justify-content-between mb-2">
+          <div className="d-flex align-items-center">
+            <div
+              className="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-3"
+              style={{
+                width: 44,
+                height: 44,
+                fontSize: "0.95rem",
+                fontWeight: "bold",
+              }}
+            >
+              {review.reviewer
+                ? review.reviewer.first_name.charAt(0) +
+                  review.reviewer.last_name.charAt(0)
+                : "A"}
+            </div>
+            <div>
+              <h6 className="mb-0">
+                {review.reviewer
+                  ? `${review.reviewer.first_name} ${review.reviewer.last_name}`
+                  : "Anonymous"}
+              </h6>
+              {/* Star row (visual) */}
+              <div
+                className="d-flex align-items-center"
+                aria-label={`Rated ${rating} out of 5`}
+                title={`${rating}/5`}
+              >
+                {stars.map((filled, i) => (
+                  <span
+                    key={i}
+                    style={{
+                      color: filled ? "#ffc107" : "#e4e5e9",
+                      fontSize: "1.15rem",
+                      lineHeight: 1,
+                      marginRight: 2,
+                    }}
+                  >
+                    ★
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Prominent numeric rating */}
+          <span
+            className="badge text-dark"
             style={{
-              width: "40px",
-              height: "40px",
-              fontSize: "0.9rem",
-              fontWeight: "bold",
+              background: "#ffe08a", // warm highlight like BS warning, but brighter
+              border: "1px solid #ffd24d",
+              fontWeight: 700,
+              fontSize: "0.95rem",
+              padding: "0.45rem 0.6rem",
+              borderRadius: "999px",
+              minWidth: 72,
+              textAlign: "center",
             }}
           >
-            {review.reviewer
-              ? review.reviewer.first_name.charAt(0) +
-                review.reviewer.last_name.charAt(0)
-              : "A"}
-          </div>
-          <div>
-            <h6 className="mb-0">
-              {review.reviewer
-                ? `${review.reviewer.first_name} ${review.reviewer.last_name}`
-                : "Anonymous"}
-            </h6>
-            <small className="text-muted">Rating: {review.rating}/5</small>
-          </div>
+            {rating}/5
+          </span>
         </div>
 
         {/* Comment */}
-
-        <p>{displayComment}</p>
-        {review.comment.length > maxPreviewLength && (
+        <div className="p-3 bg-light rounded mb-2">
+          <p className="mb-0">{displayComment}</p>
+        </div>
+        {comment.length > maxPreviewLength && (
           <button
             className="btn btn-link p-0"
             onClick={toggleExpanded}
@@ -62,20 +104,21 @@ function ReviewCard({ review }) {
           </button>
         )}
 
-        {/* Metadata */}
-        <p className="text-muted mb-2">
-          <em>Reviewed as: {review.reviewee_role_display}</em>
-        </p>
+        {/* Meta + Actions */}
+        <div className="d-flex align-items-center justify-content-between mt-3">
+          <span className="badge bg-secondary">
+            Reviewed as: {review.reviewee_role_display}
+          </span>
 
-        {/* Edit Button */}
-        {review.reviewer && isProfileSelf(review.reviewer.id) && (
-          <button
-            className="btn btn-sm btn-outline-secondary"
-            onClick={() => navigate(`/reviews/edit/${review.id}`)}
-          >
-            Edit Review
-          </button>
-        )}
+          {review.reviewer && isProfileSelf(review.reviewer.id) && (
+            <button
+              className="btn btn-sm btn-outline-secondary"
+              onClick={() => navigate(`/reviews/edit/${review.id}`)}
+            >
+              Edit Review
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
