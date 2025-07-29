@@ -90,7 +90,7 @@ function GroupView() {
     } catch (err) {
       setError(
         err.response?.data?.detail ||
-        "Failed to join group. You may already be a member or not allowed."
+          "Failed to join group. You may already be a member or not allowed."
       );
       console.error("Failed to join group.", err);
     } finally {
@@ -158,8 +158,8 @@ function GroupView() {
     } catch (err) {
       setError(
         err?.response?.data?.detail ||
-        err?.response?.data?.error ||
-        "Failed to start conversation."
+          err?.response?.data?.error ||
+          "Failed to start conversation."
       );
     }
   };
@@ -216,7 +216,9 @@ function GroupView() {
       {error ? (
         <div className="alert alert-danger">{error}</div>
       ) : loadingConversation || loadingGroup ? (
-        <div className="loading">Loading...</div>
+        <div className="d-flex justify-content-center py-5">
+          <div className="spinner-border text-primary" role="status" />
+        </div>
       ) : (
         <>
           <h2 className="groups-title mb-0">{group.name}</h2>
@@ -234,110 +236,126 @@ function GroupView() {
                 <strong>Status:</strong> {group.group_status}
               </p>
               <p className="col-4">
-                <strong>Move-in Ready:</strong> {group.move_in_ready ? "Yes" : "No"}
+                <strong>Move-in Ready:</strong>{" "}
+                {group.move_in_ready ? "Yes" : "No"}
               </p>
             </div>
 
             <p>
               {listing ? (
-                <Link to={`/listings/${group.listing}`} className="btn btn-primary text-center w-100">
+                <Link
+                  to={`/listings/${group.listing}`}
+                  className="btn btn-primary text-center w-100"
+                >
                   View Listing
                 </Link>
               ) : (
                 "Loading listing..."
               )}
             </p>
-
           </div>
           <hr />
 
           <div className="text-center mb-4">
             <h4 className="mb-3"> 👥 Group Members</h4>
-          <ul>
-            {members.length === 0 ? (
-              <li>No members yet.</li>
-            ) : (
-              <div className="row g-4 text-center justify-content-center">
-                {members.map((member) => {
-                  const fit = isListingOwner
-                    ? getFitRanking(member.user?.yearly_income)
-                    : null;
-                  return (
-                    <div
-                      key={member.id}
-                      className="card col-12 col-sm-6 col-md-4 col-lg-3 mx-2 shadow-sm"
-                      style={{
-                        cursor: "pointer",
-                        transition: "transform 0.1s",
-                        borderRadius: "10px",
-                        minHeight: "100%",
-                      }}
-                      onClick={() => navigate(`/roommates/${member.id}`)}
-                      onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.01)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                    >
-                      {/* Profile Picture */}
-                      <img
-                        src={member.user.profile_picture || "/static/img/placeholder.jpg"}
-                        alt="Roommate Profile"
-                        className="card-img-top border-bottom mt-2"
-                        style={{ objectFit: "cover", aspectRatio: "4/3" }}
-                      />
+            <ul>
+              {members.length === 0 ? (
+                <li>No members yet.</li>
+              ) : (
+                <div className="row g-4 text-center justify-content-center">
+                  {members.map((roommate) => {
+                    const fit = isListingOwner
+                      ? getFitRanking(roommate.user?.yearly_income)
+                      : null;
+                    return (
+                      <div
+                        key={roommate.id}
+                        className="card col-12 col-sm-6 col-md-4 col-lg-3 m-3 shadow-sm"
+                        style={{
+                          cursor: "pointer",
+                          transition: "transform 0.1s",
+                          borderRadius: "10px",
+                          minHeight: "100%",
+                        }}
+                        onClick={() => navigate(`/roommates/${roommate.id}`)}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.transform = "scale(1.01)")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.transform = "scale(1)")
+                        }
+                      >
+                        {/* Profile Picture */}
+                        <img
+                          src={
+                            roommate.user.profile_picture ||
+                            "/static/img/placeholder.jpg"
+                          }
+                          alt="Roommate Profile"
+                          className="card-img-top border-bottom mt-2"
+                          style={{ objectFit: "cover", aspectRatio: "4/3" }}
+                        />
 
-                      <div className="card-body d-flex flex-column justify-content-between">
-                        {/* Name & Budget */}
-                        <div>
-                          <h5 className="card-title text-capitalize mb-1">
-                            {member.user.first_name} {member.user.last_name}
-                          </h5>
-                          <h6 className="text-primary fw-bold mb-2">
-                            Budget: ${member.roommate_budget.toLocaleString()}
-                          </h6>
-                          {fit && (
-                            <span
-                              className="ms-2"
-                              style={{
-                                padding: "4px 8px",
-                                borderRadius: "8px",
-                                backgroundColor: fit.color,
-                                color: "#fff",
-                                fontSize: "0.8rem",
-                                fontWeight: "bold",
-                              }}
+                        <div className="card-body d-flex flex-column justify-content-between">
+                          {/* Name & Budget */}
+                          <div>
+                            <h5 className="card-title text-capitalize mb-1">
+                              {roommate.user.first_name}{" "}
+                              {roommate.user.last_name}
+                            </h5>
+                            <h6 className="text-primary fw-bold mb-2">
+                              Budget: $
+                              {roommate.roommate_budget.toLocaleString()}
+                            </h6>
+                            {fit && (
+                              <span
+                                className="ms-2"
+                                style={{
+                                  padding: "4px 8px",
+                                  borderRadius: "8px",
+                                  backgroundColor: fit.color,
+                                  color: "#fff",
+                                  fontSize: "0.8rem",
+                                  fontWeight: "bold",
+                                }}
+                              >
+                                {fit.icon} {fit.label}
+                                {fit.percent !== null &&
+                                  ` — ${fit.percent}% income`}
+                              </span>
+                            )}
+
+                            {/* City & Gender */}
+                            <p className="mb-2">
+                              <strong>City:</strong>{" "}
+                              {roommate.user.preferred_location || "N/A"}
+                            </p>
+                            <p className="mb-2">
+                              <strong>Gender:</strong> {roommate.user.sex}
+                            </p>
+
+                            {/* Description */}
+                            <p
+                              className="text-muted mb-3"
+                              style={{ fontSize: "0.9rem" }}
                             >
-                              {fit.icon} {fit.label}
-                              {fit.percent !== null && ` — ${fit.percent}% income`}
-                            </span>
-                          )}
+                              <strong>Description:</strong>{" "}
+                              {roommate.description ||
+                                "No description provided."}
+                            </p>
+                          </div>
 
-                          {/* City & Gender */}
-                          <p className="mb-2">
-                            <strong>City:</strong> {member.user.preferred_location || "N/A"}
-                          </p>
-                          <p className="mb-2">
-                            <strong>Gender:</strong> {member.user.sex}
-                          </p>
-
-                          {/* Description */}
-                          <p className="text-muted mb-3" style={{ fontSize: "0.9rem" }}>
-                            <strong>Description:</strong>{" "}
-                            {member.description || "No description provided."}
-                          </p>
+                          {/* CTA */}
+                          <button className="btn btn-outline-primary w-100 mt-auto">
+                            View Roommate
+                          </button>
                         </div>
-
-                        {/* CTA */}
-                        <button className="btn btn-outline-primary w-100 mt-auto">
-                          View Roommate
-                        </button>
                       </div>
-                    </div>
-                  );
-                })}
-
-              </div>
-
-            )}
-          </ul>
+                    );
+                  })}
+                </div>
+              )}
+            </ul>
           </div>
           <button
             className="btn btn-primary mt-3"
@@ -345,8 +363,8 @@ function GroupView() {
               !roommate
                 ? () => navigate("/roommates/post")
                 : isMember
-                  ? handleLeave
-                  : handleJoin
+                ? handleLeave
+                : handleJoin
             }
             disabled={
               (group.group_status !== "O" && !isMember) ||
@@ -359,16 +377,16 @@ function GroupView() {
             {isOwner
               ? "Delete Group"
               : isMember
-                ? "Leave Group"
-                : group.group_status !== "O"
-                  ? "Group not open"
-                  : joining
-                    ? "Joining..."
-                    : isListingOwner
-                      ? "Listing is yours"
-                      : !roommate
-                        ? "Create Roommate Profile"
-                        : "Join Group"}
+              ? "Leave Group"
+              : group.group_status !== "O"
+              ? "Group not open"
+              : joining
+              ? "Joining..."
+              : isListingOwner
+              ? "Listing is yours"
+              : !roommate
+              ? "Create Roommate Profile"
+              : "Join Group"}
           </button>
           {isOwner &&
             (group.group_status === "O" ||

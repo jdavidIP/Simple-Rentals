@@ -369,25 +369,53 @@ function FormEdit({ profile }) {
     ) : null;
 
   // --- IMAGE PREVIEW ---
-  const renderNewImagePreview = () =>
-    formData.profile_picture instanceof File && (
-      <div className="image-container">
-        <img
-          src={URL.createObjectURL(formData.profile_picture)}
-          alt="Preview"
-          style={{ maxWidth: "150px" }}
-        />
-        <button
-          type="button"
-          className="btn btn-danger"
-          onClick={() =>
-            setFormData((prev) => ({ ...prev, profile_picture: null }))
-          }
-        >
-          Remove
-        </button>
-      </div>
-    );
+  // --- AVATAR PREVIEW (profile picture) — reuse existing tile styles ---
+  const renderAvatarPreview = () => {
+    // Show newly selected file first (if any)
+    if (formData.profile_picture instanceof File) {
+      const src = URL.createObjectURL(formData.profile_picture);
+      return (
+        <div className="image-preview-grid">
+          <div className="image-tile">
+            <img src={src} alt="Profile preview" />
+            <button
+              type="button"
+              aria-label="Remove profile picture"
+              className="image-remove"
+              onClick={() =>
+                setFormData((prev) => ({ ...prev, profile_picture: null }))
+              }
+              title="Remove"
+            >
+              <span className="image-remove-x">&times;</span>
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Otherwise, show current server image (if exists)
+    if (existingProfilePicture) {
+      return (
+        <div className="image-preview-grid">
+          <div className="image-tile">
+            <img src={existingProfilePicture} alt="Profile" />
+            <button
+              type="button"
+              aria-label="Delete profile picture"
+              className="image-remove"
+              onClick={handleDeleteProfilePicture}
+              title="Delete"
+            >
+              <span className="image-remove-x">&times;</span>
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
 
   return (
     <form onSubmit={handleSubmit} className="form-container" autoComplete="off">
@@ -629,23 +657,7 @@ function FormEdit({ profile }) {
         accept="image/*"
         onChange={handleFileInputChange}
       />
-      {existingProfilePicture && (
-        <div className="image-container">
-          <img
-            src={existingProfilePicture}
-            alt="Profile"
-            style={{ maxWidth: "150px" }}
-          />
-          <button
-            type="button"
-            className="btn btn-danger"
-            onClick={handleDeleteProfilePicture}
-          >
-            Delete
-          </button>
-        </div>
-      )}
-      {renderNewImagePreview()}
+      {renderAvatarPreview()}
 
       <label htmlFor="receive_email_notifications">
         <input
