@@ -83,8 +83,6 @@ function ConversationWindow() {
 
     const names = participants.map(getFullName).filter(Boolean);
 
-    console.log(names);
-
     if (names.length > 4) return collapseNames(names);
 
     // Fallback: gather unique senders from messages (e.g., if participants missing)

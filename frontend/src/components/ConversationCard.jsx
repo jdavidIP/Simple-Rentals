@@ -6,15 +6,63 @@ import api from "../api";
 function ConversationCard({ conv, onUpdate }) {
   const { profile } = useProfileContext();
   const navigate = useNavigate();
-  const participantCount = conv.participants.length;
-  const isOnlyUser =
-    participantCount === 1 && conv.participants[0] === profile.id;
+
+  const getFullName = (u) =>
+    `${u?.first_name ?? ""} ${u?.last_name ?? ""}`.trim();
+
+  // ---- Build participants title from IDs + known user objects ----
+  const participantIds = Array.isArray(conv.participants)
+    ? conv.participants
+    : [];
+  const myId = profile?.id;
+
+  // All "other" user IDs (exclude me)
+  const otherIds = participantIds.filter((id) => id !== myId);
+
+  // Known user objects we can map: last_message.sender, listing.owner
+  const knownUsers = new Map();
+  if (conv.last_message?.sender?.id) {
+    knownUsers.set(
+      conv.last_message.sender.id,
+      getFullName(conv.last_message.sender)
+    );
+  }
+  if (conv.listing?.owner?.id) {
+    knownUsers.set(conv.listing.owner.id, getFullName(conv.listing.owner));
+  }
+
+  // Assemble names we know for those "other" IDs
+  const knownNames = otherIds.map((id) => knownUsers.get(id)).filter(Boolean);
+
+  // Compose a compact title
+  let participantsTitle = "Conversation";
+  if (otherIds.length === 0) {
+    participantsTitle = "Conversation";
+  } else if (knownNames.length === otherIds.length) {
+    // We know all other names
+    participantsTitle = knownNames.join(", ");
+  } else if (knownNames.length > 0) {
+    const unknownCount = otherIds.length - knownNames.length;
+    participantsTitle = `${knownNames.join(", ")} +${unknownCount} more`;
+  } else {
+    // We don't know any names — generic but informative
+    participantsTitle = conv.isGroup
+      ? `Group (${otherIds.length + 1} participants)` // +1 to include me
+      : "Conversation";
+  }
+
+  const unreadCount = Array.isArray(conv.messages)
+    ? conv.messages.filter((m) => m.sender?.id !== myId && m.read === false)
+        .length
+    : 0;
+
+  const isOnlyUser = participantIds.length === 1 && participantIds[0] === myId;
 
   const handleLeave = async (convId) => {
     try {
       await api.post(`/conversations/leave/${convId}`);
-      if (onUpdate) onUpdate(); // Call the passed function
-    } catch (err) {
+      onUpdate?.();
+    } catch (_err) {
       alert("Failed to leave conversation.");
     }
   };
@@ -22,8 +70,8 @@ function ConversationCard({ conv, onUpdate }) {
   const handleDelete = async (convId) => {
     try {
       await api.delete(`/conversations/delete/${convId}`);
-      if (onUpdate) onUpdate(); // Call the passed function
-    } catch (err) {
+      onUpdate?.();
+    } catch (_err) {
       alert("Failed to delete conversation.");
     }
   };
@@ -31,24 +79,48 @@ function ConversationCard({ conv, onUpdate }) {
   return (
     <li
       key={conv.id}
-      className="conversation-item"
+      className={`conversation-item ${unreadCount > 0 ? "unread" : ""}`}
       onClick={() => navigate(`/conversations/${conv.id}`)}
-      style={{ position: "relative" }}
     >
-      <div className="conversation-header">
-        <strong>Listing:</strong> {conv.listing.street_address}
+      {/* Title row: participants + unread badge */}
+      <div className="conversation-title-row">
+        <div className="conversation-header title-text">
+          {participantsTitle}
+        </div>
+        {unreadCount > 0 && (
+          <span className="unread-badge" title={`${unreadCount} unread`}>
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
+        )}
       </div>
+
+      {/* Secondary line: listing */}
+      {conv.listing?.street_address && (
+        <div className="conversation-sub">
+          <small className="text-muted">
+            <strong>Listing:</strong> {conv.listing.street_address}
+          </small>
+        </div>
+      )}
+
+      {/* Meta + last message (one-line clamp) */}
       <div className="conversation-meta">
-        <small>
-          <strong>Last updated:</strong>{" "}
-          {new Date(conv.last_updated).toLocaleString()}
+        <small className="text-muted">
+          Last updated: {new Date(conv.last_updated).toLocaleString()}
         </small>
         {conv.last_message && (
-          <div className="last-message">
-            <strong>Last message:</strong> {conv.last_message.content}
+          <div
+            className={`last-message ${
+              unreadCount > 0 ? "last-message-unread" : ""
+            }`}
+            title={conv.last_message.content}
+          >
+            {conv.last_message.content}
           </div>
         )}
       </div>
+
+      {/* Action pill (leave/delete) */}
       {!conv.isGroup && (
         <button
           className={
@@ -56,21 +128,13 @@ function ConversationCard({ conv, onUpdate }) {
               ? "conversation-action-btn conversation-delete-btn"
               : "conversation-action-btn conversation-leave-btn"
           }
-          style={{
-            position: "absolute",
-            top: 16,
-            right: 16,
-            zIndex: 2,
-          }}
+          style={{ position: "absolute", top: 16, right: 16 }}
           onClick={(e) => {
             e.stopPropagation();
-            if (
-              window.confirm(
-                isOnlyUser
-                  ? "Are you sure you want to delete this conversation?"
-                  : "Are you sure you want to leave this conversation?"
-              )
-            ) {
+            const confirmText = isOnlyUser
+              ? "Are you sure you want to delete this conversation?"
+              : "Are you sure you want to leave this conversation?";
+            if (window.confirm(confirmText)) {
               isOnlyUser ? handleDelete(conv.id) : handleLeave(conv.id);
             }
           }}

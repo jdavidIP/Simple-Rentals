@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../api";
 import ConversationCard from "../components/ConversationCard";
+import "../styles/chat.css";
 
 function ConversationList() {
   const [conversations, setConversations] = useState([]);
@@ -26,25 +27,29 @@ function ConversationList() {
 
   return (
     <div className="chat-container">
-      <h2>Your Conversations</h2>
+      <header className="chat-header">
+        <h2 className="chat-title mb-0">Your Conversations</h2>
+        <p className="chat-listing mb-0">{conversations?.length || 0} total</p>
+      </header>
+
       {error ? (
-        <div className="alert alert-danger">{error}</div>
+        <div className="alert alert-danger m-3">{error}</div>
       ) : loading ? (
-        <div className="loading">Loading...</div>
+        <div className="d-flex justify-content-center py-5">
+          <div className="spinner-border text-primary" role="status" />
+        </div>
       ) : conversations.length > 0 ? (
-        <>
-          <ul className="conversation-list">
-            {conversations.map((conv) => (
-              <ConversationCard
-                key={conv.id}
-                conv={conv}
-                onUpdate={fetchConversations}
-              />
-            ))}
-          </ul>
-        </>
+        <ul className="conversation-list">
+          {conversations.map((conv) => (
+            <ConversationCard
+              key={conv.id}
+              conv={conv}
+              onUpdate={fetchConversations}
+            />
+          ))}
+        </ul>
       ) : (
-        <p>No conversations found.</p>
+        <p className="m-3 text-muted">No conversations found.</p>
       )}
     </div>
   );
