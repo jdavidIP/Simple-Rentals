@@ -78,7 +78,7 @@ describe("Roommate Form E2E", () => {
 
     // Assert updated values show on the page
     cy.contains("Updated roommate looking for chill space.");
-    cy.contains("Stay Length:").parent().should("contain", "12 months");
+    cy.contains("Stay Length").parent().should("contain", "12 months");
     cy.contains("Employed"); // Occupation
   });
 });
