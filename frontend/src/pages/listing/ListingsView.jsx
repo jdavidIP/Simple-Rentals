@@ -239,17 +239,18 @@ function ListingsView() {
             <div className="accordion-item">
               <h2 className="accordion-header" id="headingProperty">
                 <button
-                  className="accordion-button collapsed"
+                  className="accordion-button"
                   type="button"
                   data-bs-toggle="collapse"
                   data-bs-target="#collapseProperty"
+                  aria-expanded="true"
                 >
                   Property Details
                 </button>
               </h2>
               <div
                 id="collapseProperty"
-                className="accordion-collapse collapse"
+                className="accordion-collapse collapse show"
                 aria-labelledby="headingProperty"
               >
                 <div className="accordion-body">
@@ -309,17 +310,18 @@ function ListingsView() {
             <div className="accordion-item">
               <h2 className="accordion-header" id="headingFinancials">
                 <button
-                  className="accordion-button collapsed"
+                  className="accordion-button"
                   type="button"
                   data-bs-toggle="collapse"
                   data-bs-target="#collapseFinancials"
+                  aria-expanded="true"
                 >
                   Financial Info
                 </button>
               </h2>
               <div
                 id="collapseFinancials"
-                className="accordion-collapse collapse"
+                className="accordion-collapse collapse show"
                 aria-labelledby="headingFinancials"
               >
                 <div className="accordion-body">
