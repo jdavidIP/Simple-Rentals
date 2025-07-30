@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import api from "../../api";
 import GroupCard from "../../components/cards/GroupCard";
 import "../../styles/groups.css";
@@ -9,7 +9,7 @@ function Applications() {
     member: [],
   });
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("landlord");
+  const [activeTab, setActiveTab] = useState("landlord"); // 'landlord' | 'member'
   const [loading, setLoading] = useState(true);
 
   const fetchApplications = async () => {
@@ -30,7 +30,7 @@ function Applications() {
     fetchApplications();
   }, []);
 
-  // Helper to separate groups by status
+  // helpers
   const groupByStatus = (groups) => ({
     sent: groups.filter((g) => g.group_status === "S"),
     underReview: groups.filter((g) => g.group_status === "U"),
@@ -41,152 +41,181 @@ function Applications() {
     rejected: groups.filter((g) => g.group_status === "R"),
   });
 
-  const landlordGroups = groupByStatus(applications.landlord || []);
-  const memberGroups = groupByStatus(applications.member || []);
+  const landlord = useMemo(
+    () => groupByStatus(applications.landlord || []),
+    [applications]
+  );
+  const member = useMemo(
+    () => groupByStatus(applications.member || []),
+    [applications]
+  );
+
+  const landlordTotal =
+    landlord.sent.length +
+    landlord.underReview.length +
+    landlord.invited.length;
+
+  const memberTotal =
+    member.open.length +
+    member.private.length +
+    member.filled.length +
+    member.sent.length +
+    member.underReview.length +
+    member.rejected.length +
+    member.invited.length;
+
+  const sections = useMemo(() => {
+    if (activeTab === "landlord") {
+      return [
+        {
+          key: "sent",
+          label: "Sent",
+          items: landlord.sent,
+          badgeClass: "status-sent",
+        },
+        {
+          key: "underReview",
+          label: "Under Review",
+          items: landlord.underReview,
+          badgeClass: "status-review",
+        },
+        {
+          key: "invited",
+          label: "Invited",
+          items: landlord.invited,
+          badgeClass: "status-invited",
+        },
+      ];
+    }
+    return [
+      {
+        key: "open",
+        label: "Open",
+        items: member.open,
+        badgeClass: "status-open",
+      },
+      {
+        key: "private",
+        label: "Private",
+        items: member.private,
+        badgeClass: "status-private",
+      },
+      {
+        key: "filled",
+        label: "Filled",
+        items: member.filled,
+        badgeClass: "status-filled",
+      },
+      {
+        key: "sent",
+        label: "Sent",
+        items: member.sent,
+        badgeClass: "status-sent",
+      },
+      {
+        key: "underReview",
+        label: "Under Review",
+        items: member.underReview,
+        badgeClass: "status-review",
+      },
+      {
+        key: "rejected",
+        label: "Rejected",
+        items: member.rejected,
+        badgeClass: "status-rejected",
+      },
+      {
+        key: "invited",
+        label: "Invited",
+        items: member.invited,
+        badgeClass: "status-invited",
+      },
+    ];
+  }, [activeTab, landlord, member]);
 
   return (
-    <div className="groups-container">
-      <h2 className="groups-title">
-        {activeTab === "landlord"
-          ? "Applications Management"
-          : "Group Management"}
-      </h2>
+    <div className="groups-container apps-container">
+      {/* Sticky header */}
+      <div className="apps-header">
+        <div className="apps-title-wrap">
+          <h2 className="groups-title mb-0">
+            {activeTab === "landlord"
+              ? "Applications Management"
+              : "Group Management"}
+          </h2>
+          <span className="apps-total chip-strong" aria-live="polite">
+            {activeTab === "landlord" ? landlordTotal : memberTotal} total
+          </span>
+        </div>
 
+        <div
+          className="apps-tabs"
+          role="tablist"
+          aria-label="Applications scope"
+        >
+          <button
+            role="tab"
+            aria-selected={activeTab === "landlord"}
+            className={`apps-tab ${activeTab === "landlord" ? "active" : ""}`}
+            onClick={() => setActiveTab("landlord")}
+          >
+            As Landlord <span className="chip">{landlordTotal}</span>
+          </button>
+          <button
+            role="tab"
+            aria-selected={activeTab === "member"}
+            className={`apps-tab ${activeTab === "member" ? "active" : ""}`}
+            onClick={() => setActiveTab("member")}
+          >
+            As Member <span className="chip">{memberTotal}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Content */}
       {error ? (
         <div className="alert alert-danger">{error}</div>
       ) : loading ? (
-        <div className="loading">Loading...</div>
+        <div className="d-flex justify-content-center py-5">
+          <div className="spinner-border text-primary" role="status" />
+        </div>
       ) : (
-        <>
-          <ul className="nav nav-tabs mb-4">
-            <li className="nav-item">
-              <button
-                className={`nav-link${
-                  activeTab === "landlord" ? " active" : ""
-                }`}
-                onClick={() => setActiveTab("landlord")}
+        <div className="apps-content">
+          {sections.map((sec) => (
+            <details key={sec.key} className="apps-section" open>
+              <summary
+                className="apps-section-summary"
+                role="button"
+                tabIndex={0}
               >
-                As Landlord
-              </button>
-            </li>
-            <li className="nav-item">
-              <button
-                className={`nav-link${activeTab === "member" ? " active" : ""}`}
-                onClick={() => setActiveTab("member")}
-              >
-                As Member
-              </button>
-            </li>
-          </ul>
-          {activeTab === "landlord" && (
-            <>
-              <h4>Sent</h4>
-              <div className="groups-list">
-                {landlordGroups.sent.length === 0 ? (
-                  <p>No sent applications.</p>
-                ) : (
-                  landlordGroups.sent.map((group) => (
+                <div className="apps-section-title">
+                  <span>{sec.label}</span>
+                  <span className={`status-badge ${sec.badgeClass}`}>
+                    {sec.items.length}
+                  </span>
+                </div>
+                <span className="apps-chevron" aria-hidden>
+                  ▾
+                </span>
+              </summary>
+
+              {sec.items.length === 0 ? (
+                <div className="apps-empty">
+                  <div className="apps-empty-icon">🗂️</div>
+                  <div className="apps-empty-text">
+                    No items in “{sec.label}”.
+                  </div>
+                </div>
+              ) : (
+                <div className="groups-list apps-grid">
+                  {sec.items.map((group) => (
                     <GroupCard key={group.id} group={group} />
-                  ))
-                )}
-              </div>
-              <h4>Under Review</h4>
-              <div className="groups-list">
-                {landlordGroups.underReview.length === 0 ? (
-                  <p>No applications under review.</p>
-                ) : (
-                  landlordGroups.underReview.map((group) => (
-                    <GroupCard key={group.id} group={group} />
-                  ))
-                )}
-              </div>
-              <h4>Invited</h4>
-              <div className="groups-list">
-                {landlordGroups.invited.length === 0 ? (
-                  <p>No invited applications.</p>
-                ) : (
-                  landlordGroups.invited.map((group) => (
-                    <GroupCard key={group.id} group={group} />
-                  ))
-                )}
-              </div>
-            </>
-          )}
-          {activeTab === "member" && (
-            <>
-              <h4>Open</h4>
-              <div className="groups-list">
-                {memberGroups.open.length === 0 ? (
-                  <p>No open groups.</p>
-                ) : (
-                  memberGroups.open.map((group) => (
-                    <GroupCard key={group.id} group={group} />
-                  ))
-                )}
-              </div>
-              <h4>Private</h4>
-              <div className="groups-list">
-                {memberGroups.private.length === 0 ? (
-                  <p>No private groups.</p>
-                ) : (
-                  memberGroups.private.map((group) => (
-                    <GroupCard key={group.id} group={group} />
-                  ))
-                )}
-              </div>
-              <h4>Filled</h4>
-              <div className="groups-list">
-                {memberGroups.filled.length === 0 ? (
-                  <p>No filled groups.</p>
-                ) : (
-                  memberGroups.filled.map((group) => (
-                    <GroupCard key={group.id} group={group} />
-                  ))
-                )}
-              </div>
-              <h4>Sent</h4>
-              <div className="groups-list">
-                {memberGroups.sent.length === 0 ? (
-                  <p>No sent applications.</p>
-                ) : (
-                  memberGroups.sent.map((group) => (
-                    <GroupCard key={group.id} group={group} />
-                  ))
-                )}
-              </div>
-              <h4>Under Review</h4>
-              <div className="groups-list">
-                {memberGroups.underReview.length === 0 ? (
-                  <p>No applications under review.</p>
-                ) : (
-                  memberGroups.underReview.map((group) => (
-                    <GroupCard key={group.id} group={group} />
-                  ))
-                )}
-              </div>
-              <h4>Rejected</h4>
-              <div className="groups-list">
-                {memberGroups.rejected.length === 0 ? (
-                  <p>No rejected applications.</p>
-                ) : (
-                  memberGroups.rejected.map((group) => (
-                    <GroupCard key={group.id} group={group} />
-                  ))
-                )}
-              </div>
-              <h4>Invited</h4>
-              <div className="groups-list">
-                {memberGroups.invited.length === 0 ? (
-                  <p>No invited applications.</p>
-                ) : (
-                  memberGroups.invited.map((group) => (
-                    <GroupCard key={group.id} group={group} />
-                  ))
-                )}
-              </div>
-            </>
-          )}{" "}
-        </>
+                  ))}
+                </div>
+              )}
+            </details>
+          ))}
+        </div>
       )}
     </div>
   );
