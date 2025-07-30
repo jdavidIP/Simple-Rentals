@@ -55,33 +55,53 @@ function Groups() {
 
   return (
     <div className="groups-container">
-      <h2 className="groups-title">Groups for this Listing</h2>
+      <div className="apps-header">
+        <div className="apps-title-wrap">
+          <h2 className="groups-title">Groups for this Listing</h2>
+          <span className="chip-strong">{groups.length} found</span>
+        </div>
+      </div>
+
       {error ? (
-        <div ref={errorRef} className="alert alert-danger">
+        <div ref={errorRef} className="alert alert-danger mt-3">
           {error}
         </div>
       ) : loadingGroup || loadingOwnerId ? (
-        <div className="loading">Loading...</div>
+        <div className="d-flex justify-content-center py-5">
+          <div className="spinner-border text-primary" role="status" />
+        </div>
       ) : (
         <>
           {!isProfileSelf(ownerId) && (
-            <button
-              className="btn btn-primary mt-3"
-              onClick={() => navigate(`/listings/${id}/groups/post`)}
-            >
-              Open a Group
-            </button>
-          )}
-          {groups.length === 0 ? (
-            <p className="text-muted text-center">
-              No groups found for this listing.
-            </p>
-          ) : (
-            <div className="groups-list">
-              {groups.map((group) => (
-                <GroupCard key={group.id} group={group} />
-              ))}
+            <div className="d-flex justify-content-end mb-3">
+              <button
+                className="gc-btn"
+                onClick={() => navigate(`/listings/${id}/groups/post`)}
+              >
+                Open a Group
+              </button>
             </div>
+          )}
+
+          {groups.length === 0 ? (
+            <div className="apps-empty">
+              <div className="apps-empty-icon">👥</div>
+              <p>No groups found for this listing.</p>
+            </div>
+          ) : (
+            <section className="apps-section" open>
+              <summary className="apps-section-summary">
+                <span className="apps-section-title">
+                  <i className="bi bi-people-fill"></i> Available Groups
+                </span>
+                <span className="apps-chevron">⌄</span>
+              </summary>
+              <div className="apps-grid">
+                {groups.map((group) => (
+                  <GroupCard key={group.id} group={group} />
+                ))}
+              </div>
+            </section>
           )}
         </>
       )}
