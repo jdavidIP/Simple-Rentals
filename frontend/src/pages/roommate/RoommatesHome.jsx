@@ -16,6 +16,7 @@ function Roommates() {
     cannabis_friendly: "",
     couple_friendly: "",
     occupation: "",
+    gender: "",
   });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -132,6 +133,7 @@ function Roommates() {
         params.couple_friendly = customFilters.couple_friendly;
       if (customFilters.occupation)
         params.occupation = customFilters.occupation;
+      if (customFilters.gender) params.gender = customFilters.gender;
 
       const response = await api.get("/roommates/", { params });
       setRoommates(response.data);
@@ -246,7 +248,8 @@ function Roommates() {
                       value={filters.gender_preference}
                       onChange={handleInputChange}
                     >
-                      <option value="">Open</option>
+                      <option value="">Any</option>
+                      <option value="O">Open</option>
                       <option value="F">Female</option>
                       <option value="M">Male</option>
                     </select>
@@ -330,6 +333,20 @@ function Roommates() {
                         Couple Friendly
                       </label>
                     </div>
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label">Gender</label>
+                    <select
+                      name="gender"
+                      className="form-select"
+                      value={filters.gender}
+                      onChange={handleInputChange}
+                    >
+                      <option value="">Any</option>
+                      <option value="O">Other</option>
+                      <option value="F">Female</option>
+                      <option value="M">Male</option>
+                    </select>
                   </div>
                 </div>
                 <div className="d-flex justify-content-end gap-2 mt-4">
