@@ -35,9 +35,9 @@ function Listings() {
   const autocompleteRef = useRef(null);
   const { profile } = useProfileContext();
 
-  const ITEMS_PER_PAGE = 15;
+  const [itemsPerPage, setItemsPerPage] = useState(15);
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(listings.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(listings.length / itemsPerPage);
 
   // --- Google Places Autocomplete initialization ---
   const initializeAutocomplete = useCallback(() => {
@@ -312,8 +312,8 @@ function Listings() {
   });
 
   const paginatedListings = sortedListings.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
   return (
@@ -511,13 +511,17 @@ function Listings() {
               </div>
             )}
 
-            {totalPages > 1 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            )}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={listings.length}
+              pageSize={itemsPerPage}
+              onPageSizeChange={(n) => {
+                setItemsPerPage(n);
+                setCurrentPage(1);
+              }}
+            />
           </>
         )}
       </div>

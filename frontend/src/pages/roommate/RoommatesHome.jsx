@@ -21,9 +21,9 @@ function Roommates() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const ITEMS_PER_PAGE = 15;
+  const [itemsPerPage, setItemsPerPage] = useState(15);
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(roommates.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(roommates.length / itemsPerPage);
 
   const errorRef = useRef(null);
   const cityInputRef = useRef(null);
@@ -31,8 +31,8 @@ function Roommates() {
 
   // Slice roommates by current page
   const paginatedRoommates = roommates.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
   // Reset to page 1 whenever filters or data changes
@@ -395,15 +395,18 @@ function Roommates() {
           )}
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="d-flex justify-content-center mt-5">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            </div>
-          )}
+
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={roommates.length}
+            pageSize={itemsPerPage}
+            onPageSizeChange={(n) => {
+              setItemsPerPage(n);
+              setCurrentPage(1);
+            }}
+          />
         </>
       )}
     </div>
