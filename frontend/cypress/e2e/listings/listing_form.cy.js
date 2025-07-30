@@ -2,6 +2,42 @@
 
 /// <reference types="cypress" />
 
+const getAdditionalImagesGrid = () =>
+  cy
+    .contains("label", /^Additional Images$/)
+    .parent() // <div class="mb-3">
+    .find(".image-preview-grid");
+
+// Selector list that covers common preview UIs (img, div tiles, canvas, etc.)
+const TILE_SELECTORS =
+  'img, .image-tile, [data-preview], [role="img"], canvas, .preview-thumb';
+
+const gridTiles = () =>
+  getAdditionalImagesGrid().find(
+    'img, .image-tile, [data-preview], [role="img"]'
+  );
+
+const removeButton = (scope = getAdditionalImagesGrid()) =>
+  scope.find('button.image-remove, [aria-label="Remove"], [title="Remove"]');
+
+// Get the current number of tiles WITHOUT requiring any to exist (can be 0)
+const countTiles = () =>
+  getAdditionalImagesGrid().then(($grid) => {
+    const $tiles = Cypress.$($grid).find(TILE_SELECTORS);
+    return $tiles.length; // returns a plain number
+  });
+
+// Click a remove button robustly (icon-only, class, or aria/ title)
+const clickLastRemove = () =>
+  getAdditionalImagesGrid().within(() => {
+    cy.get(
+      'button.image-remove, [data-testid="remove-image"], [aria-label*="Remove"], [title*="Remove"], .preview-remove'
+    )
+      .last()
+      .scrollIntoView()
+      .click({ force: true }); // icon-only buttons often need force
+  });
+
 describe("Listing Form E2E", () => {
   beforeEach(() => {
     cy.visit("/login");
@@ -70,66 +106,95 @@ describe("Listing Form E2E", () => {
 
   it("removes an uploaded image before submit", () => {
     const imagePath = "images/image2_test.jpg";
-    cy.get('input[type="file"][name="pictures"]').attachFile(imagePath);
 
-    cy.get(".image-container img").should("have.length", 1);
+    // 1) Count current tiles (can be 0)
+    countTiles().then((initial) => {
+      // 2) Upload one file
+      cy.get('input[type="file"][name="pictures"]').attachFile(imagePath);
 
-    cy.get(".image-container button")
-      .contains(/remove/i)
-      .click();
+      // 3) Wait until a tile appears (length > initial)
+      getAdditionalImagesGrid()
+        .find(TILE_SELECTORS, { timeout: 10000 })
+        .should(($els) => {
+          expect($els.length).to.be.greaterThan(initial);
+        });
 
-    cy.get(".image-container img").should("have.length", 0);
+      // 4) Remove the last/most recent tile
+      clickLastRemove();
+
+      // 5) Confirm we're back to the original count
+      //    Use countTiles() again so we don't require elements to exist
+      countTiles().should("eq", initial);
+    });
   });
 
   // Edit mode: test deleting an existing image
   it("deletes an existing image in edit mode", () => {
-    // Visit edit page for listing with id 123
     cy.visit("/listings/edit/7");
 
-    // Existing images should be rendered
-    cy.get(".image-container img").should("exist");
+    // Ensure existing tiles are visible
+    gridTiles({ timeout: 10000 }).should("exist");
 
-    // Click delete on the first image
-    cy.get(".image-container")
-      .last() // Get the last image container
-      .within(() => {
-        cy.contains(/delete/i).click(); // Click the delete button inside it
+    // Count tiles before deletion
+    gridTiles()
+      .its("length")
+      .then((before) => {
+        // Click the first remove button inside the grid
+        getAdditionalImagesGrid().within(() => {
+          removeButton(cy.root()).first().scrollIntoView().click();
+        });
+
+        // Tiles should decrease
+        gridTiles().should("have.length.lessThan", before);
+
+        // Submit and confirm PATCH succeeded
+        cy.intercept("PATCH", "**/listings/edit/7").as("editListing");
+        cy.contains('button[type="submit"]', /save changes/i).click();
+        cy.wait("@editListing")
+          .its("response.statusCode")
+          .should("be.oneOf", [200, 204]);
+
+        // Detail page assertions
+        cy.url().should("include", "/listings/7");
+        cy.get(".carousel-inner .carousel-item", { timeout: 10000 })
+          .its("length")
+          .should("be.lt", before); // carousel count went down
       });
-
-    // Image should be removed from preview
-    cy.get(".image-container img").should("have.length.lessThan", 5);
-
-    // Submit and intercept PATCH
-    cy.intercept("PATCH", "/listings/edit/7").as("editListing");
-    cy.get('button[type="submit"]')
-      .contains(/save changes/i)
-      .click();
-
-    cy.url().should("include", "/listings/7");
-    cy.get(".carousel-inner .carousel-item").should("have.length.lessThan", 5);
   });
 
   // Edit mode: test deleting an existing image
   it("adds an image in edit mode", () => {
-    // Visit edit page for listing with id 123
     cy.visit("/listings/edit/7");
 
-    // Existing images should be rendered
-    cy.get(".image-container img").should("exist");
+    // Wait for existing images in grid
+    getAdditionalImagesGrid().find("img", { timeout: 10000 }).should("exist");
 
-    const imagePath = "images/image2_test.jpg";
-    cy.get('input[type="file"][name="pictures"]').attachFile(imagePath);
+    // Count current thumbnails
+    getAdditionalImagesGrid()
+      .find("img")
+      .its("length")
+      .then((before) => {
+        const imagePath = "images/image2_test.jpg";
+        cy.get('input[type="file"][name="pictures"]').attachFile(imagePath);
 
-    // Image should be removed from preview
-    cy.get(".image-container img").should("have.length", 5);
+        // Expect one more thumbnail appears
+        getAdditionalImagesGrid()
+          .find("img", { timeout: 8000 })
+          .should("have.length", before + 1);
 
-    // Submit and intercept PATCH
-    cy.intercept("PATCH", "/listings/edit/7").as("editListing");
-    cy.get('button[type="submit"]')
-      .contains(/save changes/i)
-      .click();
+        // Submit
+        cy.intercept("PATCH", "**/listings/edit/7").as("editListing");
+        cy.contains('button[type="submit"]', /save changes/i).click();
+        cy.wait("@editListing")
+          .its("response.statusCode")
+          .should("be.oneOf", [200, 204]);
 
-    cy.url().should("include", "/listings/7");
-    cy.get(".carousel-inner .carousel-item").should("have.length", 5);
+        cy.url().should("include", "/listings/7");
+
+        // On the detail view, the carousel should have at least previous + 1 slides
+        cy.get(".carousel-inner .carousel-item", { timeout: 10000 })
+          .its("length")
+          .should("be.gte", before + 1);
+      });
   });
 });

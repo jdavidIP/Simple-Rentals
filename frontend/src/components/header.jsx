@@ -134,10 +134,7 @@ function Header() {
                       aria-expanded="false"
                     >
                       <img
-                        src={
-                          profile.profile_picture ||
-                          "../../public/default_profile.png"
-                        }
+                        src={profile.profile_picture || "/default_profile.png"}
                         alt="Profile"
                         className="avatar"
                       />
