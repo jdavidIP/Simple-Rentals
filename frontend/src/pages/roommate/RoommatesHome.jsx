@@ -115,7 +115,7 @@ function Roommates() {
     setLoading(true);
     try {
       const params = {};
-      if (customFilters.city) params.city = customFilters.city;
+      if (customFilters.city) params.preferred_location = customFilters.city;
       if (customFilters.budget_min)
         params.budget_min = customFilters.budget_min;
       if (customFilters.budget_max)
