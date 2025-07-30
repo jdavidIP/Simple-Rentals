@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import api from "../../api.js";
 import { useNavigate } from "react-router-dom";
+import Pagination from "../../components/Pagination.jsx";
 import RoommateCard from "../../components/cards/RoommateCard.jsx";
 
 function Roommates() {
@@ -18,12 +19,27 @@ function Roommates() {
   });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+
+  const ITEMS_PER_PAGE = 15;
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(roommates.length / ITEMS_PER_PAGE);
+
   const errorRef = useRef(null);
   const cityInputRef = useRef(null);
   const autocompleteRef = useRef(null);
 
-  // Helper: (re)initialize Google Places Autocomplete
+  // Slice roommates by current page
+  const paginatedRoommates = roommates.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  // Reset to page 1 whenever filters or data changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, roommates.length]);
+
+  // Google Places Autocomplete
   const initializeAutocomplete = () => {
     if (
       window.google &&
@@ -31,7 +47,6 @@ function Roommates() {
       window.google.maps.places &&
       cityInputRef.current
     ) {
-      // Remove previous listeners if any
       if (autocompleteRef.current) {
         window.google.maps.event.clearInstanceListeners(
           autocompleteRef.current
@@ -60,7 +75,6 @@ function Roommates() {
     }
   };
 
-  // wait for Google API, then set up autocomplete
   useEffect(() => {
     let checkInterval = setInterval(() => {
       if (
@@ -82,10 +96,8 @@ function Roommates() {
         );
       }
     };
-    // eslint-disable-next-line
   }, []);
 
-  // Re-initialize autocomplete after city is cleared
   useEffect(() => {
     if (
       window.google &&
@@ -96,7 +108,6 @@ function Roommates() {
     ) {
       initializeAutocomplete();
     }
-    // eslint-disable-next-line
   }, [filters.city]);
 
   // Fetch Roommates API
@@ -124,6 +135,7 @@ function Roommates() {
 
       const response = await api.get("/roommates/", { params });
       setRoommates(response.data);
+      setCurrentPage(1);
       setError(null);
     } catch (err) {
       setError("Failed to fetch roommates.");
@@ -135,7 +147,6 @@ function Roommates() {
 
   useEffect(() => {
     fetchRoommates();
-    // eslint-disable-next-line
   }, []);
 
   const handleInputChange = (e) => {
@@ -338,13 +349,24 @@ function Roommates() {
           </div>
 
           {/* Roommates List */}
-          {roommates.length === 0 ? (
+          {paginatedRoommates.length === 0 ? (
             <p className="text-muted text-center">No roommates found.</p>
           ) : (
             <div className="row gx-3">
-              {roommates.map((roommate) => (
+              {paginatedRoommates.map((roommate) => (
                 <RoommateCard key={roommate.id} roommate={roommate} />
               ))}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="d-flex justify-content-center mt-4">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
             </div>
           )}
         </>

@@ -25,8 +25,13 @@ const RoommateCard = ({ roommate, isListingOwner, getFitRanking }) => {
       <img
         src={roommate.user.profile_picture || "/static/img/placeholder.jpg"}
         alt="Roommate Profile"
-        className="card-img-top border-bottom mt-2"
-        style={{ objectFit: "cover", aspectRatio: "4/3" }}
+        className="rounded-circle mx-auto mt-3"
+        style={{
+          width: "150px",
+          height: "150px",
+          objectFit: "cover",
+          border: "3px solid #dee2e6",
+        }}
       />
 
       <div className="card-body d-flex flex-column">
