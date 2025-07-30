@@ -1,0 +1,261 @@
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import api from "../../api";
+import "../styles/profile.css";
+import { useProfileContext } from "../../contexts/ProfileContext";
+import ReviewCard from "../../components/cards/ReviewCard";
+
+function Profile() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState(null);
+  const [listings, setListings] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [averageRating, setAverageRating] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedTab, setSelectedTab] = useState("listings");
+  const { isProfileSelf, roommate } = useProfileContext();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [profileRes, listingsRes, reviewsRes] = await Promise.all([
+          api.get(`/profile/${id}`),
+          api.get(`/listings/viewAll`, { params: { owner: id } }),
+          api.get(`/profile/reviews`, { params: { reviewee: id } }),
+        ]);
+
+        setProfile(profileRes.data);
+
+        const processedListings = listingsRes.data.map((listing) => {
+          const primaryImage = listing.pictures.find((p) => p.is_primary);
+          return {
+            ...listing,
+            pictures: primaryImage
+              ? [
+                  primaryImage,
+                  ...listing.pictures.filter((p) => p.id !== primaryImage.id),
+                ]
+              : listing.pictures,
+          };
+        });
+        setListings(processedListings);
+
+        setReviews(reviewsRes.data);
+        const total = reviewsRes.data.reduce((acc, r) => acc + r.rating, 0);
+        setAverageRating((total / reviewsRes.data.length).toFixed(1));
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load profile data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id]);
+
+  return (
+    <div className="profile-layout container my-5">
+      {error ? (
+        <div className="alert alert-danger text-center">{error}</div>
+      ) : loading ? (
+        <div className="d-flex justify-content-center py-5">
+          <div className="spinner-border text-primary" role="status" />
+        </div>
+      ) : (
+        <div className="row">
+          {/* Left Sidebar */}
+          <div className="col-md-4 col-lg-3">
+            <div
+              className="profile-sidebar rounded sticky-top"
+              style={{ top: "100px" }}
+            >
+              <div className="card shadow-sm text-center p-3">
+                <img
+                  src={profile.profile_picture || "/default-avatar.png"}
+                  alt={`${profile.first_name} ${profile.last_name}`}
+                  className="rounded-circle mx-auto"
+                  style={{
+                    width: "100px",
+                    height: "100px",
+                    objectFit: "cover",
+                  }}
+                />
+                <h5 className="mt-2">{`${profile.first_name} ${profile.last_name}`}</h5>
+                <p className="text-muted small mb-1">{profile.email}</p>
+                <p className="text-muted small">{profile.phone_number}</p>
+
+                {averageRating && (
+                  <div className="rating mt-2">
+                    {[...Array(5)].map((_, i) => (
+                      <span
+                        key={i}
+                        style={{
+                          color:
+                            i < Math.round(averageRating)
+                              ? "#ffc107"
+                              : "#e4e5e9",
+                        }}
+                      >
+                        ★
+                      </span>
+                    ))}
+                    <span className="ms-2 text-muted">({reviews.length})</span>
+                  </div>
+                )}
+
+                <div className="btn-group mt-3 w-100">
+                  <button
+                    className={`btn btn-sm ${
+                      selectedTab === "listings"
+                        ? "btn-primary"
+                        : "btn-outline-primary"
+                    }`}
+                    onClick={() => setSelectedTab("listings")}
+                  >
+                    Listings
+                  </button>
+                  <button
+                    className={`btn btn-sm ${
+                      selectedTab === "reviews"
+                        ? "btn-primary"
+                        : "btn-outline-primary"
+                    }`}
+                    onClick={() => setSelectedTab("reviews")}
+                  >
+                    Reviews
+                  </button>
+                </div>
+
+                <div className="mt-3 d-grid gap-2">
+                  {isProfileSelf(profile.id) ? (
+                    <>
+                      <button
+                        onClick={() => navigate(`/listings/post`)}
+                        className="btn btn-outline-success btn-sm"
+                      >
+                        Create Listing
+                      </button>
+                      {roommate ? (
+                        <button
+                          onClick={() => navigate(`/roommates/${roommate.id}`)}
+                          className="btn btn-outline-success btn-sm"
+                        >
+                          See Roommate Profile
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => navigate("/roommates/post")}
+                          className="btn btn-outline-success btn-sm"
+                        >
+                          Create Roommate Profile
+                        </button>
+                      )}
+                      <button
+                        onClick={() => navigate(`/profile/edit/${id}`)}
+                        className="btn btn-outline-secondary btn-sm"
+                      >
+                        Edit Profile
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => navigate(`/profile/${id}/reviews`)}
+                      className="btn btn-outline-primary btn-sm"
+                    >
+                      Write a Review
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Content */}
+          <div className="col-md-8 col-lg-9">
+            {selectedTab === "listings" ? (
+              <>
+                <h5 className="mb-3 border-bottom pb-2">Listings</h5>
+                {listings.length > 0 ? (
+                  <div className="row">
+                    {listings.map((listing) => (
+                      <div key={listing.id} className="col-md-6 mb-4">
+                        <div className="card h-100 shadow-sm">
+                          <img
+                            src={
+                              listing.pictures?.[0]?.image ||
+                              "/default-listing.png"
+                            }
+                            alt={listing.title}
+                            className="card-img-top"
+                            style={{ height: "180px", objectFit: "cover" }}
+                          />
+                          <div className="card-body d-flex flex-column">
+                            <h6 className="card-title">{listing.title}</h6>
+                            <p className="text-muted small flex-grow-1">
+                              {listing.description.length > 100
+                                ? listing.description.slice(0, 100) + "..."
+                                : listing.description}
+                            </p>
+                            <p className="mb-1">
+                              <strong>Price:</strong> ${listing.price}
+                            </p>
+                            <p className="mb-2">
+                              <strong>Location:</strong>{" "}
+                              {listing.street_address}, {listing.city}
+                            </p>
+                            <div className="d-flex gap-2 mt-auto">
+                              <button
+                                className="btn btn-sm btn-outline-primary w-100"
+                                onClick={() =>
+                                  navigate(`/listings/${listing.id}`)
+                                }
+                              >
+                                View More
+                              </button>
+                              {isProfileSelf(profile.id) && (
+                                <button
+                                  className="btn btn-sm btn-outline-secondary w-100"
+                                  onClick={() =>
+                                    navigate(`/listings/edit/${listing.id}`)
+                                  }
+                                >
+                                  Edit
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted fst-italic">No listings found.</p>
+                )}
+              </>
+            ) : (
+              <>
+                <h5 className="mb-3 border-bottom pb-2">Reviews</h5>
+                {reviews.length > 0 ? (
+                  <div className="row">
+                    {reviews.map((review) => (
+                      <div key={review.id} className="col-md-6 mb-4">
+                        <ReviewCard review={review} />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted fst-italic">No reviews yet.</p>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default Profile;
