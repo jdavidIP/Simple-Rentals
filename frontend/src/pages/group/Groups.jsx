@@ -56,9 +56,6 @@ function Groups() {
   return (
     <div className="groups-container">
       <div className="apps-header">
-        <div className="apps-title-wrap">
-          <h2 className="groups-title">Listing</h2>
-        </div>
         <div
           className="group-section mt-3 p-3"
           role="button"
@@ -71,6 +68,7 @@ function Groups() {
           style={{ cursor: "pointer" }}
           aria-label="Open listing"
         >
+          <h5 className="group-section-title">Listing</h5>
           {listing ? (
             <div className="d-flex align-items-center gap-3 px-1">
               {" "}
