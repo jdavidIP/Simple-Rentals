@@ -7,6 +7,12 @@ const RoommateCard = ({ roommate, isListingOwner, getFitRanking }) => {
     ? getFitRanking(roommate.user?.yearly_income)
     : null;
 
+  // Helper: truncate description
+  const truncate = (text, maxLength = 100) =>
+    text && text.length > maxLength
+      ? text.slice(0, maxLength) + "..."
+      : text || "No description provided.";
+
   return (
     <div
       key={roommate.id}
@@ -22,36 +28,47 @@ const RoommateCard = ({ roommate, isListingOwner, getFitRanking }) => {
         borderRadius: "10px",
       }}
     >
+      {/* Profile Picture */}
       <img
         src={roommate.user.profile_picture || "/static/img/placeholder.jpg"}
         alt="Roommate Profile"
         className="rounded-circle mx-auto mt-3"
         style={{
-          width: "150px",
-          height: "150px",
+          width: "120px",
+          height: "120px",
           objectFit: "cover",
           border: "3px solid #dee2e6",
         }}
       />
 
+      {/* Card Body */}
       <div className="card-body d-flex flex-column">
-        <h5 className="card-title text-capitalize mb-1">
+        {/* Name */}
+        <h5 className="card-title text-center text-capitalize mb-1">
           {roommate.user.first_name} {roommate.user.last_name}
         </h5>
 
-        <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
-          <div className="text-primary fw-bold">
-            Budget: ${roommate.roommate_budget.toLocaleString()}
-          </div>
+        {/* Subtitle: Gender + Age */}
+        <h6 className="card-subtitle text-center text-muted mb-3">
+          {roommate.user.sex || "Unspecified"}
+          {roommate.user.age ? ` • ${roommate.user.age} years old` : ""}
+        </h6>
 
-          {fit && (
+        {/* Budget as Pill */}
+        <div className="d-flex justify-content-center mb-3">
+          <span className="badge bg-primary px-3 py-2">
+            💰 ${roommate.roommate_budget.toLocaleString()}
+          </span>
+        </div>
+
+        {fit && (
+          <div className="d-flex justify-content-center mb-3">
             <span
-              className="badge d-inline-block text-truncate"
+              className="badge"
               style={{
                 backgroundColor: fit.color,
                 color: "#fff",
                 fontSize: "0.8rem",
-                maxWidth: "100%",
               }}
               title={`${fit.label}${
                 fit.percent !== null ? ` — ${fit.percent}%` : ""
@@ -60,20 +77,22 @@ const RoommateCard = ({ roommate, isListingOwner, getFitRanking }) => {
               {fit.icon} {fit.label}
               {fit.percent !== null && ` — ${fit.percent}%`}
             </span>
-          )}
-        </div>
+          </div>
+        )}
 
-        <div className="small text-muted mb-1">
-          <strong>City:</strong> {roommate.user.preferred_location || "N/A"}
-        </div>
-        <div className="small text-muted mb-2">
-          <strong>Gender:</strong> {roommate.user.sex}
-        </div>
-
-        <p className="text-muted mb-3" style={{ fontSize: "0.9rem" }}>
-          <strong>Description:</strong>{" "}
-          {roommate.description || "No description provided."}
+        {/* Description */}
+        <p
+          className="card-text text-muted text-center flex-grow-1"
+          style={{ minHeight: "60px" }}
+        >
+          {truncate(roommate.description)}
         </p>
+      </div>
+
+      {/* Footer */}
+      <div className="card-footer text-center text-muted small">
+        Roommate looking in{" "}
+        <strong>{roommate.user.preferred_location || "N/A"}</strong>
       </div>
     </div>
   );

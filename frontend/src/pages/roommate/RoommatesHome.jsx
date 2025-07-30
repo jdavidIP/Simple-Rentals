@@ -352,7 +352,7 @@ function Roommates() {
           {paginatedRoommates.length === 0 ? (
             <p className="text-muted text-center">No roommates found.</p>
           ) : (
-            <div className="row gx-3">
+            <div className="row gx-4 gy-4">
               {paginatedRoommates.map((roommate) => (
                 <RoommateCard key={roommate.id} roommate={roommate} />
               ))}
