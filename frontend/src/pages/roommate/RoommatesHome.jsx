@@ -188,88 +188,87 @@ function Roommates() {
 
   return (
     <div className="container py-5">
-      <h2 className="mb-4 text-center">👥 Available Roommates</h2>
+      <h2 className="mb-5 text-center fw-bold display-6">
+        👥 Find Your Ideal Roommate
+      </h2>
 
-      {error ? (
-        <div ref={errorRef} className="alert alert-danger">
-          {error}
-        </div>
-      ) : loading ? (
-        <div className="d-flex justify-content-center py-5">
-          <div className="spinner-border text-primary" role="status" />
-        </div>
-      ) : (
-        <>
-          {/* Filters */}
-          <div className="card mb-5 shadow-sm">
-            <div className="card-body">
-              <form onSubmit={handleSubmit}>
-                <div className="row g-3">
-                  <div className="col-md-4">
-                    <label className="form-label">City</label>
-                    <input
-                      type="text"
-                      name="city"
-                      className="form-control"
-                      value={filters.city}
-                      onChange={handleInputChange}
-                      ref={cityInputRef}
-                      placeholder="Type a city..."
-                      autoComplete="off"
-                    />
-                  </div>
-                  <div className="col-md-2">
-                    <label className="form-label">Budget Min</label>
-                    <input
-                      type="number"
-                      name="budget_min"
-                      className="form-control"
-                      value={filters.budget_min}
-                      onChange={handleInputChange}
-                      min="0"
-                    />
-                  </div>
-                  <div className="col-md-2">
-                    <label className="form-label">Budget Max</label>
-                    <input
-                      type="number"
-                      name="budget_max"
-                      className="form-control"
-                      value={filters.budget_max}
-                      onChange={handleInputChange}
-                      min="0"
-                    />
-                  </div>
-                  <div className="col-md-4">
-                    <label className="form-label">Gender Preference</label>
-                    <select
-                      name="gender_preference"
-                      className="form-select"
-                      value={filters.gender_preference}
-                      onChange={handleInputChange}
-                    >
-                      <option value="">Any</option>
-                      <option value="O">Open</option>
-                      <option value="F">Female</option>
-                      <option value="M">Male</option>
-                    </select>
-                  </div>
-                  <div className="col-md-4">
-                    <label className="form-label">Occupation</label>
-                    <select
-                      name="occupation"
-                      className="form-select"
-                      value={filters.occupation}
-                      onChange={handleInputChange}
-                    >
-                      <option value="">Any</option>
-                      <option value="S">Student</option>
-                      <option value="E">Employed</option>
-                      <option value="N">Not Currently Working</option>
-                    </select>
-                  </div>
-                  <div className="col-md-4 d-flex align-items-center">
-                    <div className="form-check me-3">
+      {/* Filters Section */}
+      <div className="card mb-5 border-0 shadow-lg rounded-4">
+        <div className="card-body p-4">
+          <form onSubmit={handleSubmit}>
+            <div className="row g-4">
+              <div className="col-md-4">
+                <label className="form-label fw-medium">City</label>
+                <input
+                  type="text"
+                  name="city"
+                  className="form-control rounded-3 shadow-sm"
+                  value={filters.city}
+                  onChange={handleInputChange}
+                  ref={cityInputRef}
+                  placeholder="Type a city..."
+                  autoComplete="off"
+                />
+              </div>
+              <div className="col-md-2">
+                <label className="form-label fw-medium">Budget Min</label>
+                <input
+                  type="number"
+                  name="budget_min"
+                  className="form-control rounded-3 shadow-sm"
+                  value={filters.budget_min}
+                  onChange={handleInputChange}
+                  min="0"
+                />
+              </div>
+              <div className="col-md-2">
+                <label className="form-label fw-medium">Budget Max</label>
+                <input
+                  type="number"
+                  name="budget_max"
+                  className="form-control rounded-3 shadow-sm"
+                  value={filters.budget_max}
+                  onChange={handleInputChange}
+                  min="0"
+                />
+              </div>
+              <div className="col-md-4">
+                <label className="form-label fw-medium">
+                  Gender Preference
+                </label>
+                <select
+                  name="gender_preference"
+                  className="form-select rounded-3 shadow-sm"
+                  value={filters.gender_preference}
+                  onChange={handleInputChange}
+                >
+                  <option value="">Any</option>
+                  <option value="O">Open</option>
+                  <option value="F">Female</option>
+                  <option value="M">Male</option>
+                </select>
+              </div>
+              <div className="col-md-4">
+                <label className="form-label fw-medium">Occupation</label>
+                <select
+                  name="occupation"
+                  className="form-select rounded-3 shadow-sm"
+                  value={filters.occupation}
+                  onChange={handleInputChange}
+                >
+                  <option value="">Any</option>
+                  <option value="S">Student</option>
+                  <option value="E">Employed</option>
+                  <option value="N">Not Currently Working</option>
+                </select>
+              </div>
+              <div className="col-md-4">
+                <label className="form-label fw-medium d-block">
+                  Preferences
+                </label>
+                <div className="row row-cols-2 g-2">
+                  <div className="col">
+                    <div className="form-check">
                       <input
                         className="form-check-input"
                         type="checkbox"
@@ -285,7 +284,9 @@ function Roommates() {
                         Pet Friendly
                       </label>
                     </div>
-                    <div className="form-check me-3">
+                  </div>
+                  <div className="col">
+                    <div className="form-check">
                       <input
                         className="form-check-input"
                         type="checkbox"
@@ -301,7 +302,9 @@ function Roommates() {
                         Smoke Friendly
                       </label>
                     </div>
-                    <div className="form-check me-3">
+                  </div>
+                  <div className="col">
+                    <div className="form-check">
                       <input
                         className="form-check-input"
                         type="checkbox"
@@ -317,6 +320,8 @@ function Roommates() {
                         Cannabis Friendly
                       </label>
                     </div>
+                  </div>
+                  <div className="col">
                     <div className="form-check">
                       <input
                         className="form-check-input"
@@ -334,40 +339,53 @@ function Roommates() {
                       </label>
                     </div>
                   </div>
-                  <div className="col-md-4">
-                    <label className="form-label">Gender</label>
-                    <select
-                      name="gender"
-                      className="form-select"
-                      value={filters.gender}
-                      onChange={handleInputChange}
-                    >
-                      <option value="">Any</option>
-                      <option value="O">Other</option>
-                      <option value="F">Female</option>
-                      <option value="M">Male</option>
-                    </select>
-                  </div>
                 </div>
-                <div className="d-flex justify-content-end gap-2 mt-4">
-                  <button type="submit" className="btn btn-primary">
-                    🔍 Apply Filters
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={clearFilters}
-                  >
-                    ✨ Clear All
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
+              </div>
 
+              <div className="col-md-4">
+                <label className="form-label fw-medium">Gender</label>
+                <select
+                  name="gender"
+                  className="form-select rounded-3 shadow-sm"
+                  value={filters.gender}
+                  onChange={handleInputChange}
+                >
+                  <option value="">Any</option>
+                  <option value="O">Other</option>
+                  <option value="F">Female</option>
+                  <option value="M">Male</option>
+                </select>
+              </div>
+            </div>
+            <div className="d-flex justify-content-end gap-2 mt-4">
+              <button type="submit" className="btn btn-primary">
+                🔍 Apply Filters
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={clearFilters}
+              >
+                ✨ Clear All
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {error ? (
+        <div ref={errorRef} className="alert alert-danger shadow-sm">
+          {error}
+        </div>
+      ) : loading ? (
+        <div className="d-flex justify-content-center py-5">
+          <div className="spinner-border text-primary" role="status" />
+        </div>
+      ) : (
+        <>
           {/* Roommates List */}
           {paginatedRoommates.length === 0 ? (
-            <p className="text-muted text-center">No roommates found.</p>
+            <p className="text-muted text-center fs-5">No roommates found.</p>
           ) : (
             <div className="row gx-4 gy-4">
               {paginatedRoommates.map((roommate) => (
@@ -378,7 +396,7 @@ function Roommates() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="d-flex justify-content-center mt-4">
+            <div className="d-flex justify-content-center mt-5">
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}

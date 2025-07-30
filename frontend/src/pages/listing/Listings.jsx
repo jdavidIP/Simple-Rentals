@@ -319,162 +319,178 @@ function Listings() {
   return (
     <div>
       <div className="container py-5">
-        <h2 className="mb-4 text-center">🏘️ Available Listings</h2>
+        <h2 className="mb-5 text-center fw-bold display-6">
+          🏘️ Find Your Ideal Rental
+        </h2>
+
+        {/* Filters */}
+        <div className="card mb-5 border-0 shadow-lg rounded-4">
+          <div className="card-body p-4">
+            <form onSubmit={handleSubmit}>
+              <div className="row g-3">
+                {/* Location & Radius */}
+                <div className="col-12">
+                  <label
+                    htmlFor="location-input"
+                    className="form-label fw-medium"
+                  >
+                    Location & Radius
+                  </label>
+                  <div className="input-group">
+                    <input
+                      id="location-input"
+                      type="text"
+                      name="location"
+                      ref={locationInputRef}
+                      className="form-control rounded-3 shadow-sm"
+                      value={filters.location}
+                      onChange={handleInputChange}
+                      onFocus={handleLocationFocus}
+                      placeholder="Type a location..."
+                      autoComplete="off"
+                      aria-label="Location"
+                    />
+                    <select
+                      className="form-select"
+                      style={{ maxWidth: "140px" }}
+                      value={radius}
+                      onChange={(e) => setRadius(e.target.value)}
+                    >
+                      <option value="1">1 km</option>
+                      <option value="5">5 km</option>
+                      <option value="10">10 km</option>
+                      <option value="20">20 km</option>
+                      <option value="50">50 km</option>
+                    </select>
+                  </div>
+                  {filters.location && !locationSelected && (
+                    <small className="text-danger">
+                      Please select a location from the dropdown.
+                    </small>
+                  )}
+                </div>
+
+                {/* Price Range */}
+                <div className="col-md-4">
+                  <label className="form-label fw-medium">Min Price</label>
+                  <input
+                    type="number"
+                    name="min_price"
+                    className="form-control rounded-3 shadow-sm"
+                    value={filters.min_price}
+                    onChange={handleInputChange}
+                    min="0"
+                    placeholder="e.g. 500"
+                  />
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label fw-medium">Max Price</label>
+                  <input
+                    type="number"
+                    name="max_price"
+                    className="form-control rounded-3 shadow-sm"
+                    value={filters.max_price}
+                    onChange={handleInputChange}
+                    min="0"
+                    placeholder="e.g. 2000"
+                  />
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label fw-medium">Affordability</label>
+                  <select
+                    name="affordability"
+                    className="form-select rounded-3 shadow-sm"
+                    value={filters.affordability}
+                    onChange={handleInputChange}
+                  >
+                    <option value="">Any</option>
+                    <option value="affordable">Affordable</option>
+                    <option value="recommended">Recommended</option>
+                    <option value="tooExpensive">Too Expensive</option>
+                  </select>
+                </div>
+
+                {/* Property Info */}
+                <div className="col-md-4">
+                  <label className="form-label fw-medium">Property Type</label>
+                  <select
+                    name="property_type"
+                    className="form-select rounded-3 shadow-sm"
+                    value={filters.property_type}
+                    onChange={handleInputChange}
+                  >
+                    <option value="">Any</option>
+                    <option value="H">House</option>
+                    <option value="A">Apartment</option>
+                    <option value="C">Condo</option>
+                    <option value="T">Townhouse</option>
+                    <option value="O">Other</option>
+                  </select>
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label fw-medium">Bedrooms</label>
+                  <input
+                    type="number"
+                    name="bedrooms"
+                    className="form-control rounded-3 shadow-sm"
+                    value={filters.bedrooms}
+                    onChange={handleInputChange}
+                    min="0"
+                    placeholder="Any"
+                  />
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label fw-medium">Bathrooms</label>
+                  <input
+                    type="number"
+                    name="bathrooms"
+                    className="form-control rounded-3 shadow-sm"
+                    value={filters.bathrooms}
+                    onChange={handleInputChange}
+                    min="0"
+                    placeholder="Any"
+                  />
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="d-flex justify-content-end gap-2 mt-4">
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={!filters.location.trim() || !locationSelected}
+                  title={
+                    filters.location && !locationSelected
+                      ? "Please select a location from the dropdown"
+                      : !filters.location.trim()
+                      ? "Please enter and select a location"
+                      : ""
+                  }
+                >
+                  🔍 Apply Filters
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={clearFilters}
+                >
+                  ✨ Clear All
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
         {error ? (
           <div ref={errorRef} className="alert alert-danger">
             {error}
           </div>
         ) : loadingListings ? (
-          <div className="loading">Loading...</div>
+          <div className="d-flex justify-content-center py-5">
+            <div className="spinner-border text-primary" role="status" />
+          </div>
         ) : (
           <>
-            {/* Filters */}
-            <div className="card mb-5 shadow-sm">
-              <div className="card-body">
-                <form onSubmit={handleSubmit}>
-                  <div className="row g-3">
-                    {/* Location & Radius */}
-                    <div className="col-12">
-                      <label htmlFor="location-input" className="form-label">
-                        Location & Radius
-                      </label>
-                      <div className="input-group">
-                        <input
-                          id="location-input"
-                          type="text"
-                          name="location"
-                          ref={locationInputRef}
-                          className="form-control"
-                          value={filters.location}
-                          onChange={handleInputChange}
-                          onFocus={handleLocationFocus}
-                          placeholder="Type a location..."
-                          autoComplete="off"
-                          aria-label="Location"
-                        />
-                        <select
-                          className="form-select"
-                          style={{ maxWidth: "120px" }}
-                          value={radius}
-                          onChange={(e) => setRadius(e.target.value)}
-                        >
-                          <option value="1">1 km</option>
-                          <option value="5">5 km</option>
-                          <option value="10">10 km</option>
-                          <option value="20">20 km</option>
-                          <option value="50">50 km</option>
-                        </select>
-                      </div>
-                      {/* Show feedback if user typed location but didn't pick */}
-                      {filters.location && !locationSelected && (
-                        <small className="text-danger">
-                          Please select a location from the dropdown.
-                        </small>
-                      )}
-                    </div>
-                    {/* Min/Max Price, etc. */}
-                    <div className="col-md-4">
-                      <label className="form-label">Min Price</label>
-                      <input
-                        type="number"
-                        name="min_price"
-                        className="form-control"
-                        value={filters.min_price}
-                        onChange={handleInputChange}
-                        min="0"
-                      />
-                    </div>
-                    <div className="col-md-4">
-                      <label className="form-label">Max Price</label>
-                      <input
-                        type="number"
-                        name="max_price"
-                        className="form-control"
-                        value={filters.max_price}
-                        onChange={handleInputChange}
-                        min="0"
-                      />
-                    </div>
-                    <div className="col-md-4">
-                      <label className="form-label">Affordability</label>
-                      <select
-                        name="affordability"
-                        className="form-select"
-                        value={filters.affordability}
-                        onChange={handleInputChange}
-                      >
-                        <option value="">Any</option>
-                        <option value="affordable">Affordable</option>
-                        <option value="recommended">Recommended</option>
-                        <option value="tooExpensive">Too Expensive</option>
-                      </select>
-                    </div>
-                    <div className="col-md-4">
-                      <label className="form-label">Property Type</label>
-                      <select
-                        name="property_type"
-                        className="form-select"
-                        value={filters.property_type}
-                        onChange={handleInputChange}
-                      >
-                        <option value="">Any</option>
-                        <option value="H">House</option>
-                        <option value="A">Apartment</option>
-                        <option value="C">Condo</option>
-                        <option value="T">Townhouse</option>
-                        <option value="O">Other</option>
-                      </select>
-                    </div>
-                    <div className="col-md-4">
-                      <label className="form-label">Bedrooms</label>
-                      <input
-                        type="number"
-                        name="bedrooms"
-                        className="form-control"
-                        value={filters.bedrooms}
-                        onChange={handleInputChange}
-                        min="0"
-                      />
-                    </div>
-                    <div className="col-md-4">
-                      <label className="form-label">Bathrooms</label>
-                      <input
-                        type="number"
-                        name="bathrooms"
-                        className="form-control"
-                        value={filters.bathrooms}
-                        onChange={handleInputChange}
-                        min="0"
-                      />
-                    </div>
-                  </div>
-                  <div className="d-flex justify-content-end gap-2 mt-4">
-                    <button
-                      type="submit"
-                      className="btn btn-primary"
-                      disabled={!filters.location.trim() || !locationSelected}
-                      title={
-                        filters.location && !locationSelected
-                          ? "Please select a location from the dropdown"
-                          : !filters.location.trim()
-                          ? "Please enter and select a location"
-                          : ""
-                      }
-                    >
-                      🔍 Apply Filters
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={clearFilters}
-                    >
-                      ✨ Clear All
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-
             <SortDropdown
               sortOption={sortOption}
               setSortOption={setSortOption}
