@@ -9,6 +9,7 @@ function GroupView() {
   const { id } = useParams(); // group id
   const navigate = useNavigate();
   const [group, setGroup] = useState(null);
+  const [status, setStatus] = useState(null);
   const [members, setMembers] = useState([]);
   const [error, setError] = useState(null);
   const [loadingGroup, setLoadingGroup] = useState(true);
@@ -22,6 +23,27 @@ function GroupView() {
   const { roommate, profile, isProfileSelf } = useProfileContext();
   const [chatIds, setChatIds] = useState([]);
 
+  const getStatus = (code) => {
+    switch (code) {
+      case "O":
+        return { label: "Open", cls: "status-open" };
+      case "P":
+        return { label: "Private", cls: "status-private" };
+      case "F":
+        return { label: "Filled", cls: "status-filled" };
+      case "S":
+        return { label: "Sent", cls: "status-sent" };
+      case "U":
+        return { label: "Under Review", cls: "status-review" };
+      case "R":
+        return { label: "Rejected", cls: "status-rejected" };
+      case "I":
+        return { label: "Invited", cls: "status-invited" };
+      default:
+        return { label: code ?? "—", cls: "" };
+    }
+  };
+
   const fetchGroup = async () => {
     setLoadingGroup(true);
     try {
@@ -33,6 +55,7 @@ function GroupView() {
       setListing(listingRes.data);
       setListingPrice(listingRes.data.price);
       setListingOwnerId(listingRes.data.owner?.id);
+      setStatus(getStatus(res.data.group_status));
     } catch (err) {
       console.error("Failed to fetch group.", err);
       setError("Failed to fetch group details.");
@@ -323,28 +346,10 @@ function GroupView() {
                       <div className="meta-label">Status</div>
                       <div className="meta-value">
                         <span
-                          className={`badge status-badge ${
-                            group.group_status === "O"
-                              ? "status-open"
-                              : group.group_status === "P"
-                              ? "status-pending"
-                              : group.group_status === "PR"
-                              ? "status-private"
-                              : group.group_status === "F"
-                              ? "status-filled"
-                              : ""
-                          }`}
+                          className={`status-badge ${status.cls}`}
+                          title={status.label}
                         >
-                          {/* Map your internal code to label if needed */}
-                          {group.group_status === "O"
-                            ? "Open"
-                            : group.group_status === "P"
-                            ? "Pending"
-                            : group.group_status === "PR"
-                            ? "Private"
-                            : group.group_status === "F"
-                            ? "Filled"
-                            : group.group_status}
+                          {status.label}
                         </span>
                       </div>
                     </div>
