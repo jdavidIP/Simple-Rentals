@@ -1,14 +1,15 @@
 import React from "react";
+import "../styles/sort_dropdown.css";
 
 function SortDropdown({ sortOption, setSortOption }) {
   return (
-    <div className="mb-3 d-flex justify-content-end">
-      <label className="me-2 fw-bold" htmlFor="sort-select">
-        Sort By:
+    <div className="sort-dropdown-container">
+      <label htmlFor="sort-select" className="sort-dropdown-label">
+        Sort by
       </label>
       <select
         id="sort-select"
-        className="form-select w-auto"
+        className="sort-dropdown-select"
         value={sortOption}
         onChange={(e) => setSortOption(e.target.value)}
       >
