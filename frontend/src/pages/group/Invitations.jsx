@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useProfileContext } from "../../contexts/ProfileContext";
 import InvitationCard from "../../components/cards/InvitationCard";
-import "../styles/groups.css";
+import "../../styles/groups.css";
 
 function Invitations() {
   const {

@@ -54,7 +54,7 @@ function Header() {
         <div className="container">
           <NavLink className="navbar-brand" to="/">
             <img
-              src="../transp_full_icon.png"
+              src="../../transp_full_icon.png"
               alt="Logo"
               style={{ height: "60px" }}
             />

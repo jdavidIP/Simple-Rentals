@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import "../styles/groups.css";
+import "../../styles/groups.css";
 import { useProfileContext } from "../../contexts/ProfileContext";
 import RoommateCard from "../../components/cards/RoommateCard";
 

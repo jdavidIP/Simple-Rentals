@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api";
-import "../styles/groups.css";
+import "../../styles/groups.css";
 import { useProfileContext } from "../../contexts/ProfileContext";
 import GroupCard from "../../components/cards/GroupCard";
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api";
-import "../styles/profile.css";
+import "../../styles/profile.css";
 import { useProfileContext } from "../../contexts/ProfileContext";
 import ReviewCard from "../../components/cards/ReviewCard";
 

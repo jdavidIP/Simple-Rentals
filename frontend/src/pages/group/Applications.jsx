@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../api";
 import GroupCard from "../../components/cards/GroupCard";
-import "../styles/groups.css";
+import "../../styles/groups.css";
 
 function Applications() {
   const [applications, setApplications] = useState({

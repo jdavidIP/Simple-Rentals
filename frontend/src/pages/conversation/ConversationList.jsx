@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api";
 import ConversationCard from "../../components/cards/ConversationCard";
-import "../styles/chat.css";
+import "../../styles/chat.css";
 
 function ConversationList() {
   const [conversations, setConversations] = useState([]);
