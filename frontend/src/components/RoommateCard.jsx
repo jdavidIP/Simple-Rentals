@@ -9,7 +9,8 @@ const RoommateCard = ({ roommate, isListingOwner, getFitRanking }) => {
 
   return (
     <div
-      className="card col-12 col-sm-6 col-md-4 col-lg-3 shadow-sm member-card"
+      key={roommate.id}
+      className="card col-12 col-sm-6 col-md-4 col-lg-4 mb-4 shadow-sm position-relative"
       onClick={() => navigate(`/roommates/${roommate.id}`)}
       onMouseEnter={(e) =>
         (e.currentTarget.style.transform = "translateY(-2px)")
@@ -68,10 +69,6 @@ const RoommateCard = ({ roommate, isListingOwner, getFitRanking }) => {
           <strong>Description:</strong>{" "}
           {roommate.description || "No description provided."}
         </p>
-
-        <button className="btn btn-outline-primary btn-sm mt-auto">
-          View Roommate
-        </button>
       </div>
     </div>
   );

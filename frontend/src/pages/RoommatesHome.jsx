@@ -341,7 +341,7 @@ function Roommates() {
           {roommates.length === 0 ? (
             <p className="text-muted text-center">No roommates found.</p>
           ) : (
-            <div className="row g-4">
+            <div className="row gx-3">
               {roommates.map((roommate) => (
                 <RoommateCard key={roommate.id} roommate={roommate} />
               ))}

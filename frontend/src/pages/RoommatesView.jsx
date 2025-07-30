@@ -78,7 +78,7 @@ function RoommatesView() {
                 src={user?.profile_picture || "/static/img/placeholder.jpg"}
                 alt="Profile"
                 className="rounded-circle border"
-                style={{ width: 120, height: 120, objectFit: "cover" }}
+                style={{ width: 240, height: 240, objectFit: "cover" }}
               />
               <h3 className="mt-3">
                 <Link
@@ -89,7 +89,9 @@ function RoommatesView() {
                 </Link>
               </h3>
               <p className="text-muted">
-                {occupation || "Occupation not specified"}
+                {roommate.user.sex || "No gender specified"} ·{" "}
+                {occupation || "Occupation not specified"} ·{" "}
+                {`${roommate.user.age} years old` || "No age specified"}
               </p>
             </div>
 
