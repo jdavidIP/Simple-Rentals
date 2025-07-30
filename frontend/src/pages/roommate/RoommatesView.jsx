@@ -79,7 +79,9 @@ function RoommatesView() {
             {/* Header */}
             <div className="text-center mb-4">
               <img
-                src={user?.profile_picture || "/static/img/placeholder.jpg"}
+                src={
+                  user?.profile_picture || "../../../public/default_profile.png"
+                }
                 alt="Profile"
                 className="rounded-circle border"
                 style={{ width: 240, height: 240, objectFit: "cover" }}
