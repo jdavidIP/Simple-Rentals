@@ -98,10 +98,7 @@ describe("Group Form E2E", () => {
     cy.visit("/groups/invitations");
 
     // Click on "Sent" tab
-    cy.get(".apps-tabs [role='tab']")
-      .contains(/^Sent\b/i) // no $ anchor; allow "Sent 2", "Sent\n2", etc
-      .scrollIntoView()
-      .click();
+    cy.get(".apps-tabs [role='tab']").contains("Sent").scrollIntoView().click();
 
     cy.get(".groups-list")
       .should("contain", "To:")
