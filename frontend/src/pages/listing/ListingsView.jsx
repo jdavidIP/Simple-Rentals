@@ -378,9 +378,7 @@ function ListingsView() {
           >
             <div className="text-center">
               <img
-                src={
-                  owner.profile_picture || "../../../public/default_profile.png"
-                }
+                src={owner.profile_picture || "/default_profile.png"}
                 alt="Owner"
                 className="rounded-circle mb-3"
                 style={{

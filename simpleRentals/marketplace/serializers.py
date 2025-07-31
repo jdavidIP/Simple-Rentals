@@ -277,11 +277,9 @@ class ListingPostingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Listing
         fields = [
-            'id', 'price', 'property_type', 'payment_type', 'bedrooms', 'bathrooms', 'sqft_area', 'laundry_type',
+            'id', 'price', 'property_type', 'payment_type', 'bedrooms', 'bathrooms', 'sqft_area', 'laundry_type', 'fridge',
             'parking_spaces', 'heating', 'ac', 'extra_amenities', 'pet_friendly', 'move_in_date', 'description',
-            'unit_number', 'street_address', 'city', 'postal_code', 'utilities_cost', 'utilities_payable_by_tenant',
-            'property_taxes', 'property_taxes_payable_by_tenant', 'condo_fee', 'condo_fee_payable_by_tenant',
-            'hoa_fee', 'hoa_fee_payable_by_tenant', 'security_deposit', 'security_deposit_payable_by_tenant',
+            'unit_number', 'street_address', 'city', 'postal_code', 'heat', 'hydro', 'water', 'internet', 'furnished'
             'pictures', 'delete_images', 'latitude', 'longitude', 'shareable'
         ]
 
