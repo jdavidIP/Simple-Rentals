@@ -11,29 +11,9 @@ function ListingsHome() {
   const navigate = useNavigate();
   const locationInputRef = useRef(null);
 
+  //// Initialize Google Places Autocomplete
   useEffect(() => {
-    const existingScript = document.getElementById("googleMaps");
-
-    if (!existingScript) {
-      const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyCdOFDB8B2dHR7M6JXBfdZ-F-1XRjDm-2E&libraries=places`;
-      script.id = "googleMaps";
-      script.async = true;
-      script.defer = true;
-      document.body.appendChild(script);
-
-      script.onload = () => {
-        initAutocomplete();
-      };
-    } else {
-      initAutocomplete();
-    }
-
-    function initAutocomplete() {
-      if (!window.google || !locationInputRef.current) {
-        return;
-      }
-
+    if (window.google && locationInputRef.current) {
       const autocomplete = new window.google.maps.places.Autocomplete(
         locationInputRef.current
       );
@@ -42,10 +22,7 @@ function ListingsHome() {
         const place = autocomplete.getPlace();
         if (place.geometry) {
           const { lat, lng } = place.geometry.location;
-          setLatLng({
-            lat: lat(),
-            lng: lng(),
-          });
+          setLatLng({ lat: lat(), lng: lng() });
           setCity(place.formatted_address);
           setCitySelected(true);
         }
@@ -53,7 +30,7 @@ function ListingsHome() {
     }
   }, []);
 
-  // If user types in the field, mark city as "not selected"
+  // If user types manually, reset "selected" flag
   const handleCityChange = (e) => {
     setCity(e.target.value);
     setLatLng({ lat: null, lng: null });
@@ -69,11 +46,7 @@ function ListingsHome() {
     }
 
     try {
-      const params = {
-        location: city,
-        radius: radius,
-      };
-
+      const params = { location: city, radius };
       if (latLng.lat && latLng.lng) {
         params.lat = latLng.lat;
         params.lng = latLng.lng;
@@ -84,9 +57,9 @@ function ListingsHome() {
       navigate("/listings/results", {
         state: {
           listings: response.data,
-          city: city,
-          radius: radius,
-          latLng: latLng,
+          city,
+          radius,
+          latLng,
           locationSelected: citySelected,
         },
       });

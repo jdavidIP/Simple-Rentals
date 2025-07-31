@@ -1,765 +1,467 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
 import api from "../../api.js";
-import "../../styles/forms.css";
+import { useLocation } from "react-router-dom";
+import ListingCard from "../../components/cards/ListingCard.jsx";
+import { useProfileContext } from "../../contexts/ProfileContext.jsx";
+import SortDropdown from "../../components/SortDropdown.jsx";
+import Pagination from "../../components/Pagination.jsx";
+import useGoogleMaps from "../../hooks/useGoogleMaps"; 
 
-function FormListing({ method, listing }) {
-  const [formData, setFormData] = useState({
-    price: listing?.price || "",
-    property_type: listing?.property_type[0] || "",
-    payment_type:
-      listing?.payment_type === "Chexy" ? "X" : listing?.payment_type[0] || "",
-    bedrooms: listing?.bedrooms || "",
-    bathrooms: listing?.bathrooms || "",
-    sqft_area: listing?.sqft_area || "",
-    laundry_type: listing?.laundry_type[0] || "",
-    parking_spaces: listing?.parking_spaces || "",
-    heating: listing?.heating || false,
-    ac: listing?.ac || false,
-    extra_amenities: listing?.extra_amenities || "",
-    pet_friendly: listing?.pet_friendly || false,
-    move_in_date: listing?.move_in_date || "",
-    description: listing?.description || "",
-    unit_number: listing?.unit_number || "",
-    street_address: listing?.street_address || "",
-    city: listing?.city || "",
-    postal_code: listing?.postal_code || "",
-    utilities_cost: listing?.utilities_cost || "",
-    utilities_payable_by_tenant: listing?.utilities_payable_by_tenant || false,
-    property_taxes: listing?.property_taxes || "",
-    property_taxes_payable_by_tenant:
-      listing?.property_taxes_payable_by_tenant || false,
-    condo_fee: listing?.condo_fee || "",
-    condo_fee_payable_by_tenant: listing?.condo_fee_payable_by_tenant || false,
-    hoa_fee: listing?.hoa_fee || "",
-    hoa_fee_payable_by_tenant: listing?.hoa_fee_payable_by_tenant || false,
-    security_deposit: listing?.security_deposit || "",
-    security_deposit_payable_by_tenant:
-      listing?.security_deposit_payable_by_tenant || false,
-    pictures: [],
-    front_image: null,
-    delete_images: [],
-    shareable: listing?.shareable || false,
+function Listings() {
+  const location = useLocation();
+  const [listings, setListings] = useState(location.state?.listings || []);
+  const [sortOption, setSortOption] = useState("newest");
+  const [filters, setFilters] = useState({
+    location: location.state?.city || "",
+    min_price: "",
+    max_price: "",
+    bedrooms: "",
+    bathrooms: "",
+    property_type: "",
+    affordability: "",
   });
-
-  const [existingImages, setExistingImages] = useState(listing?.pictures || []);
+  const [latLng, setLatLng] = useState(
+    location.state?.latLng || { lat: null, lng: null }
+  );
+  const [radius, setRadius] = useState(location.state?.radius || "5");
   const [error, setError] = useState(null);
-  const [fieldErrors, setFieldErrors] = useState({});
-  const [touched, setTouched] = useState({});
-  const [latLng, setLatLng] = useState({
-    lat: listing?.latitude || null,
-    lng: listing?.longitude || null,
-  });
-  const navigate = useNavigate();
+  const [loadingListings, setLoadingListings] = useState(false);
+  const [userIncome, setUserIncome] = useState(null);
+  const [locationSelected, setLocationSelected] = useState(
+    location.state?.locationSelected || false
+  );
+
   const errorRef = useRef(null);
-  const addressInputRef = useRef(null);
+  const locationInputRef = useRef(null);
+  const autocompleteRef = useRef(null);
+  const { profile } = useProfileContext();
+  const { googleMaps } = useGoogleMaps(); // load Google Maps
 
-  // Load Google Places
+  const [itemsPerPage, setItemsPerPage] = useState(15);
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(listings.length / itemsPerPage);
+
+  // --- Initialize Autocomplete when Google Maps loads ---
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyCdOFDB8B2dHR7M6JXBfdZ-F-1XRjDm-2E&libraries=places`;
-    script.async = true;
-    script.defer = true;
-    document.body.appendChild(script);
+    if (!googleMaps) return;
 
-    script.onload = () => {
-      if (!addressInputRef.current) return;
+    // Cleanup previous instance
+    if (autocompleteRef.current) {
+      googleMaps.maps.event.clearInstanceListeners(autocompleteRef.current);
+      autocompleteRef.current = null;
+    }
 
-      const autocomplete = new window.google.maps.places.Autocomplete(
-        addressInputRef.current,
-        { types: ["geocode"] }
+    if (locationInputRef.current) {
+      autocompleteRef.current = new googleMaps.maps.places.Autocomplete(
+        locationInputRef.current
       );
-
-      autocomplete.addListener("place_changed", () => {
-        const place = autocomplete.getPlace();
-
-        if (place.geometry) {
-          const streetNumber =
-            place.address_components?.find((c) =>
-              c.types.includes("street_number")
-            )?.long_name || "";
-          const route =
-            place.address_components?.find((c) => c.types.includes("route"))
-              ?.long_name || "";
-
-          const streetAddress = [streetNumber, route].filter(Boolean).join(" ");
-
-          setFormData((prev) => ({
+      autocompleteRef.current.addListener("place_changed", () => {
+        const place = autocompleteRef.current.getPlace();
+        if (place.geometry && place.geometry.location) {
+          const { lat, lng } = place.geometry.location;
+          setLatLng({ lat: lat(), lng: lng() });
+          setFilters((prev) => ({
             ...prev,
-            street_address: streetAddress || prev.street_address,
-            city:
-              place.address_components?.find((c) =>
-                c.types.includes("locality")
-              )?.long_name || prev.city,
-            postal_code:
-              place.address_components?.find((c) =>
-                c.types.includes("postal_code")
-              )?.long_name || prev.postal_code,
+            location: place.formatted_address || place.name,
           }));
-
-          setLatLng({
-            lat: place.geometry.location.lat(),
-            lng: place.geometry.location.lng(),
-          });
+          setLocationSelected(true);
         }
       });
+    }
+
+    return () => {
+      if (autocompleteRef.current) {
+        googleMaps.maps.event.clearInstanceListeners(autocompleteRef.current);
+      }
     };
-  }, []);
+  }, [googleMaps]);
 
-  // Validation logic
-  function validateFields(data) {
-    const errors = {};
-    if (!data.street_address || data.street_address.length < 3)
-      errors.street_address = "Street address is required.";
-    if (!data.city || data.city.length < 2) errors.city = "City is required.";
-    if (!data.postal_code || data.postal_code.length < 5)
-      errors.postal_code = "Postal code is required.";
-    if (!data.price || Number(data.price) <= 0)
-      errors.price = "Price must be greater than 0.";
-    if (!data.property_type)
-      errors.property_type = "Property type is required.";
-    if (!data.sqft_area || Number(data.sqft_area) <= 0)
-      errors.sqft_area = "Area must be greater than 0.";
-    if (!data.payment_type) errors.payment_type = "Payment type is required.";
-    if (!data.laundry_type) errors.laundry_type = "Laundry type is required.";
-    if (!data.bedrooms || Number(data.bedrooms) < 0)
-      errors.bedrooms = "Bedrooms required.";
-    if (!data.bathrooms || Number(data.bathrooms) < 0)
-      errors.bathrooms = "Bathrooms required.";
-    if (!data.parking_spaces || Number(data.parking_spaces) < 0)
-      errors.parking_spaces = "Parking spaces required.";
-    if (!data.move_in_date) errors.move_in_date = "Move-in date is required.";
-    if (!data.description || data.description.length < 10)
-      errors.description = "Description must be at least 10 characters.";
-    return errors;
-  }
+  // --- Reset page on filters change ---
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, listings.length]);
 
-  // Handle changes (no validation here)
-  const handleChange = (e) => {
-    const { name, value, type, checked, files } = e.target;
-    let fieldValue =
-      type === "checkbox" ? checked : type === "file" ? files : value;
+  // --- Fetch User Income ---
+  useEffect(() => {
+    if (profile && profile.yearly_income != null) {
+      const income = parseFloat(profile.yearly_income);
+      setUserIncome(isNaN(income) ? null : income);
+    } else {
+      setUserIncome(null);
+    }
+  }, [profile]);
 
-    setFormData((prev) => ({
+  // --- Fetch Listings API ---
+  const fetchListings = async (
+    customFilters = filters,
+    customLatLng = latLng,
+    customRadius = radius
+  ) => {
+    setLoadingListings(true);
+    try {
+      const params = { ...customFilters };
+      if (customFilters.location && customLatLng.lat && customLatLng.lng) {
+        params.lat = customLatLng.lat;
+        params.lng = customLatLng.lng;
+        params.radius = customRadius;
+      } else {
+        delete params.lat;
+        delete params.lng;
+        delete params.radius;
+      }
+
+      const response = await api.get("/listings/viewAll", { params });
+      let processedListings = response.data.map((listing) => {
+        const primaryImage = listing.pictures?.find((p) => p.is_primary);
+        return { ...listing, primary_image: primaryImage };
+      });
+
+      if (customFilters.affordability && userIncome) {
+        const monthlyIncome = userIncome / 12;
+        processedListings = processedListings.filter((listing) => {
+          switch (customFilters.affordability) {
+            case "affordable":
+              return listing.price <= monthlyIncome * 0.25;
+            case "recommended":
+              return (
+                listing.price > monthlyIncome * 0.25 &&
+                listing.price <= monthlyIncome * 0.4
+              );
+            case "tooExpensive":
+              return listing.price > monthlyIncome * 0.4;
+            default:
+              return true;
+          }
+        });
+      }
+
+      setListings(processedListings);
+      setCurrentPage(1);
+      setError(null);
+    } catch (err) {
+      setError("Failed to fetch listings.");
+      setListings([]);
+    } finally {
+      setLoadingListings(false);
+    }
+  };
+
+  // --- Initial Load ---
+  useEffect(() => {
+    if (!location.state?.listings) {
+      fetchListings(filters, latLng, radius);
+    } else {
+      const processed = location.state.listings.map((listing) => {
+        const primaryImage = listing.pictures?.find((p) => p.is_primary);
+        return { ...listing, primary_image: primaryImage };
+      });
+      setListings(processed);
+    }
+  }, [location.state]);
+
+  // --- Handle input changes ---
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "location" && value.trim() === "") {
+      setLatLng({ lat: null, lng: null });
+      setLocationSelected(false);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!filters.location) {
+      setError("Please select a location from the dropdown.");
+      return;
+    }
+    if (!locationSelected) {
+      setError("Please select a location from the dropdown.");
+      return;
+    }
+    if (
+      filters.min_price &&
+      filters.max_price &&
+      Number(filters.min_price) > Number(filters.max_price)
+    ) {
+      setError("Minimum price cannot be greater than maximum price.");
+      return;
+    }
+    setError(null);
+    fetchListings({ ...filters }, latLng, radius);
+  };
+
+  const clearFilters = () => {
+    setFilters((prev) => ({
       ...prev,
-      [name]: fieldValue,
+      min_price: "",
+      max_price: "",
+      bedrooms: "",
+      bathrooms: "",
+      property_type: "",
+      affordability: "",
     }));
-  };
+    setCurrentPage(1);
 
-  // Handle blur (validate field)
-  const handleBlur = (e) => {
-    const { name } = e.target;
-    setTouched((prev) => ({ ...prev, [name]: true }));
-    const validationErrors = validateFields(formData);
-    setFieldErrors(validationErrors);
-  };
-
-  // Show error message
-  const errMsg = (name) =>
-    touched[name] && fieldErrors[name] ? (
-      <div className="field-error">{fieldErrors[name]}</div>
-    ) : null;
-
-  // Handle image inputs
-  const handleFileInputChange = (e) => {
-    const { name, files } = e.target;
-    const newFiles = Array.from(files);
-    const currentCount = existingImages.length - formData.delete_images.length;
-    const totalCount = currentCount + newFiles.length;
-
-    if (totalCount > 10) {
-      alert("You can upload a maximum of 10 images.");
+    if (!filters.location.trim()) {
+      setListings([]);
+      setError(null);
       return;
     }
 
-    if (name === "front_image") {
-      setFormData({ ...formData, front_image: newFiles[0] });
-    } else if (name === "pictures") {
-      setFormData((prevData) => ({
-        ...prevData,
-        pictures: [...prevData.pictures, ...newFiles],
-      }));
-    }
-  };
-
-  const handleDeleteImage = (imageId) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      delete_images: [...prevData.delete_images, imageId],
-    }));
-    setExistingImages((prevImages) =>
-      prevImages.filter((image) => image.id !== imageId)
+    fetchListings(
+      {
+        ...filters,
+        min_price: "",
+        max_price: "",
+        bedrooms: "",
+        bathrooms: "",
+        property_type: "",
+        affordability: "",
+      },
+      latLng,
+      radius
     );
   };
 
-  const handleDelete = async (e) => {
-    e.preventDefault();
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this listing? This action cannot be undone."
-      )
-    ) {
-      return;
-    }
-    try {
-      await api.delete(`/listings/delete/${listing.id}`);
-      navigate("/listings");
-    } catch (err) {
-      setError("Failed to delete listing.");
-    }
-  };
-
-  const validateImages = () => {
-    const totalImages =
-      formData.pictures.length +
-      existingImages.length -
-      formData.delete_images.length;
-
-    if (
-      !formData.front_image &&
-      !existingImages.some((img) => img.is_primary)
-    ) {
-      setError("A front image is required.");
-      return false;
-    }
-
-    if (totalImages < 3) {
-      setError("You must have at least 3 images in total.");
-      return false;
-    }
-
-    if (totalImages > 10) {
-      setError("You can upload a maximum of 10 images.");
-      return false;
-    }
-
-    setError(null);
-    return true;
-  };
-
-  // Submit with full validation
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-
-    const validationErrors = validateFields(formData);
-    setFieldErrors(validationErrors);
-    setTouched(Object.fromEntries(Object.keys(formData).map((k) => [k, true])));
-    if (Object.keys(validationErrors).length > 0) {
-      if (errorRef.current)
-        errorRef.current.scrollIntoView({ behavior: "smooth" });
-      return;
-    }
-
-    if (!validateImages()) return;
-
-    try {
-      const data = new FormData();
-
-      if (formData.front_image)
-        data.append("front_image", formData.front_image);
-      formData.pictures.forEach((file) => data.append("pictures", file));
-      formData.delete_images.forEach((id) => data.append("delete_images", id));
-
-      Object.entries(formData).forEach(([key, value]) => {
-        if (
-          key !== "pictures" &&
-          key !== "front_image" &&
-          key !== "delete_images"
-        ) {
-          data.append(key, value);
-        }
-      });
-
-      if (latLng.lat && latLng.lng) {
-        data.append("latitude", latLng.lat);
-        data.append("longitude", latLng.lng);
-      }
-
-      if (method === "post") {
-        await api.post("/listings/add", data, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-        navigate("/listings");
-      } else if (method === "edit") {
-        await api.patch(`/listings/edit/${listing.id}`, data, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-        navigate(`/listings/${listing.id}`);
-      }
-    } catch (err) {
-      setError("An error occurred. Please try again.");
-    }
-  };
-
-  // Previews
-  const renderExistingImagePreview = (images) =>
-    images
-      .filter((img) => !formData.delete_images.includes(img.id))
-      .map((img) => (
-        <div key={img.id} className="image-tile">
-          {img.is_primary && <span className="image-badge">Primary</span>}
-          <img src={img.image} alt="Preview" />
-          <button
-            type="button"
-            aria-label="Remove image"
-            className="image-remove"
-            onClick={() => handleDeleteImage(img.id)}
-            title="Remove"
-          >
-            <span className="image-remove-x">&times;</span>
-          </button>
-        </div>
-      ));
-
-  const renderNewImagePreview = () =>
-    formData.pictures.map((file, index) => (
-      <div key={index} className="image-tile">
-        <img src={URL.createObjectURL(file)} alt="Preview" />
-        <button
-          type="button"
-          aria-label="Remove image"
-          className="image-remove"
-          onClick={() =>
-            setFormData((prevData) => ({
-              ...prevData,
-              pictures: prevData.pictures.filter((_, i) => i !== index),
-            }))
-          }
-          title="Remove"
-        >
-          <span className="image-remove-x">&times;</span>
-        </button>
-      </div>
-    ));
-
+  // --- Scroll error into view ---
   useEffect(() => {
     if (error && errorRef.current) {
       errorRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [error]);
 
+  const sortedListings = [...listings].sort((a, b) => {
+    switch (sortOption) {
+      case "newest":
+        return new Date(b.created_at) - new Date(a.created_at);
+      case "oldest":
+        return new Date(a.created_at) - new Date(b.created_at);
+      case "priceLowHigh":
+        return a.price - b.price;
+      case "priceHighLow":
+        return b.price - a.price;
+      default:
+        return 0;
+    }
+  });
+
+  const paginatedListings = sortedListings.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
-    <form onSubmit={handleSubmit} className="form-container">
-      <h1>{method === "post" ? "Create Listing" : "Edit Listing"}</h1>
-      {error && (
-        <div ref={errorRef} className="alert alert-danger">
-          {error}
-        </div>
-      )}
+    <div>
+      <div className="container py-5">
+        <h2 className="mb-5 text-center fw-bold display-6">
+          🏘️ Find Your Ideal Rental
+        </h2>
 
-      {/* Location Section */}
-      <h5 className="form-section-title">Location</h5>
-      <div className="mb-3">
-        <label htmlFor="street_address">Street Address</label>
-        <input
-          type="text"
-          id="street_address"
-          name="street_address"
-          ref={addressInputRef}
-          value={formData.street_address}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
-        />
-        {errMsg("street_address")}
+        {/* Filters */}
+        <div className="card mb-5 border-0 shadow-lg rounded-4">
+          <div className="card-body p-4">
+            <form onSubmit={handleSubmit}>
+              <div className="row g-3">
+                {/* Location & Radius */}
+                <div className="col-12">
+                  <label
+                    htmlFor="location-input"
+                    className="form-label fw-medium"
+                  >
+                    Location & Radius
+                  </label>
+                  <div className="input-group">
+                    <input
+                      id="location-input"
+                      type="text"
+                      name="location"
+                      ref={locationInputRef}
+                      className="form-control rounded-3 shadow-sm"
+                      value={filters.location}
+                      onChange={handleInputChange}
+                      placeholder="Type a location..."
+                      autoComplete="off"
+                      aria-label="Location"
+                    />
+                    <select
+                      className="form-select"
+                      style={{ maxWidth: "140px" }}
+                      value={radius}
+                      onChange={(e) => setRadius(e.target.value)}
+                    >
+                      <option value="1">1 km</option>
+                      <option value="5">5 km</option>
+                      <option value="10">10 km</option>
+                      <option value="20">20 km</option>
+                      <option value="50">50 km</option>
+                    </select>
+                  </div>
+                  {filters.location && !locationSelected && (
+                    <small className="text-danger">
+                      Please select a location from the dropdown.
+                    </small>
+                  )}
+                </div>
+
+                {/* Price Range */}
+                <div className="col-md-4">
+                  <label className="form-label fw-medium">Min Price</label>
+                  <input
+                    type="number"
+                    name="min_price"
+                    className="form-control rounded-3 shadow-sm"
+                    value={filters.min_price}
+                    onChange={handleInputChange}
+                    min="0"
+                    placeholder="e.g. 500"
+                  />
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label fw-medium">Max Price</label>
+                  <input
+                    type="number"
+                    name="max_price"
+                    className="form-control rounded-3 shadow-sm"
+                    value={filters.max_price}
+                    onChange={handleInputChange}
+                    min="0"
+                    placeholder="e.g. 2000"
+                  />
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label fw-medium">Affordability</label>
+                  <select
+                    name="affordability"
+                    className="form-select rounded-3 shadow-sm"
+                    value={filters.affordability}
+                    onChange={handleInputChange}
+                  >
+                    <option value="">Any</option>
+                    <option value="affordable">Affordable</option>
+                    <option value="recommended">Recommended</option>
+                    <option value="tooExpensive">Too Expensive</option>
+                  </select>
+                </div>
+
+                {/* Property Info */}
+                <div className="col-md-4">
+                  <label className="form-label fw-medium">Property Type</label>
+                  <select
+                    name="property_type"
+                    className="form-select rounded-3 shadow-sm"
+                    value={filters.property_type}
+                    onChange={handleInputChange}
+                  >
+                    <option value="">Any</option>
+                    <option value="H">House</option>
+                    <option value="A">Apartment</option>
+                    <option value="C">Condo</option>
+                    <option value="T">Townhouse</option>
+                    <option value="O">Other</option>
+                  </select>
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label fw-medium">Bedrooms</label>
+                  <input
+                    type="number"
+                    name="bedrooms"
+                    className="form-control rounded-3 shadow-sm"
+                    value={filters.bedrooms}
+                    onChange={handleInputChange}
+                    min="0"
+                    placeholder="Any"
+                  />
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label fw-medium">Bathrooms</label>
+                  <input
+                    type="number"
+                    name="bathrooms"
+                    className="form-control rounded-3 shadow-sm"
+                    value={filters.bathrooms}
+                    onChange={handleInputChange}
+                    min="0"
+                    placeholder="Any"
+                  />
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="d-flex justify-content-end gap-2 mt-4">
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={!filters.location.trim() || !locationSelected}
+                  title={
+                    filters.location && !locationSelected
+                      ? "Please select a location from the dropdown"
+                      : !filters.location.trim()
+                      ? "Please enter and select a location"
+                      : ""
+                  }
+                >
+                  🔍 Apply Filters
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={clearFilters}
+                >
+                  ✨ Clear All
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* Error & Listings */}
+        {error ? (
+          <div ref={errorRef} className="alert alert-danger">
+            {error}
+          </div>
+        ) : loadingListings ? (
+          <div className="d-flex justify-content-center py-5">
+            <div className="spinner-border text-primary" role="status" />
+          </div>
+        ) : (
+          <>
+            <SortDropdown
+              sortOption={sortOption}
+              setSortOption={setSortOption}
+            />
+
+            {paginatedListings.length === 0 ? (
+              <p className="text-muted text-center">No listings found.</p>
+            ) : (
+              <div className="row gx-3">
+                {paginatedListings.map((listing) => (
+                  <ListingCard
+                    key={listing.id}
+                    listing={listing}
+                    income={userIncome}
+                  />
+                ))}
+              </div>
+            )}
+
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={listings.length}
+              pageSize={itemsPerPage}
+              onPageSizeChange={(n) => {
+                setItemsPerPage(n);
+                setCurrentPage(1);
+              }}
+            />
+          </>
+        )}
       </div>
-      <div className="form-grid">
-        <div>
-          <label htmlFor="city">City</label>
-          <input
-            type="text"
-            id="city"
-            name="city"
-            value={formData.city}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            required
-          />
-          {errMsg("city")}
-        </div>
-        <div>
-          <label htmlFor="postal_code">Postal Code</label>
-          <input
-            type="text"
-            id="postal_code"
-            name="postal_code"
-            value={formData.postal_code}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            required
-          />
-          {errMsg("postal_code")}
-        </div>
-      </div>
-
-      {/* Property Details */}
-      <h5 className="form-section-title">Property Details</h5>
-      <div className="form-grid">
-        <div>
-          <label htmlFor="price">Price</label>
-          <input
-            type="number"
-            id="price"
-            name="price"
-            value={formData.price}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            required
-          />
-          {errMsg("price")}
-        </div>
-        <div>
-          <label htmlFor="property_type">Property Type</label>
-          <select
-            id="property_type"
-            name="property_type"
-            value={formData.property_type}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            required
-          >
-            <option value="">Select</option>
-            <option value="H">House</option>
-            <option value="A">Apartment</option>
-            <option value="C">Condo</option>
-            <option value="T">Townhouse</option>
-            <option value="O">Other</option>
-          </select>
-          {errMsg("property_type")}
-        </div>
-        <div>
-          <label htmlFor="sqft_area">Square Footage</label>
-          <input
-            type="number"
-            id="sqft_area"
-            name="sqft_area"
-            value={formData.sqft_area}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            required
-          />
-          {errMsg("sqft_area")}
-        </div>
-      </div>
-
-      <div className="form-grid">
-        <div>
-          <label htmlFor="bedrooms">Bedrooms</label>
-          <input
-            type="number"
-            id="bedrooms"
-            name="bedrooms"
-            value={formData.bedrooms}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            required
-          />
-          {errMsg("bedrooms")}
-        </div>
-        <div>
-          <label htmlFor="bathrooms">Bathrooms</label>
-          <input
-            type="number"
-            id="bathrooms"
-            name="bathrooms"
-            value={formData.bathrooms}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            required
-          />
-          {errMsg("bathrooms")}
-        </div>
-        <div>
-          <label htmlFor="parking_spaces">Parking Spaces</label>
-          <input
-            type="number"
-            id="parking_spaces"
-            name="parking_spaces"
-            value={formData.parking_spaces}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            required
-          />
-          {errMsg("parking_spaces")}
-        </div>
-      </div>
-
-      <div className="form-grid">
-        <div>
-          <label htmlFor="payment_type">Payment Type</label>
-          <select
-            id="payment_type"
-            name="payment_type"
-            value={formData.payment_type}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            required
-          >
-            <option value="">Select</option>
-            <option value="C">Cheque</option>
-            <option value="D">Direct Deposit</option>
-            <option value="I">Interac / Wire Transfer</option>
-            <option value="P">PayPal</option>
-            <option value="X">Chexy</option>
-            <option value="O">Other</option>
-          </select>
-          {errMsg("payment_type")}
-        </div>
-        <div>
-          <label htmlFor="laundry_type">Laundry Type</label>
-          <select
-            id="laundry_type"
-            name="laundry_type"
-            value={formData.laundry_type}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            required
-          >
-            <option value="">Select</option>
-            <option value="I">In-Unit</option>
-            <option value="S">Shared</option>
-            <option value="N">None</option>
-          </select>
-          {errMsg("laundry_type")}
-        </div>
-        <div>
-          <label htmlFor="move_in_date">Move-in Date</label>
-          <input
-            type="date"
-            id="move_in_date"
-            name="move_in_date"
-            value={formData.move_in_date}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            required
-          />
-          {errMsg("move_in_date")}
-        </div>
-      </div>
-
-      {/* Amenities */}
-      <h5 className="form-section-title">Amenities</h5>
-      <div className="checkbox-grid">
-        <label>
-          <input
-            type="checkbox"
-            name="ac"
-            checked={formData.ac}
-            onChange={handleChange}
-          />
-          Air Conditioning
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            name="heating"
-            checked={formData.heating}
-            onChange={handleChange}
-          />
-          Heating
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            name="pet_friendly"
-            checked={formData.pet_friendly}
-            onChange={handleChange}
-          />
-          Pet Friendly
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            name="shareable"
-            checked={formData.shareable}
-            onChange={handleChange}
-          />
-          Roommates Allowed
-        </label>
-      </div>
-
-      {/* Description */}
-      <h5 className="form-section-title">Description</h5>
-      <textarea
-        id="description"
-        name="description"
-        value={formData.description}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        required
-      ></textarea>
-      {errMsg("description")}
-
-      {/* Extra Amenities */}
-      <div className="mb-3">
-        <label htmlFor="extra_amenities">Extra Amenities</label>
-        <textarea
-          id="extra_amenities"
-          name="extra_amenities"
-          value={formData.extra_amenities}
-          onChange={handleChange}
-          onBlur={handleBlur}
-        ></textarea>
-      </div>
-
-      {/* Costs & Fees */}
-      <h5 className="form-section-title">Costs & Fees</h5>
-      <div className="form-grid">
-        <div>
-          <label htmlFor="utilities_cost">Utilities Cost</label>
-          <input
-            type="number"
-            id="utilities_cost"
-            name="utilities_cost"
-            value={formData.utilities_cost}
-            onChange={handleChange}
-          />
-        </div>
-        <label>
-          <input
-            type="checkbox"
-            name="utilities_payable_by_tenant"
-            checked={formData.utilities_payable_by_tenant}
-            onChange={handleChange}
-          />
-          Payable by Tenant
-        </label>
-      </div>
-
-      <div className="form-grid">
-        <div>
-          <label htmlFor="property_taxes">Property Taxes</label>
-          <input
-            type="number"
-            id="property_taxes"
-            name="property_taxes"
-            value={formData.property_taxes}
-            onChange={handleChange}
-          />
-        </div>
-        <label>
-          <input
-            type="checkbox"
-            name="property_taxes_payable_by_tenant"
-            checked={formData.property_taxes_payable_by_tenant}
-            onChange={handleChange}
-          />
-          Payable by Tenant
-        </label>
-      </div>
-
-      <div className="form-grid">
-        <div>
-          <label htmlFor="condo_fee">Condo Fee</label>
-          <input
-            type="number"
-            id="condo_fee"
-            name="condo_fee"
-            value={formData.condo_fee}
-            onChange={handleChange}
-          />
-        </div>
-        <label>
-          <input
-            type="checkbox"
-            name="condo_fee_payable_by_tenant"
-            checked={formData.condo_fee_payable_by_tenant}
-            onChange={handleChange}
-          />
-          Payable by Tenant
-        </label>
-      </div>
-
-      <div className="form-grid">
-        <div>
-          <label htmlFor="hoa_fee">HOA Fee</label>
-          <input
-            type="number"
-            id="hoa_fee"
-            name="hoa_fee"
-            value={formData.hoa_fee}
-            onChange={handleChange}
-          />
-        </div>
-        <label>
-          <input
-            type="checkbox"
-            name="hoa_fee_payable_by_tenant"
-            checked={formData.hoa_fee_payable_by_tenant}
-            onChange={handleChange}
-          />
-          Payable by Tenant
-        </label>
-      </div>
-
-      <div className="form-grid">
-        <div>
-          <label htmlFor="security_deposit">Security Deposit</label>
-          <input
-            type="number"
-            id="security_deposit"
-            name="security_deposit"
-            value={formData.security_deposit}
-            onChange={handleChange}
-          />
-        </div>
-        <label>
-          <input
-            type="checkbox"
-            name="security_deposit_payable_by_tenant"
-            checked={formData.security_deposit_payable_by_tenant}
-            onChange={handleChange}
-          />
-          Payable by Tenant
-        </label>
-      </div>
-
-      {/* Images */}
-      <h5 className="form-section-title">Images</h5>
-      <div className="mb-3">
-        <label htmlFor="front_image">Front Image</label>
-        <input
-          type="file"
-          id="front_image"
-          name="front_image"
-          onChange={handleFileInputChange}
-        />
-        <div className="image-preview-grid">
-          {renderExistingImagePreview(
-            existingImages.filter((img) => img.is_primary)
-          )}
-        </div>
-      </div>
-
-      <div className="mb-3">
-        <label htmlFor="pictures">Additional Images</label>
-        <input
-          type="file"
-          id="pictures"
-          name="pictures"
-          onChange={handleFileInputChange}
-          multiple
-        />
-        <div className="image-preview-grid">
-          {renderExistingImagePreview(
-            existingImages.filter((img) => !img.is_primary)
-          )}
-          {renderNewImagePreview()}
-        </div>
-      </div>
-
-      {/* Buttons */}
-      <button type="submit" className="btn btn-primary">
-        {method === "post" ? "Create Listing" : "Save Changes"}
-      </button>
-      {method === "edit" && (
-        <button type="delete" className="btn btn-danger" onClick={handleDelete}>
-          Delete Listing
-        </button>
-      )}
-    </form>
+    </div>
   );
 }
 
-export default FormListing;
+export default Listings;

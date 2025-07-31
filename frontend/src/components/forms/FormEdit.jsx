@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../../api.js";
 import "../../styles/forms.css";
 import { Link } from "react-router-dom";
+import useGoogleMaps from "../../hooks/useGoogleMaps";
 
 function FormEdit({ profile }) {
   const [formData, setFormData] = useState({
@@ -38,86 +39,84 @@ function FormEdit({ profile }) {
   const [deleteProfilePicture, setDeleteProfilePicture] = useState(false);
   const navigate = useNavigate();
 
+  // Load Google Maps via hook
+  const { googleMaps } = useGoogleMaps();
+
   // --- GOOGLE PLACES AUTOCOMPLETE REFS ---
   const cityInputRef = useRef(null);
   const preferredLocationInputRef = useRef(null);
   const autocompleteCityRef = useRef(null);
   const autocompletePreferredRef = useRef(null);
 
-  // --- GOOGLE PLACES AUTOCOMPLETE EFFECT ---
   useEffect(() => {
+    if (!googleMaps) return; // Wait until the Maps API is loaded
+
+    const options = { types: ["(cities)"] };
+
+    // Clear previous listeners
     if (autocompleteCityRef.current) {
-      window.google?.maps?.event?.clearInstanceListeners(
-        autocompleteCityRef.current
-      );
+      googleMaps.maps.event.clearInstanceListeners(autocompleteCityRef.current);
       autocompleteCityRef.current = null;
     }
     if (autocompletePreferredRef.current) {
-      window.google?.maps?.event?.clearInstanceListeners(
+      googleMaps.maps.event.clearInstanceListeners(
         autocompletePreferredRef.current
       );
       autocompletePreferredRef.current = null;
     }
 
-    if (window.google && window.google.maps && window.google.maps.places) {
-      const options = { types: ["(cities)"] };
+    if (cityInputRef.current) {
+      autocompleteCityRef.current = new googleMaps.maps.places.Autocomplete(
+        cityInputRef.current,
+        options
+      );
+      autocompleteCityRef.current.addListener("place_changed", () => {
+        const place = autocompleteCityRef.current.getPlace();
+        const cityName =
+          place.address_components?.find((c) => c.types.includes("locality"))
+            ?.long_name ||
+          place.address_components?.find((c) =>
+            c.types.includes("administrative_area_level_1")
+          )?.long_name ||
+          place.name ||
+          "";
+        setFormData((prev) => ({ ...prev, city: cityName }));
+      });
+    }
 
-      if (cityInputRef.current) {
-        autocompleteCityRef.current =
-          new window.google.maps.places.Autocomplete(
-            cityInputRef.current,
-            options
-          );
-        autocompleteCityRef.current.addListener("place_changed", () => {
-          const place = autocompleteCityRef.current.getPlace();
-          const cityName =
-            place.address_components?.find((c) => c.types.includes("locality"))
-              ?.long_name ||
-            place.address_components?.find((c) =>
-              c.types.includes("administrative_area_level_1")
-            )?.long_name ||
-            place.name ||
-            "";
-          setFormData((prev) => ({ ...prev, city: cityName }));
-        });
-      }
-
-      if (preferredLocationInputRef.current) {
-        autocompletePreferredRef.current =
-          new window.google.maps.places.Autocomplete(
-            preferredLocationInputRef.current,
-            options
-          );
-        autocompletePreferredRef.current.addListener("place_changed", () => {
-          const place = autocompletePreferredRef.current.getPlace();
-          const cityName =
-            place.address_components?.find((c) => c.types.includes("locality"))
-              ?.long_name ||
-            place.address_components?.find((c) =>
-              c.types.includes("administrative_area_level_1")
-            )?.long_name ||
-            place.name ||
-            "";
-          setFormData((prev) => ({ ...prev, preferred_location: cityName }));
-        });
-      }
+    if (preferredLocationInputRef.current) {
+      autocompletePreferredRef.current =
+        new googleMaps.maps.places.Autocomplete(
+          preferredLocationInputRef.current,
+          options
+        );
+      autocompletePreferredRef.current.addListener("place_changed", () => {
+        const place = autocompletePreferredRef.current.getPlace();
+        const cityName =
+          place.address_components?.find((c) => c.types.includes("locality"))
+            ?.long_name ||
+          place.address_components?.find((c) =>
+            c.types.includes("administrative_area_level_1")
+          )?.long_name ||
+          place.name ||
+          "";
+        setFormData((prev) => ({ ...prev, preferred_location: cityName }));
+      });
     }
 
     return () => {
       if (autocompleteCityRef.current) {
-        window.google?.maps?.event?.clearInstanceListeners(
-          autocompleteCityRef.current
-        );
+        googleMaps.maps.event.clearInstanceListeners(autocompleteCityRef.current);
         autocompleteCityRef.current = null;
       }
       if (autocompletePreferredRef.current) {
-        window.google?.maps?.event?.clearInstanceListeners(
+        googleMaps.maps.event.clearInstanceListeners(
           autocompletePreferredRef.current
         );
         autocompletePreferredRef.current = null;
       }
     };
-  }, []);
+  }, [googleMaps]);
 
   useEffect(() => {
     if (profile) {

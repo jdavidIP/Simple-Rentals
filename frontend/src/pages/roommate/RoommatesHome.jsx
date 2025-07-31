@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import api from "../../api.js";
-import { useNavigate } from "react-router-dom";
 import Pagination from "../../components/Pagination.jsx";
 import RoommateCard from "../../components/cards/RoommateCard.jsx";
-
+import useGoogleMaps from "../../hooks/useGoogleMaps";
 function Roommates() {
   const [roommates, setRoommates] = useState([]);
   const [filters, setFilters] = useState({
@@ -28,6 +27,7 @@ function Roommates() {
   const errorRef = useRef(null);
   const cityInputRef = useRef(null);
   const autocompleteRef = useRef(null);
+  const { googleMaps } = useGoogleMaps(); // Load Google Maps
 
   // Slice roommates by current page
   const paginatedRoommates = roommates.slice(
@@ -40,21 +40,18 @@ function Roommates() {
     setCurrentPage(1);
   }, [filters, roommates.length]);
 
-  // Google Places Autocomplete
-  const initializeAutocomplete = () => {
-    if (
-      window.google &&
-      window.google.maps &&
-      window.google.maps.places &&
-      cityInputRef.current
-    ) {
-      if (autocompleteRef.current) {
-        window.google.maps.event.clearInstanceListeners(
-          autocompleteRef.current
-        );
-      }
+  // Initialize Autocomplete when googleMaps loads
+  useEffect(() => {
+    if (!googleMaps) return;
+
+    if (autocompleteRef.current) {
+      googleMaps.maps.event.clearInstanceListeners(autocompleteRef.current);
+      autocompleteRef.current = null;
+    }
+
+    if (cityInputRef.current) {
       const options = { types: ["(cities)"] };
-      autocompleteRef.current = new window.google.maps.places.Autocomplete(
+      autocompleteRef.current = new googleMaps.maps.places.Autocomplete(
         cityInputRef.current,
         options
       );
@@ -74,42 +71,13 @@ function Roommates() {
         }));
       });
     }
-  };
-
-  useEffect(() => {
-    let checkInterval = setInterval(() => {
-      if (
-        window.google &&
-        window.google.maps &&
-        window.google.maps.places &&
-        cityInputRef.current
-      ) {
-        initializeAutocomplete();
-        clearInterval(checkInterval);
-      }
-    }, 100);
 
     return () => {
-      clearInterval(checkInterval);
-      if (autocompleteRef.current && window.google) {
-        window.google.maps.event.clearInstanceListeners(
-          autocompleteRef.current
-        );
+      if (autocompleteRef.current) {
+        googleMaps.maps.event.clearInstanceListeners(autocompleteRef.current);
       }
     };
-  }, []);
-
-  useEffect(() => {
-    if (
-      window.google &&
-      window.google.maps &&
-      window.google.maps.places &&
-      cityInputRef.current &&
-      filters.city === ""
-    ) {
-      initializeAutocomplete();
-    }
-  }, [filters.city]);
+  }, [googleMaps]);
 
   // Fetch Roommates API
   const fetchRoommates = async (customFilters = filters) => {
@@ -175,6 +143,7 @@ function Roommates() {
       cannabis_friendly: "",
       couple_friendly: "",
       occupation: "",
+      gender: "",
     };
     setFilters(cleared);
     fetchRoommates(cleared);
@@ -267,78 +236,28 @@ function Roommates() {
                   Preferences
                 </label>
                 <div className="row row-cols-2 g-2">
-                  <div className="col">
-                    <div className="form-check">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        name="pet_friendly"
-                        id="pet_friendly"
-                        checked={filters.pet_friendly === "true"}
-                        onChange={handleInputChange}
-                      />
-                      <label
-                        className="form-check-label"
-                        htmlFor="pet_friendly"
-                      >
-                        Pet Friendly
-                      </label>
+                  {[
+                    ["pet_friendly", "Pet Friendly"],
+                    ["smoke_friendly", "Smoke Friendly"],
+                    ["cannabis_friendly", "Cannabis Friendly"],
+                    ["couple_friendly", "Couple Friendly"],
+                  ].map(([key, label]) => (
+                    <div className="col" key={key}>
+                      <div className="form-check">
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          name={key}
+                          id={key}
+                          checked={filters[key] === "true"}
+                          onChange={handleInputChange}
+                        />
+                        <label className="form-check-label" htmlFor={key}>
+                          {label}
+                        </label>
+                      </div>
                     </div>
-                  </div>
-                  <div className="col">
-                    <div className="form-check">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        name="smoke_friendly"
-                        id="smoke_friendly"
-                        checked={filters.smoke_friendly === "true"}
-                        onChange={handleInputChange}
-                      />
-                      <label
-                        className="form-check-label"
-                        htmlFor="smoke_friendly"
-                      >
-                        Smoke Friendly
-                      </label>
-                    </div>
-                  </div>
-                  <div className="col">
-                    <div className="form-check">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        name="cannabis_friendly"
-                        id="cannabis_friendly"
-                        checked={filters.cannabis_friendly === "true"}
-                        onChange={handleInputChange}
-                      />
-                      <label
-                        className="form-check-label"
-                        htmlFor="cannabis_friendly"
-                      >
-                        Cannabis Friendly
-                      </label>
-                    </div>
-                  </div>
-                  <div className="col">
-                    <div className="form-check">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        name="couple_friendly"
-                        id="couple_friendly"
-                        checked={filters.couple_friendly === "true"}
-                        onChange={handleInputChange}
-                      />
-                      <label
-                        className="form-check-label"
-                        htmlFor="couple_friendly"
-                      >
-                        Couple Friendly
-                      </label>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
 
@@ -395,7 +314,6 @@ function Roommates() {
           )}
 
           {/* Pagination */}
-
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

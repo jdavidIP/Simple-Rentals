@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api.js";
 import "../../styles/forms.css";
+import useGoogleMaps from "../../hooks/useGoogleMaps";
 
 function FormListing({ method, listing }) {
   const [formData, setFormData] = useState({
@@ -54,57 +55,56 @@ function FormListing({ method, listing }) {
   const errorRef = useRef(null);
   const addressInputRef = useRef(null);
 
-  // Load Google Places
+  const { googleMaps } = useGoogleMaps();
+
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyCdOFDB8B2dHR7M6JXBfdZ-F-1XRjDm-2E&libraries=places`;
-    script.async = true;
-    script.defer = true;
-    document.body.appendChild(script);
+    if (!googleMaps) return;
 
-    script.onload = () => {
-      if (!addressInputRef.current) return;
+    if (!addressInputRef.current) return;
 
-      const autocomplete = new window.google.maps.places.Autocomplete(
-        addressInputRef.current,
-        { types: ["geocode"] }
-      );
+    const autocomplete = new googleMaps.maps.places.Autocomplete(
+      addressInputRef.current,
+      { types: ["geocode"] }
+    );
 
-      autocomplete.addListener("place_changed", () => {
-        const place = autocomplete.getPlace();
+    autocomplete.addListener("place_changed", () => {
+      const place = autocomplete.getPlace();
 
-        if (place.geometry) {
-          const streetNumber =
+      if (place.geometry) {
+        const streetNumber =
+          place.address_components?.find((c) =>
+            c.types.includes("street_number")
+          )?.long_name || "";
+        const route =
+          place.address_components?.find((c) => c.types.includes("route"))
+            ?.long_name || "";
+
+        const streetAddress = [streetNumber, route].filter(Boolean).join(" ");
+
+        setFormData((prev) => ({
+          ...prev,
+          street_address: streetAddress || prev.street_address,
+          city:
             place.address_components?.find((c) =>
-              c.types.includes("street_number")
-            )?.long_name || "";
-          const route =
-            place.address_components?.find((c) => c.types.includes("route"))
-              ?.long_name || "";
+              c.types.includes("locality")
+            )?.long_name || prev.city,
+          postal_code:
+            place.address_components?.find((c) =>
+              c.types.includes("postal_code")
+            )?.long_name || prev.postal_code,
+        }));
 
-          const streetAddress = [streetNumber, route].filter(Boolean).join(" ");
+        setLatLng({
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+        });
+      }
+    });
 
-          setFormData((prev) => ({
-            ...prev,
-            street_address: streetAddress || prev.street_address,
-            city:
-              place.address_components?.find((c) =>
-                c.types.includes("locality")
-              )?.long_name || prev.city,
-            postal_code:
-              place.address_components?.find((c) =>
-                c.types.includes("postal_code")
-              )?.long_name || prev.postal_code,
-          }));
-
-          setLatLng({
-            lat: place.geometry.location.lat(),
-            lng: place.geometry.location.lng(),
-          });
-        }
-      });
+    return () => {
+      googleMaps.maps.event.clearInstanceListeners(autocomplete);
     };
-  }, []);
+  }, [googleMaps]);
 
   // Validation logic
   function validateFields(data) {
