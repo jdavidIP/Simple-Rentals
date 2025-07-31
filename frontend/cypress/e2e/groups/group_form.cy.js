@@ -56,7 +56,14 @@ describe("Group Form E2E", () => {
     cy.url().should("include", "/groups/1");
 
     cy.contains("A cool updated description.");
-    cy.contains("Status:").parent().should("contain", "F");
+    cy.contains(".meta .meta-label", /^Status$/)
+      .closest(".meta")
+      .find(".meta-value .status-badge")
+      .should(($badge) => {
+        const txt = $badge.text().trim();
+        const title = $badge.attr("title") || "";
+        expect(txt || title).to.match(/Filled/i);
+      });
     cy.contains("Updated Group");
   });
 
@@ -91,7 +98,7 @@ describe("Group Form E2E", () => {
     cy.visit("/groups/invitations");
 
     // Click on "Sent" tab
-    cy.contains("Sent").click();
+    cy.get(".apps-tabs [role='tab']").contains("Sent").scrollIntoView().click();
 
     cy.get(".groups-list")
       .should("contain", "To:")

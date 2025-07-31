@@ -30,7 +30,7 @@ const RoommateCard = ({ roommate, isListingOwner, getFitRanking }) => {
     >
       {/* Profile Picture */}
       <img
-        src={roommate.user.profile_picture || "/static/img/placeholder.jpg"}
+        src={roommate.user.profile_picture || "/default_profile.png"}
         alt="Roommate Profile"
         className="rounded-circle mx-auto mt-3"
         style={{
