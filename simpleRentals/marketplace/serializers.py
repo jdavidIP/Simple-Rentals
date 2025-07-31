@@ -279,7 +279,7 @@ class ListingPostingSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'price', 'property_type', 'payment_type', 'bedrooms', 'bathrooms', 'sqft_area', 'laundry_type', 'fridge',
             'parking_spaces', 'heating', 'ac', 'extra_amenities', 'pet_friendly', 'move_in_date', 'description',
-            'unit_number', 'street_address', 'city', 'postal_code', 'heat', 'hydro', 'water', 'internet', 'furnished'
+            'unit_number', 'street_address', 'city', 'postal_code', 'heat', 'hydro', 'water', 'internet', 'furnished',
             'pictures', 'delete_images', 'latitude', 'longitude', 'shareable'
         ]
 

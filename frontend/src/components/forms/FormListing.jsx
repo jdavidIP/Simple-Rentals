@@ -25,18 +25,12 @@ function FormListing({ method, listing }) {
     street_address: listing?.street_address || "",
     city: listing?.city || "",
     postal_code: listing?.postal_code || "",
-    utilities_cost: listing?.utilities_cost || "",
-    utilities_payable_by_tenant: listing?.utilities_payable_by_tenant || false,
-    property_taxes: listing?.property_taxes || "",
-    property_taxes_payable_by_tenant:
-      listing?.property_taxes_payable_by_tenant || false,
-    condo_fee: listing?.condo_fee || "",
-    condo_fee_payable_by_tenant: listing?.condo_fee_payable_by_tenant || false,
-    hoa_fee: listing?.hoa_fee || "",
-    hoa_fee_payable_by_tenant: listing?.hoa_fee_payable_by_tenant || false,
-    security_deposit: listing?.security_deposit || "",
-    security_deposit_payable_by_tenant:
-      listing?.security_deposit_payable_by_tenant || false,
+    heat: listing?.heat || false,
+    hydro: listing?.hydro || false,
+    water: listing?.water || false,
+    fridge: listing?.fridge || false,
+    internet: listing?.internet || false,
+    furnished: listing?.furnished || false,
     pictures: [],
     front_image: null,
     delete_images: [],
@@ -85,9 +79,8 @@ function FormListing({ method, listing }) {
           ...prev,
           street_address: streetAddress || prev.street_address,
           city:
-            place.address_components?.find((c) =>
-              c.types.includes("locality")
-            )?.long_name || prev.city,
+            place.address_components?.find((c) => c.types.includes("locality"))
+              ?.long_name || prev.city,
           postal_code:
             place.address_components?.find((c) =>
               c.types.includes("postal_code")
@@ -333,6 +326,31 @@ function FormListing({ method, listing }) {
       </div>
     ));
 
+  const renderNewFrontImagePreview = () => {
+    console.log("Rendering new front image preview", formData.front_image);
+    if (!formData.front_image) return null;
+
+    return (
+      <div className="image-tile">
+        <img src={URL.createObjectURL(formData.front_image)} alt="Preview" />
+        <button
+          type="button"
+          aria-label="Remove image"
+          className="image-remove"
+          onClick={() =>
+            setFormData((prevData) => ({
+              ...prevData,
+              front_image: null,
+            }))
+          }
+          title="Remove"
+        >
+          <span className="image-remove-x">&times;</span>
+        </button>
+      </div>
+    );
+  };
+
   useEffect(() => {
     if (error && errorRef.current) {
       errorRef.current.scrollIntoView({ behavior: "smooth" });
@@ -371,9 +389,10 @@ function FormListing({ method, listing }) {
             type="text"
             id="city"
             name="city"
-            value={formData.city}
+            value={formData.street_address ? formData.city : ""}
             onChange={handleChange}
             onBlur={handleBlur}
+            disabled={true}
             required
           />
           {errMsg("city")}
@@ -384,9 +403,10 @@ function FormListing({ method, listing }) {
             type="text"
             id="postal_code"
             name="postal_code"
-            value={formData.postal_code}
+            value={formData.street_address ? formData.postal_code : ""}
             onChange={handleChange}
             onBlur={handleBlur}
+            disabled={true}
             required
           />
           {errMsg("postal_code")}
@@ -536,28 +556,14 @@ function FormListing({ method, listing }) {
           />
           {errMsg("move_in_date")}
         </div>
-      </div>
-
-      {/* Amenities */}
-      <h5 className="form-section-title">Amenities</h5>
-      <div className="checkbox-grid">
         <label>
           <input
             type="checkbox"
-            name="ac"
-            checked={formData.ac}
+            name="furnished"
+            checked={formData.furnished}
             onChange={handleChange}
           />
-          Air Conditioning
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            name="heating"
-            checked={formData.heating}
-            onChange={handleChange}
-          />
-          Heating
+          Furnished
         </label>
         <label>
           <input
@@ -579,6 +585,59 @@ function FormListing({ method, listing }) {
         </label>
       </div>
 
+      {/* Amenities */}
+      <h5 className="form-section-title">Amenities</h5>
+      <div className="checkbox-grid">
+        <label>
+          <input
+            type="checkbox"
+            name="ac"
+            checked={formData.ac}
+            onChange={handleChange}
+          />
+          Air Conditioning
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            name="fridge"
+            checked={formData.fridge}
+            onChange={handleChange}
+          />
+          Fridge
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            name="heating"
+            checked={formData.heating}
+            onChange={handleChange}
+          />
+          Heating
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            name="internet"
+            checked={formData.internet}
+            onChange={handleChange}
+          />
+          Internet
+        </label>
+      </div>
+
+      {/* Extra Amenities */}
+      <div className="mb-3 py-2">
+        <label htmlFor="extra_amenities">Extra Amenities</label>
+        <textarea
+          id="extra_amenities"
+          name="extra_amenities"
+          value={formData.extra_amenities}
+          onChange={handleChange}
+          onBlur={handleBlur}
+        ></textarea>
+      </div>
+
       {/* Description */}
       <h5 className="form-section-title">Description</h5>
       <textarea
@@ -591,127 +650,35 @@ function FormListing({ method, listing }) {
       ></textarea>
       {errMsg("description")}
 
-      {/* Extra Amenities */}
-      <div className="mb-3">
-        <label htmlFor="extra_amenities">Extra Amenities</label>
-        <textarea
-          id="extra_amenities"
-          name="extra_amenities"
-          value={formData.extra_amenities}
-          onChange={handleChange}
-          onBlur={handleBlur}
-        ></textarea>
-      </div>
-
       {/* Costs & Fees */}
-      <h5 className="form-section-title">Costs & Fees</h5>
-      <div className="form-grid">
-        <div>
-          <label htmlFor="utilities_cost">Utilities Cost</label>
-          <input
-            type="number"
-            id="utilities_cost"
-            name="utilities_cost"
-            value={formData.utilities_cost}
-            onChange={handleChange}
-          />
-        </div>
+      <h5 className="form-section-title">Utilities</h5>
+      <div className="checkbox-grid">
         <label>
           <input
             type="checkbox"
-            name="utilities_payable_by_tenant"
-            checked={formData.utilities_payable_by_tenant}
+            name="heat"
+            checked={formData.heat}
             onChange={handleChange}
           />
-          Payable by Tenant
+          Heat
         </label>
-      </div>
-
-      <div className="form-grid">
-        <div>
-          <label htmlFor="property_taxes">Property Taxes</label>
-          <input
-            type="number"
-            id="property_taxes"
-            name="property_taxes"
-            value={formData.property_taxes}
-            onChange={handleChange}
-          />
-        </div>
         <label>
           <input
             type="checkbox"
-            name="property_taxes_payable_by_tenant"
-            checked={formData.property_taxes_payable_by_tenant}
+            name="hydro"
+            checked={formData.hydro}
             onChange={handleChange}
           />
-          Payable by Tenant
+          Hydro
         </label>
-      </div>
-
-      <div className="form-grid">
-        <div>
-          <label htmlFor="condo_fee">Condo Fee</label>
-          <input
-            type="number"
-            id="condo_fee"
-            name="condo_fee"
-            value={formData.condo_fee}
-            onChange={handleChange}
-          />
-        </div>
         <label>
           <input
             type="checkbox"
-            name="condo_fee_payable_by_tenant"
-            checked={formData.condo_fee_payable_by_tenant}
+            name="water"
+            checked={formData.water}
             onChange={handleChange}
           />
-          Payable by Tenant
-        </label>
-      </div>
-
-      <div className="form-grid">
-        <div>
-          <label htmlFor="hoa_fee">HOA Fee</label>
-          <input
-            type="number"
-            id="hoa_fee"
-            name="hoa_fee"
-            value={formData.hoa_fee}
-            onChange={handleChange}
-          />
-        </div>
-        <label>
-          <input
-            type="checkbox"
-            name="hoa_fee_payable_by_tenant"
-            checked={formData.hoa_fee_payable_by_tenant}
-            onChange={handleChange}
-          />
-          Payable by Tenant
-        </label>
-      </div>
-
-      <div className="form-grid">
-        <div>
-          <label htmlFor="security_deposit">Security Deposit</label>
-          <input
-            type="number"
-            id="security_deposit"
-            name="security_deposit"
-            value={formData.security_deposit}
-            onChange={handleChange}
-          />
-        </div>
-        <label>
-          <input
-            type="checkbox"
-            name="security_deposit_payable_by_tenant"
-            checked={formData.security_deposit_payable_by_tenant}
-            onChange={handleChange}
-          />
-          Payable by Tenant
+          Water
         </label>
       </div>
 
@@ -729,6 +696,7 @@ function FormListing({ method, listing }) {
           {renderExistingImagePreview(
             existingImages.filter((img) => img.is_primary)
           )}
+          {renderNewFrontImagePreview()}
         </div>
       </div>
 
