@@ -202,21 +202,20 @@ function Roommates() {
                 />
               </div>
               <div className="col-md-4">
-                <label className="form-label fw-medium">
-                  Gender Preference
-                </label>
+                <label className="form-label fw-medium">Gender</label>
                 <select
-                  name="gender_preference"
+                  name="gender"
                   className="form-select rounded-3 shadow-sm"
-                  value={filters.gender_preference}
+                  value={filters.gender}
                   onChange={handleInputChange}
                 >
                   <option value="">Any</option>
-                  <option value="O">Open</option>
+                  <option value="O">Other</option>
                   <option value="F">Female</option>
                   <option value="M">Male</option>
                 </select>
               </div>
+
               <div className="col-md-4">
                 <label className="form-label fw-medium">Occupation</label>
                 <select
@@ -260,17 +259,18 @@ function Roommates() {
                   ))}
                 </div>
               </div>
-
               <div className="col-md-4">
-                <label className="form-label fw-medium">Gender</label>
+                <label className="form-label fw-medium">
+                  Gender Preference
+                </label>
                 <select
-                  name="gender"
+                  name="gender_preference"
                   className="form-select rounded-3 shadow-sm"
-                  value={filters.gender}
+                  value={filters.gender_preference}
                   onChange={handleInputChange}
                 >
                   <option value="">Any</option>
-                  <option value="O">Other</option>
+                  <option value="O">Open</option>
                   <option value="F">Female</option>
                   <option value="M">Male</option>
                 </select>

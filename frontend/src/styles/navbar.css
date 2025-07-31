@@ -130,7 +130,6 @@
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid #e6e8ef;
-  z-index: 2100;
 }
 .dropdown-item {
   padding: 0.6rem 0.9rem;
