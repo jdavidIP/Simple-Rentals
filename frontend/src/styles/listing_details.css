@@ -17,3 +17,18 @@
   max-height: 400px;
   object-fit: cover;
 }
+
+.owner-sidebar {
+  position: sticky;
+  top: 100px;
+  z-index: 1;
+}
+
+.carousel-item img {
+  max-height: 400px;
+  object-fit: cover;
+}
+
+.accordion-button:focus {
+  box-shadow: none;
+}

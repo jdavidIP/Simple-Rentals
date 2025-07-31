@@ -1,47 +1,43 @@
 import React from "react";
-import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-} from "react-router-dom";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Home from "./pages/Home";
-import NotFound from "./pages/NotFound";
-import Logout from "./pages/Logout";
-import ListingsHome from "./pages/ListingsHome";
-import Listings from "./pages/Listings";
-import ListingsView from "./pages/ListingsView";
-import ListingsPost from "./pages/ListingsPost";
-import ListingsEdit from "./pages/ListingsEdit";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import Home from "./pages/util/Home";
+import NotFound from "./pages/util/NotFound";
+import Logout from "./pages/auth/Logout";
+import ListingsHome from "./pages/listing/ListingsHome";
+import Listings from "./pages/listing/Listings";
+import ListingsView from "./pages/listing/ListingsView";
+import ListingsPost from "./pages/listing/ListingsPost";
+import ListingsEdit from "./pages/listing/ListingsEdit";
 import ProtectedRoute from "./components/ProtectedRoute";
-import ConversationList from "./pages/ConversationList";
-import ConversationWindow from "./pages/ConversationWindow";
-import Profile from "./pages/Profile";
-import Reviews from "./pages/Reviews";
-import ProfileEdit from "./pages/ProfileEdit";
+import ConversationList from "./pages/conversation/ConversationList";
+import ConversationWindow from "./pages/conversation/ConversationWindow";
+import Profile from "./pages/profile/Profile";
+import Reviews from "./pages/review/Reviews";
+import ProfileEdit from "./pages/profile/ProfileEdit";
 import Layout from "./components/Layout";
-import RoommatesHome from "./pages/RoommatesHome";
-import RoommatesPost from "./pages/RoommatesPost";
-import RoommatesView from "./pages/RoommatesView";
-import Groups from "./pages/Groups";
-import GroupPost from "./pages/GroupsPost";
-import GroupView from "./pages/GroupView";
-import GroupEdit from "./pages/GroupEdit";
+import RoommatesHome from "./pages/roommate/RoommatesHome";
+import RoommatesPost from "./pages/roommate/RoommatesPost";
+import RoommatesView from "./pages/roommate/RoommatesView";
+import Groups from "./pages/group/Groups";
+import GroupPost from "./pages/group/GroupsPost";
+import GroupView from "./pages/group/GroupView";
+import GroupEdit from "./pages/group/GroupEdit";
 import { ProfileProvider } from "./contexts/ProfileContext";
-import RoommatesEdit from "./pages/RoommatesEdit";
-import Applications from "./pages/Applications";
-import GroupManage from "./pages/GroupManage";
-import Invitations from "./pages/Invitations";
-import ReviewsEdit from "./pages/ReviewsEdit";
-import VerifyPending from "./pages/VerifyPending";
-import VerifyEmail from "./pages/VerifyEmail";
+import RoommatesEdit from "./pages/roommate/RoommatesEdit";
+import Applications from "./pages/group/Applications";
+import GroupManage from "./pages/group/GroupManage";
+import Invitations from "./pages/group/Invitations";
+import ReviewsEdit from "./pages/review/ReviewsEdit";
+import VerifyPending from "./pages/auth/VerifyPending";
+import VerifyEmail from "./pages/auth/VerifyEmail";
 import AuthLayout from "./components/AuthLayout";
 
 function App() {
   return (
-    <ProfileProvider>
-      <Router>
+    <Router>
+      <ProfileProvider>
         <Routes>
           {/* Main site layout with header/footer */}
           <Route element={<Layout />}>
@@ -207,15 +203,15 @@ function App() {
             />
             <Route path="*" element={<NotFound />} />
           </Route>
-          
+
           {/* Auth-only layout (no header/footer) */}
           <Route element={<AuthLayout />}>
             <Route path="/verify-pending" element={<VerifyPending />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
           </Route>
         </Routes>
-      </Router>
-    </ProfileProvider>
+      </ProfileProvider>
+    </Router>
   );
 }
 

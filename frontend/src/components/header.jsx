@@ -1,6 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
-import api from "../api";
+import React, { useState, useRef, useEffect } from "react";
+import { NavLink, Link } from "react-router-dom";
 import { useProfileContext } from "../contexts/ProfileContext";
+import NotificationSidebar from "./NotificationSidebar";
+import "../styles/navbar.css";
 
 function Header() {
   const {
@@ -9,22 +11,21 @@ function Header() {
     applications = [],
     invitations = {},
   } = useProfileContext();
-  const [showDropdown, setShowDropdown] = useState(false);
-  const dropdownRef = useRef(null);
 
-  // Close dropdown when clicking outside
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const sidebarRef = useRef(null);
+
   useEffect(() => {
-    if (!showDropdown) return;
+    if (!sidebarOpen) return;
     function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowDropdown(false);
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+        setSidebarOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showDropdown]);
+  }, [sidebarOpen]);
 
-  // Split invitations into received/sent and unresponded/responded
   const receivedInvitations = Array.isArray(invitations.received)
     ? invitations.received
     : [];
@@ -37,249 +38,179 @@ function Header() {
   );
   const sentResponded = sentInvitations.filter((inv) => inv.accepted !== null);
 
-  // Count unread messages and unchecked applications
-  const unreadMessages = messages.length;
+  const unreadMessages = messages.length; // adjust if you track read/unread individually
   const uncheckedApplications = applications.filter(
     (app) => !app.checked
   ).length;
+
   const totalNotifications =
     unreadMessages +
     uncheckedApplications +
     receivedUnresponded.length +
     sentResponded.length;
 
-  // Show a preview (up to 3) for each
-  const messagePreviews = messages.slice(0, 3);
-  const applicationPreviews = applications
-    .filter((app) => !app.checked)
-    .slice(0, 3);
-
   return (
-    <nav
-      className="navbar navbar-expand-lg"
-      style={{ backgroundColor: "#0078FF66" }}
-    >
-      <div className="container">
-        <a className="navbar-brand" href="/">
-          {/* Simple Rentals */}
-          <img
-            src="../transp_full_icon.png"
-            alt="Logo"
-            style={{ height: "60px" }}
-          />
-        </a>
-        <button
-          className="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-          aria-controls="navbarNav"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-          <span className="navbar-toggler-icon" />
-        </button>
-        <div className="collapse navbar-collapse" id="navbarNav">
-          <ul className="navbar-nav ms-auto">
-            <li className="nav-item">
-              <a className="nav-link active" aria-current="page" href="/">
-                Home
-              </a>
-            </li>
-            <li className="nav-item">
-              <a
-                className="nav-link"
-                href={profile ? `/profile/${profile.id}` : "/login"}
-              >
-                Account
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="/listings">
-                Listings
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="/roommates">
-                Roommates
-              </a>
-            </li>
-            <li className="nav-item dropdown" style={{ position: "relative" }}>
-              <button
-                className="btn btn-link nav-link"
-                style={{ color: "white", position: "relative" }}
-                onClick={() => setShowDropdown((v) => !v)}
-                aria-label="Notifications"
-              >
-                <i className="bi bi-bell" style={{ fontSize: "1.5rem" }}></i>
-                {totalNotifications > 0 && (
-                  <span
-                    className="badge bg-danger"
-                    style={{
-                      position: "absolute",
-                      top: "0px",
-                      right: "0px",
-                      fontSize: "0.8rem",
-                    }}
-                  >
-                    {totalNotifications}
-                  </span>
-                )}
-              </button>
-              {showDropdown && (
-                <div
-                  ref={dropdownRef}
-                  className="dropdown-menu dropdown-menu-end show"
-                  style={{
-                    minWidth: "300px",
-                    maxHeight: "400px",
-                    overflowY: "auto",
-                    right: 0,
-                  }}
-                >
-                  <h6 className="dropdown-header">Notifications</h6>
-                  <div className="dropdown-divider"></div>
-                  <div>
-                    <strong>Unread Messages</strong>
-                    {unreadMessages === 0 && (
-                      <div className="text-muted small px-3">
-                        No unread messages
-                      </div>
-                    )}
-                    {messagePreviews.map((msg) => (
-                      <a
-                        key={msg.id}
-                        href={`/conversations/${msg.conversation}`}
-                        className="dropdown-item"
-                        style={{ whiteSpace: "normal" }}
-                      >
-                        <div>
-                          <strong>{msg.sender?.first_name}:</strong>{" "}
-                          {msg.content.length > 40
-                            ? msg.content.slice(0, 40) + "..."
-                            : msg.content}
-                        </div>
-                        <div className="text-muted small">
-                          {new Date(msg.timestamp).toLocaleString()}
-                        </div>
-                      </a>
-                    ))}
-                  </div>
-                  <div className="dropdown-divider"></div>
-                  <div>
-                    <strong>Applications to Check</strong>
-                    {uncheckedApplications === 0 && (
-                      <div className="text-muted small px-3">
-                        No new applications
-                      </div>
-                    )}
-                    {applicationPreviews.map((app) => (
-                      <a
-                        key={app.id}
-                        href={`/groups/${app.id}`}
-                        className="dropdown-item"
-                        style={{ whiteSpace: "normal" }}
-                      >
-                        <div>
-                          <strong>Group:</strong> {app.name || "N/A"}
-                        </div>
-                        <div className="text-muted small">
-                          {app.description
-                            ? app.description.slice(0, 40) + "..."
-                            : "No description"}
-                        </div>
-                      </a>
-                    ))}
-                  </div>
-                  <div className="dropdown-divider"></div>
-                  <div>
-                    <strong>Received Invitations (Unresponded)</strong>
-                    {receivedUnresponded.length === 0 && (
-                      <div className="text-muted small px-3">
-                        No unresponded invitations
-                      </div>
-                    )}
-                    {receivedUnresponded.slice(0, 3).map((inv) => (
-                      <a
-                        key={inv.id}
-                        href="/groups/invitations"
-                        className="dropdown-item"
-                        style={{ whiteSpace: "normal" }}
-                      >
-                        <div>
-                          <strong>From:</strong> {inv.invited_by_email}
-                        </div>
-                        <div>
-                          <strong>Group:</strong> {inv.group_name}
-                        </div>
-                      </a>
-                    ))}
-                  </div>
-                  <div className="dropdown-divider"></div>
-                  <div>
-                    <strong>Sent Invitations (Responded)</strong>
-                    {sentResponded.length === 0 && (
-                      <div className="text-muted small px-3">
-                        No responded invitations
-                      </div>
-                    )}
-                    {sentResponded.slice(0, 3).map((inv) => (
-                      <a
-                        key={inv.id}
-                        href="/groups/invitations"
-                        className="dropdown-item"
-                        style={{ whiteSpace: "normal" }}
-                      >
-                        <div>
-                          <strong>To:</strong> {inv.invited_user_email}
-                        </div>
-                        <div>
-                          <strong>Group:</strong> {inv.group_name}
-                        </div>
-                        <div>
-                          <strong>Status:</strong>{" "}
-                          {inv.accepted ? "Accepted" : "Declined"}
-                        </div>
-                      </a>
-                    ))}
-                  </div>
-                  <div className="dropdown-divider"></div>
-                  <a
-                    href="/conversations"
-                    className="dropdown-item text-primary"
-                  >
-                    View all messages
-                  </a>
-                  <a
-                    href="/applications"
-                    className="dropdown-item text-primary"
-                  >
-                    View all groups
-                  </a>
-                  <a
-                    href="/groups/invitations"
-                    className="dropdown-item text-primary"
-                  >
-                    View all invitations
-                  </a>
-                </div>
-              )}
-            </li>
-            <li className="nav-item">
+    <>
+      <nav className="navbar navbar-expand-lg custom-navbar navbar-blur sticky-top">
+        <div className="container">
+          {/* Brand */}
+          <NavLink className="navbar-brand d-flex align-items-center" to="/">
+            <img
+              src="../../transp_full_icon.png"
+              alt="Logo"
+              className="brand-logo"
+            />
+          </NavLink>
+
+          {/* Toggler */}
+          <button
+            className="navbar-toggler shadow-none border-0"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span className="navbar-toggler-icon" />
+          </button>
+
+          {/* Nav Content */}
+          <div className="collapse navbar-collapse" id="navbarNav">
+            {/* Center nav (primary) */}
+            <ul className="navbar-nav primary-nav mx-auto">
+              <li className="nav-item">
+                <NavLink to="/listings" className="nav-link">
+                  Listings
+                </NavLink>
+              </li>
+              <li className="nav-item">
+                <NavLink to="/roommates" className="nav-link">
+                  Roommates
+                </NavLink>
+              </li>
+              {/* Optional: add Groups link if you have a route */}
+              {/* <li className="nav-item">
+                <NavLink to="/groups" className="nav-link">Groups</NavLink>
+              </li> */}
+            </ul>
+
+            {/* Right actions */}
+            <ul className="navbar-nav align-items-center right-actions">
               {profile ? (
-                <a href="/logout" className="nav-link">
-                  Logout
-                </a>
+                <>
+                  {/* CTA: Post a Listing */}
+                  <li className="nav-item d-none d-lg-block">
+                    <NavLink
+                      to="/listings/post"
+                      className="btn cta-post ms-lg-2"
+                    >
+                      Post a Listing
+                    </NavLink>
+                  </li>
+
+                  {/* Notifications */}
+                  <li className="nav-item">
+                    <button
+                      className="icon-btn"
+                      onClick={() => setSidebarOpen(true)}
+                      aria-label="Open notifications"
+                    >
+                      <i className="bi bi-bell"></i>
+                      {totalNotifications > 0 && (
+                        <span className="badge notif-badge">
+                          {totalNotifications}
+                        </span>
+                      )}
+                    </button>
+                  </li>
+
+                  {/* Avatar dropdown */}
+                  <li className="nav-item dropdown">
+                    <button
+                      className="avatar-btn dropdown-toggle"
+                      id="profileMenu"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                    >
+                      <img
+                        src={profile.profile_picture || "/default_profile.png"}
+                        alt="Profile"
+                        className="avatar"
+                      />
+                    </button>
+                    <ul
+                      className="dropdown-menu dropdown-menu-end shadow"
+                      aria-labelledby="profileMenu"
+                    >
+                      <li>
+                        <Link
+                          className="dropdown-item"
+                          to={`/profile/${profile.id}`}
+                        >
+                          My Profile
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="dropdown-item" to="/conversations">
+                          Conversations
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="dropdown-item" to="/applications">
+                          Applications
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          className="dropdown-item"
+                          to="/groups/invitations"
+                        >
+                          Invitations
+                        </Link>
+                      </li>
+                      <li>
+                        <hr className="dropdown-divider" />
+                      </li>
+                      <li>
+                        <a className="dropdown-item text-danger" href="/logout">
+                          Sign Out
+                        </a>
+                      </li>
+                    </ul>
+                  </li>
+                </>
               ) : (
-                <a href="/login" className="nav-link">
-                  Login
-                </a>
+                <>
+                  {/* When logged out */}
+                  <li className="nav-item">
+                    <NavLink to="/login" className="btn cta-post ms-2">
+                      Sign In
+                    </NavLink>
+                  </li>
+                  <li className="nav-item">
+                    <NavLink to="/register" className="btn cta-post ms-2">
+                      Create Account
+                    </NavLink>
+                  </li>
+                </>
               )}
-            </li>
-          </ul>
+            </ul>
+          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+
+      {/* Notification Sidebar */}
+      <NotificationSidebar
+        ref={sidebarRef}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        messages={messages}
+        applications={applications}
+        receivedUnresponded={receivedUnresponded}
+        sentResponded={sentResponded}
+      />
+    </>
   );
 }
 
