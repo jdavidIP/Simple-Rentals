@@ -7,16 +7,18 @@ function FormReview({ method, review }) {
   const { id: revieweeId } = useParams();
   const navigate = useNavigate();
 
-  // Initialize state with review data if editing, otherwise defaults
+  // State
   const [rating, setRating] = useState(review?.rating || 5);
   const [comment, setComment] = useState(review?.comment || "");
   const [revieweeRole, setRevieweeRole] = useState(
-    review?.reviewee_role[0] || "T"
+    review?.reviewee_role?.[0] || "T"
   );
+
   const [errors, setErrors] = useState([]);
   const [fieldErrors, setFieldErrors] = useState({});
   const [touched, setTouched] = useState({});
 
+  // Load review data on edit
   useEffect(() => {
     if (method === "edit" && review) {
       setRating(review.rating);
@@ -25,6 +27,7 @@ function FormReview({ method, review }) {
     }
   }, [method, review]);
 
+  // Validation function
   function validateFields({ rating, comment, reviewee_role }) {
     const errors = {};
     if (!rating || rating < 1 || rating > 5)
@@ -38,38 +41,31 @@ function FormReview({ method, review }) {
     return errors;
   }
 
+  // Handle changes (no validation here)
   const handleChange = (field, value) => {
     if (field === "rating") setRating(value);
-    else if (field === "comment") setComment(value);
-    else if (field === "reviewee_role") setRevieweeRole(value);
-
-    const data = {
-      rating: field === "rating" ? value : rating,
-      comment: field === "comment" ? value : comment,
-      reviewee_role: field === "reviewee_role" ? value : revieweeRole,
-    };
-    setFieldErrors(validateFields(data));
+    if (field === "comment") setComment(value);
+    if (field === "reviewee_role") setRevieweeRole(value);
   };
 
-  const handleDelete = async () => {
-    try {
-      await api.delete(`reviews/manage/${review.id}`);
-      navigate(`/profile/${review.reviewee.id}`);
-    } catch (err) {
-      errors.delete = "Error deleting review";
-      console.error("Failed to delete review.", err);
-    }
-  };
-
+  // Blur triggers validation for touched field
   const handleBlur = (field) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
+    const validationErrors = validateFields({
+      rating,
+      comment,
+      reviewee_role: revieweeRole,
+    });
+    setFieldErrors(validationErrors);
   };
 
+  // Error message helper
   const errMsg = (name) =>
     touched[name] && fieldErrors[name] ? (
       <div className="field-error">{fieldErrors[name]}</div>
     ) : null;
 
+  // Handle submit (validates all fields)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors([]);
@@ -81,6 +77,7 @@ function FormReview({ method, review }) {
       reviewee_role: revieweeRole,
     });
     setFieldErrors(validationErrors);
+
     if (Object.keys(validationErrors).length > 0) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
@@ -88,7 +85,6 @@ function FormReview({ method, review }) {
 
     try {
       if (method === "edit" && review) {
-        // PATCH to update the review
         await api.patch(`/reviews/manage/${review.id}`, {
           rating,
           comment,
@@ -96,8 +92,7 @@ function FormReview({ method, review }) {
         });
         navigate(`/profile/${review.reviewee.id}`);
       } else {
-        // POST to create a new review
-        const response = await api.post(`/profile/reviews/${revieweeId}`, {
+        await api.post(`/profile/reviews/${revieweeId}`, {
           rating,
           comment,
           reviewee_role: revieweeRole,
@@ -115,10 +110,20 @@ function FormReview({ method, review }) {
     }
   };
 
+  // Handle delete (edit mode only)
+  const handleDelete = async () => {
+    try {
+      await api.delete(`reviews/manage/${review.id}`);
+      navigate(`/profile/${review.reviewee.id}`);
+    } catch (err) {
+      setErrors(["Error deleting review"]);
+    }
+  };
+
   return (
     <div className="form-container">
       <h1>{method === "edit" ? "Edit Review" : "Leave a Review"}</h1>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} noValidate>
         {errors.length > 0 && (
           <ul className="error-list">
             {errors.map((err, idx) => (

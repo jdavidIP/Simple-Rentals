@@ -46,7 +46,6 @@ function FormEdit({ profile }) {
 
   // --- GOOGLE PLACES AUTOCOMPLETE EFFECT ---
   useEffect(() => {
-    // Remove any existing listeners
     if (autocompleteCityRef.current) {
       window.google?.maps?.event?.clearInstanceListeners(
         autocompleteCityRef.current
@@ -60,7 +59,6 @@ function FormEdit({ profile }) {
       autocompletePreferredRef.current = null;
     }
 
-    // Attach autocomplete if Google and input refs are ready
     if (window.google && window.google.maps && window.google.maps.places) {
       const options = { types: ["(cities)"] };
 
@@ -105,7 +103,6 @@ function FormEdit({ profile }) {
       }
     }
 
-    // Cleanup function
     return () => {
       if (autocompleteCityRef.current) {
         window.google?.maps?.event?.clearInstanceListeners(
@@ -142,15 +139,12 @@ function FormEdit({ profile }) {
   // --- VALIDATION LOGIC ---
   function validateFields(data) {
     const errors = {};
-    // Email
     if (!data.email) errors.email = "Email is required.";
     else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email))
       errors.email = "Invalid email format.";
 
-    // Password
     if (showPasswordFields) {
       if (!data.old_password) errors.old_password = "Old password is required.";
-
       if (data.password || data.password_confirmation) {
         if (!data.password) errors.password = "Password is required.";
         else if (data.password.length < 8)
@@ -160,7 +154,6 @@ function FormEdit({ profile }) {
       }
     }
 
-    // Names
     if (!data.first_name || data.first_name.length < 2)
       errors.first_name = "First name must be at least 2 characters.";
     if (!/^[a-zA-ZÀ-ÿ'. -]+$/.test(data.first_name))
@@ -170,16 +163,13 @@ function FormEdit({ profile }) {
     if (!/^[a-zA-ZÀ-ÿ'. -]+$/.test(data.last_name))
       errors.last_name = "Last name contains invalid characters.";
 
-    // Age
     if (!data.age) errors.age = "Age is required.";
     else if (Number(data.age) < 16 || Number(data.age) > 120)
       errors.age = "Age must be between 16 and 120.";
 
-    // Sex
     if (!["M", "F", "O"].includes(data.sex))
       errors.sex = "Select a valid gender.";
 
-    // Budget min/max
     if (data.budget_min !== "" && Number(data.budget_min) < 0)
       errors.budget_min = "Budget min cannot be negative.";
     if (!data.budget_max && data.budget_max !== 0)
@@ -193,26 +183,21 @@ function FormEdit({ profile }) {
     )
       errors.budget_min = "Min budget cannot be greater than max budget.";
 
-    // Yearly income
     if (
       data.yearly_income !== "" &&
       (isNaN(Number(data.yearly_income)) || Number(data.yearly_income) < 0)
     )
       errors.yearly_income = "Income must be a positive number.";
 
-    // City
     if (!data.city || data.city.length < 2) errors.city = "City is required.";
 
-    // Preferred location
     if (!data.preferred_location || data.preferred_location.length < 2)
       errors.preferred_location = "Preferred location is required.";
 
-    // Phone
     if (!data.phone_number) errors.phone_number = "Phone number required.";
     else if (!/^\+?[0-9\-()\s]{7,20}$/.test(data.phone_number))
       errors.phone_number = "Invalid phone number.";
 
-    // Instagram/Facebook
     if (
       data.instagram_link &&
       !/^https?:\/\/(www\.)?instagram\.com\/[A-Za-z0-9._%-]+\/?$/.test(
@@ -231,28 +216,19 @@ function FormEdit({ profile }) {
     return errors;
   }
 
-  // --- HANDLE CHANGE with LIVE VALIDATION ---
+  // --- HANDLE CHANGE (NO VALIDATION ON EVERY KEYSTROKE) ---
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     const newValue = type === "checkbox" ? checked : value;
-
-    setFormData((prev) => {
-      const updated = { ...prev, [name]: newValue };
-
-      // Live validate ALL fields as you type
-      const validationErrors = validateFields(updated);
-      setFieldErrors(validationErrors);
-
-      return updated;
-    });
+    setFormData((prev) => ({ ...prev, [name]: newValue }));
   };
 
-  // --- HANDLE BLUR for TOUCHED TRACKING ---
+  // --- HANDLE BLUR (VALIDATE WHEN FIELD LOSES FOCUS) ---
   const handleBlur = (e) => {
-    setTouched((prev) => ({
-      ...prev,
-      [e.target.name]: true,
-    }));
+    const { name } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    const validationErrors = validateFields(formData);
+    setFieldErrors(validationErrors);
   };
 
   const handleFileInputChange = (e) => {
@@ -290,16 +266,14 @@ function FormEdit({ profile }) {
         console.error("Failed to delete profile.", err);
         setError("Failed to delete profile");
       }
-    } else {
-      return;
     }
   };
 
+  // --- HANDLE SUBMIT (VALIDATE FULL FORM) ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
-    // Validate one more time before submit
     const validationErrors = validateFields(formData);
     setFieldErrors(validationErrors);
     setTouched(
@@ -331,7 +305,6 @@ function FormEdit({ profile }) {
           typeof value === "string" &&
           value.trim() === ""
         ) {
-          // Don't send empty social links
           return;
         } else {
           data.append(key, value === null ? "" : value);
@@ -368,10 +341,7 @@ function FormEdit({ profile }) {
       <div className="field-error">{fieldErrors[name]}</div>
     ) : null;
 
-  // --- IMAGE PREVIEW ---
-  // --- AVATAR PREVIEW (profile picture) — reuse existing tile styles ---
   const renderAvatarPreview = () => {
-    // Show newly selected file first (if any)
     if (formData.profile_picture instanceof File) {
       const src = URL.createObjectURL(formData.profile_picture);
       return (
@@ -394,7 +364,6 @@ function FormEdit({ profile }) {
       );
     }
 
-    // Otherwise, show current server image (if exists)
     if (existingProfilePicture) {
       return (
         <div className="image-preview-grid">

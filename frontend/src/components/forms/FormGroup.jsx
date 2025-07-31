@@ -21,7 +21,7 @@ function FormGroup({ method, group }) {
   const [invited, setInvited] = useState([]);
   const [error, setError] = useState(null);
 
-  // Live validation states:
+  // Validation states
   const [fieldErrors, setFieldErrors] = useState({});
   const [touched, setTouched] = useState({});
 
@@ -46,28 +46,24 @@ function FormGroup({ method, group }) {
     return errors;
   }
 
-  // Live validation per field
+  // Handle field changes (no live validation)
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-    const updated = {
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    };
-    setFieldErrors(validateFields(updated));
   };
 
+  // Validate field on blur
   const handleBlur = (e) => {
-    setTouched((prev) => ({
-      ...prev,
-      [e.target.name]: true,
-    }));
+    const { name } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    const validationErrors = validateFields(formData);
+    setFieldErrors(validationErrors);
   };
 
-  // For per-field errors
+  // Error message helper
   const errMsg = (name) =>
     touched[name] && fieldErrors[name] ? (
       <div className="field-error">{fieldErrors[name]}</div>
@@ -112,11 +108,11 @@ function FormGroup({ method, group }) {
     setSelectedToAdd([]);
   };
 
+  // Submit with full validation
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
-    // Run validation!
     const validationErrors = validateFields(formData);
     setFieldErrors(validationErrors);
     setTouched(Object.fromEntries(Object.keys(formData).map((k) => [k, true])));
@@ -331,7 +327,6 @@ function FormGroup({ method, group }) {
             <div className="mb-3">
               <label className="form-label">Added Members</label>
               <ul>
-                {/* Existing group members */}
                 {formData.member_ids.map((memberId) => (
                   <li
                     key={`member-${memberId}`}
@@ -354,7 +349,6 @@ function FormGroup({ method, group }) {
                     )}
                   </li>
                 ))}
-                {/* Invited (to be invited) users */}
                 {invited.map((invitedId) => (
                   <li
                     key={`invited-${invitedId}`}

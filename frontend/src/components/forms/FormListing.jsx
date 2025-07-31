@@ -41,6 +41,7 @@ function FormListing({ method, listing }) {
     delete_images: [],
     shareable: listing?.shareable || false,
   });
+
   const [existingImages, setExistingImages] = useState(listing?.pictures || []);
   const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
@@ -53,6 +54,7 @@ function FormListing({ method, listing }) {
   const errorRef = useRef(null);
   const addressInputRef = useRef(null);
 
+  // Load Google Places
   useEffect(() => {
     const script = document.createElement("script");
     script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyCdOFDB8B2dHR7M6JXBfdZ-F-1XRjDm-2E&libraries=places`;
@@ -104,6 +106,7 @@ function FormListing({ method, listing }) {
     };
   }, []);
 
+  // Validation logic
   function validateFields(data) {
     const errors = {};
     if (!data.street_address || data.street_address.length < 3)
@@ -131,6 +134,7 @@ function FormListing({ method, listing }) {
     return errors;
   }
 
+  // Handle changes (no validation here)
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
     let fieldValue =
@@ -140,26 +144,23 @@ function FormListing({ method, listing }) {
       ...prev,
       [name]: fieldValue,
     }));
-
-    const data = {
-      ...formData,
-      [name]: fieldValue,
-    };
-    setFieldErrors(validateFields(data));
   };
 
+  // Handle blur (validate field)
   const handleBlur = (e) => {
-    setTouched((prev) => ({
-      ...prev,
-      [e.target.name]: true,
-    }));
+    const { name } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    const validationErrors = validateFields(formData);
+    setFieldErrors(validationErrors);
   };
 
+  // Show error message
   const errMsg = (name) =>
     touched[name] && fieldErrors[name] ? (
       <div className="field-error">{fieldErrors[name]}</div>
     ) : null;
 
+  // Handle image inputs
   const handleFileInputChange = (e) => {
     const { name, files } = e.target;
     const newFiles = Array.from(files);
@@ -236,6 +237,7 @@ function FormListing({ method, listing }) {
     return true;
   };
 
+  // Submit with full validation
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -290,14 +292,13 @@ function FormListing({ method, listing }) {
     }
   };
 
+  // Previews
   const renderExistingImagePreview = (images) =>
     images
       .filter((img) => !formData.delete_images.includes(img.id))
       .map((img) => (
         <div key={img.id} className="image-tile">
-          {/* Optional: show a badge for primary images */}
           {img.is_primary && <span className="image-badge">Primary</span>}
-
           <img src={img.image} alt="Preview" />
           <button
             type="button"
@@ -716,8 +717,6 @@ function FormListing({ method, listing }) {
 
       {/* Images */}
       <h5 className="form-section-title">Images</h5>
-
-      {/* Primary / Front image */}
       <div className="mb-3">
         <label htmlFor="front_image">Front Image</label>
         <input
@@ -733,7 +732,6 @@ function FormListing({ method, listing }) {
         </div>
       </div>
 
-      {/* Additional images */}
       <div className="mb-3">
         <label htmlFor="pictures">Additional Images</label>
         <input

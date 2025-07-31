@@ -24,27 +24,28 @@ function FormLogIn() {
     return errors;
   }
 
+  // Handle field changes (no live validation)
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "email") setEmail(value);
     if (name === "password") setPassword(value);
-
-    const data = {
-      email: name === "email" ? value : email,
-      password: name === "password" ? value : password,
-    };
-    setFieldErrors(validateFields(data));
   };
 
+  // Validate on blur
   const handleBlur = (e) => {
-    setTouched((prev) => ({ ...prev, [e.target.name]: true }));
+    const { name } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    const validationErrors = validateFields({ email, password });
+    setFieldErrors(validationErrors);
   };
 
+  // Error message helper
   const errMsg = (name) =>
     touched[name] && fieldErrors[name] ? (
       <div className="field-error">{fieldErrors[name]}</div>
     ) : null;
 
+  // Submit with full validation
   const handleSubmit = async (e) => {
     e.preventDefault();
     setTouched({ email: true, password: true });

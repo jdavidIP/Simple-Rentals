@@ -8,20 +8,22 @@ function FormRoommate({ method = "post", roommate }) {
     description: roommate?.description || "",
     move_in_date: roommate?.move_in_date || "",
     stay_length: roommate?.stay_length ?? "",
-    occupation: roommate?.occupation[0] || "",
+    occupation: roommate?.occupation?.[0] || "",
     roommate_budget: roommate?.roommate_budget ?? "",
     smoke_friendly: roommate?.smoke_friendly ?? false,
     cannabis_friendly: roommate?.cannabis_friendly ?? false,
     pet_friendly: roommate?.pet_friendly ?? false,
     couple_friendly: roommate?.couple_friendly ?? false,
-    gender_preference: roommate?.gender_preference[0] || "O",
+    gender_preference: roommate?.gender_preference?.[0] || "O",
     open_to_message: roommate?.open_to_message ?? true,
   });
+
   const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const [touched, setTouched] = useState({});
   const navigate = useNavigate();
 
+  // Validation
   function validateFields(data) {
     const errors = {};
     if (!data.description || data.description.length < 15)
@@ -38,28 +40,27 @@ function FormRoommate({ method = "post", roommate }) {
     return errors;
   }
 
+  // Change only updates values
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     const newValue = type === "checkbox" ? checked : value;
-    setFormData((prev) => {
-      const updated = { ...prev, [name]: newValue };
-      setFieldErrors(validateFields(updated)); // live validate
-      return updated;
-    });
+    setFormData((prev) => ({ ...prev, [name]: newValue }));
   };
 
+  // Blur triggers validation for all fields but only shows error for touched field
   const handleBlur = (e) => {
-    setTouched((prev) => ({
-      ...prev,
-      [e.target.name]: true,
-    }));
+    setTouched((prev) => ({ ...prev, [e.target.name]: true }));
+    const validationErrors = validateFields(formData);
+    setFieldErrors(validationErrors);
   };
 
+  // Helper for showing errors
   const errMsg = (name) =>
     touched[name] && fieldErrors[name] ? (
       <div className="field-error">{fieldErrors[name]}</div>
     ) : null;
 
+  // Handle deletion (edit mode only)
   const handleDelete = async (e) => {
     e.preventDefault();
     setError(null);
@@ -74,23 +75,22 @@ function FormRoommate({ method = "post", roommate }) {
         navigate(`/profile/${roommate.user.id}`);
       } catch (err) {
         console.error("Failed to delete roommate profile.", err);
-        setError("Failed to delete roommate profile");
+        setError(["Failed to delete roommate profile."]);
       }
-    } else {
-      return;
     }
   };
 
+  // Submit validates all fields
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
-    // Validate all before submit
     const validationErrors = validateFields(formData);
     setFieldErrors(validationErrors);
     setTouched(
       Object.keys(formData).reduce((obj, k) => ({ ...obj, [k]: true }), {})
     );
+
     if (Object.keys(validationErrors).length > 0) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
@@ -135,6 +135,7 @@ function FormRoommate({ method = "post", roommate }) {
           ? "Edit Roommate Profile"
           : "Roommate Profile Registration"}
       </h1>
+
       {error && (
         <ul className="error-list">
           {error.map((msg, idx) => (
@@ -142,6 +143,7 @@ function FormRoommate({ method = "post", roommate }) {
           ))}
         </ul>
       )}
+
       <div className="mb-3">
         <label htmlFor="description">Description</label>
         <textarea
@@ -154,6 +156,7 @@ function FormRoommate({ method = "post", roommate }) {
         />
         {errMsg("description")}
       </div>
+
       <div className="mb-3">
         <label htmlFor="move_in_date">Move-in Date</label>
         <input
@@ -167,6 +170,7 @@ function FormRoommate({ method = "post", roommate }) {
         />
         {errMsg("move_in_date")}
       </div>
+
       <div className="mb-3">
         <label htmlFor="stay_length">Stay Length (months)</label>
         <input
@@ -181,6 +185,7 @@ function FormRoommate({ method = "post", roommate }) {
         />
         {errMsg("stay_length")}
       </div>
+
       <div className="mb-3">
         <label htmlFor="occupation">Occupation</label>
         <select
@@ -198,6 +203,7 @@ function FormRoommate({ method = "post", roommate }) {
         </select>
         {errMsg("occupation")}
       </div>
+
       <div className="mb-3">
         <label htmlFor="roommate_budget">Budget</label>
         <input
@@ -212,6 +218,7 @@ function FormRoommate({ method = "post", roommate }) {
         />
         {errMsg("roommate_budget")}
       </div>
+
       <div className="mb-3">
         <label htmlFor="gender_preference">Gender Preference</label>
         <select
@@ -228,6 +235,8 @@ function FormRoommate({ method = "post", roommate }) {
         </select>
         {errMsg("gender_preference")}
       </div>
+
+      {/* Checkbox group */}
       <div className="mb-3">
         <label>
           <input
@@ -237,8 +246,7 @@ function FormRoommate({ method = "post", roommate }) {
             onChange={handleChange}
           />{" "}
           Pet Friendly
-        </label>
-        {"  "}
+        </label>{" "}
         <label>
           <input
             type="checkbox"
@@ -247,8 +255,7 @@ function FormRoommate({ method = "post", roommate }) {
             onChange={handleChange}
           />{" "}
           Smoke Friendly
-        </label>
-        {"  "}
+        </label>{" "}
         <label>
           <input
             type="checkbox"
@@ -257,8 +264,7 @@ function FormRoommate({ method = "post", roommate }) {
             onChange={handleChange}
           />{" "}
           Cannabis Friendly
-        </label>
-        {"  "}
+        </label>{" "}
         <label>
           <input
             type="checkbox"
@@ -267,8 +273,7 @@ function FormRoommate({ method = "post", roommate }) {
             onChange={handleChange}
           />{" "}
           Couple Friendly
-        </label>
-        {"  "}
+        </label>{" "}
         <label>
           <input
             type="checkbox"
@@ -279,11 +284,13 @@ function FormRoommate({ method = "post", roommate }) {
           Open to Message
         </label>
       </div>
+
       <button type="submit" className="btn btn-primary">
         {method === "edit" ? "Save Changes" : "Register Roommate Profile"}
       </button>
+
       {method === "edit" && (
-        <button type="delete" className="btn btn-danger" onClick={handleDelete}>
+        <button type="button" className="btn btn-danger" onClick={handleDelete}>
           Delete Roommate Profile
         </button>
       )}
