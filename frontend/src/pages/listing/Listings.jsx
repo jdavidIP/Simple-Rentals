@@ -5,7 +5,8 @@ import ListingCard from "../../components/cards/ListingCard.jsx";
 import { useProfileContext } from "../../contexts/ProfileContext.jsx";
 import SortDropdown from "../../components/SortDropdown.jsx";
 import Pagination from "../../components/Pagination.jsx";
-import useGoogleMaps from "../../hooks/useGoogleMaps"; 
+import useGoogleMaps from "../../hooks/useGoogleMaps";
+import MultiSelectDropdown from "../../components/MultiSelectDropdown.jsx";
 
 function Listings() {
   const location = useLocation();
@@ -19,6 +20,11 @@ function Listings() {
     bathrooms: "",
     property_type: "",
     affordability: "",
+    furnished: "",
+    pet_friendly: "",
+    shareable: "",
+    utilities: [],
+    amenities: [],
   });
   const [latLng, setLatLng] = useState(
     location.state?.latLng || { lat: null, lng: null }
@@ -30,6 +36,19 @@ function Listings() {
   const [locationSelected, setLocationSelected] = useState(
     location.state?.locationSelected || false
   );
+
+  const AMENITY_OPTIONS = [
+    { value: "ac", label: "Air Conditioning" },
+    { value: "fridge", label: "Fridge" },
+    { value: "heating", label: "Heating" },
+    { value: "internet", label: "Internet" },
+  ];
+
+  const UTILITY_OPTIONS = [
+    { value: "heat", label: "Heat" },
+    { value: "hydro", label: "Hydro" },
+    { value: "water", label: "Water" },
+  ];
 
   const errorRef = useRef(null);
   const locationInputRef = useRef(null);
@@ -161,8 +180,11 @@ function Listings() {
 
   // --- Handle input changes ---
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFilters((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFilters((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? (checked ? "true" : "") : value,
+    }));
 
     if (name === "location" && value.trim() === "") {
       setLatLng({ lat: null, lng: null });
@@ -201,6 +223,11 @@ function Listings() {
       bathrooms: "",
       property_type: "",
       affordability: "",
+      furnished: "",
+      pet_friendly: "",
+      shareable: "",
+      amenities: [],
+      utilities: [],
     }));
     setCurrentPage(1);
 
@@ -219,6 +246,11 @@ function Listings() {
         bathrooms: "",
         property_type: "",
         affordability: "",
+        furnished: "",
+        pet_friendly: "",
+        shareable: "",
+        amenities: [],
+        utilities: [],
       },
       latLng,
       radius
@@ -384,6 +416,74 @@ function Listings() {
                     onChange={handleInputChange}
                     min="0"
                     placeholder="Any"
+                  />
+                </div>
+
+                {/* Amenities, Utilities, Furnished, Pet Friendly, Roommates */}
+                <div className="col-md-2">
+                  <label className="form-label fw-medium">Furnished</label>
+                  <select
+                    name="furnished"
+                    className="form-select rounded-3 shadow-sm"
+                    value={filters.furnished}
+                    onChange={handleInputChange}
+                  >
+                    <option value="">Any</option>
+                    <option value={true}>Yes</option>
+                    <option value={false}>No</option>
+                  </select>
+                </div>
+                <div className="col-md-2">
+                  <label className="form-label fw-medium">Pet Friendly</label>
+                  <select
+                    name="pet_friendly"
+                    className="form-select rounded-3 shadow-sm"
+                    value={filters.pet_friendly}
+                    onChange={handleInputChange}
+                  >
+                    <option value="">Any</option>
+                    <option value={true}>Yes</option>
+                    <option value={false}>No</option>
+                  </select>
+                </div>
+                <div className="col-md-2">
+                  <label className="form-label fw-medium">Roommates</label>
+                  <select
+                    name="shareable"
+                    className="form-select rounded-3 shadow-sm"
+                    value={filters.shareable}
+                    onChange={handleInputChange}
+                  >
+                    <option value="">Any</option>
+                    <option value={true}>Yes</option>
+                    <option value={false}>No</option>
+                  </select>
+                </div>
+                <div className="col-md-3">
+                  <MultiSelectDropdown
+                    label="Amenities"
+                    options={AMENITY_OPTIONS}
+                    selected={filters.amenities || []}
+                    setSelected={(newSelected) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        amenities: newSelected,
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="col-md-3">
+                  <MultiSelectDropdown
+                    label="Utilities"
+                    options={UTILITY_OPTIONS}
+                    selected={filters.utilities || []}
+                    setSelected={(newSelected) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        utilities: newSelected,
+                      }))
+                    }
                   />
                 </div>
               </div>
