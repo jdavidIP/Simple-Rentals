@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import api from "../../api.js";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useProfileContext } from "../../contexts/ProfileContext.jsx";
+import useGoogleMaps from "../../hooks/useGoogleMaps";
 
 function ListingsView() {
   const { id } = useParams();
@@ -13,15 +14,16 @@ function ListingsView() {
   const [reviews, setReviews] = useState([]);
   const [averageRating, setAverageRating] = useState(null);
   const { profile, isProfileSelf } = useProfileContext();
+  const mapRef = useRef(null);
+  const googleLoaded = useGoogleMaps();
 
   const fetchListing = async () => {
     setLoading(true);
     try {
       const response = await api.get(`/listings/${id}`);
       const listing = response.data;
-      // Find the primary image
+
       const primaryImage = listing.pictures.find((p) => p.is_primary);
-      // If primary image exists, put it first in the array
       let orderedPictures = listing.pictures;
       if (primaryImage) {
         orderedPictures = [
@@ -30,14 +32,12 @@ function ListingsView() {
         ];
       }
 
-      const processedListing = {
+      setListing({
         ...listing,
         pictures: orderedPictures,
         primary_image: primaryImage,
-      };
-      setListing(processedListing);
+      });
     } catch (err) {
-      console.error("Error fetching listings:", err);
       setError(err.response?.data?.Location || "Failed to fetch Listings.");
       setListing(null);
     } finally {
@@ -46,7 +46,6 @@ function ListingsView() {
   };
 
   const fetchReviews = async () => {
-    setLoading(true);
     try {
       const response = await api.get(`/profile/reviews`, {
         params: { reviewee: id },
@@ -54,7 +53,7 @@ function ListingsView() {
       setReviews(response.data);
       const total = response.data.reduce((acc, r) => acc + r.rating, 0);
       setAverageRating((total / response.data.length).toFixed(1));
-    } catch (err) {}
+    } catch {}
   };
 
   useEffect(() => {
@@ -67,6 +66,28 @@ function ListingsView() {
       setIncome(profile.yearly_income);
     }
   }, [profile]);
+
+  // Initialize Google Map only when Maps API is loaded and listing exists
+  useEffect(() => {
+    if (
+      googleLoaded &&
+      listing &&
+      listing.latitude &&
+      listing.longitude &&
+      mapRef.current
+    ) {
+      const map = new window.google.maps.Map(mapRef.current, {
+        center: { lat: listing.latitude, lng: listing.longitude },
+        zoom: 15,
+      });
+
+      new window.google.maps.Marker({
+        position: { lat: listing.latitude, lng: listing.longitude },
+        map,
+        title: listing.street_address,
+      });
+    }
+  }, [googleLoaded, listing]);
 
   if (!listing) {
     return <div className="text-center fs-4 mt-5">Loading listing...</div>;
@@ -448,6 +469,19 @@ function ListingsView() {
                 See Groups
               </button>
             </div>
+            
+             {/* --- Google Map --- */}
+            {listing.latitude && listing.longitude && (
+              <div
+                ref={mapRef}
+                style={{
+                  width: "100%",
+                  height: "250px",
+                  marginTop: "15px",
+                  borderRadius: "8px",
+                }}
+              />
+            )}
           </div>
         </div>
       </div>
