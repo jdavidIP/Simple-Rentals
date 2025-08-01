@@ -134,7 +134,7 @@ function ListingCard({ listing, income }) {
 
           {isProfileSelf(listing.owner.id) ? (
             <button
-              className="btn btn-outline-warning flex-fill"
+              className="btn btn-outline-secondary flex-fill"
               onClick={() => navigate(`/listings/edit/${listing.id}`)}
             >
               Edit Listing

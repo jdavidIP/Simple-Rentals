@@ -251,6 +251,9 @@ class ListingListView(generics.ListAPIView):
         bedrooms = filters.get('bedrooms')
         bathrooms = filters.get('bathrooms')
         property_type = filters.get('property_type')
+        furnished = filters.get('furnished')
+        pet_friendly = filters.get('pet_friendly')
+        shareable = filters.get('shareable')
 
         if min_price:
             queryset = queryset.filter(price__gte=min_price)
@@ -262,6 +265,24 @@ class ListingListView(generics.ListAPIView):
             queryset = queryset.filter(bathrooms=bathrooms)
         if property_type:
             queryset = queryset.filter(property_type=property_type)
+        if furnished:
+            queryset = queryset.filter(furnished=furnished.lower() in ["true", "1"])
+        if pet_friendly:
+            queryset = queryset.filter(pet_friendly=pet_friendly.lower() in ["true", "1"])
+        if shareable:
+            queryset = queryset.filter(shareable=shareable.lower() in ["true", "1"])
+
+        amenities = self.request.query_params.getlist('amenities[]')
+        if amenities:
+            for amenity in [a.strip().lower() for a in amenities]:
+                if amenity in ['ac', 'fridge', 'heating', 'internet']:
+                    queryset = queryset.filter(**{amenity: True})
+
+        utilities = self.request.query_params.getlist('utilities[]')
+        if utilities:
+            for utility in [u.strip().lower() for u in utilities]:
+                if utility in ['heat', 'hydro', 'water']:
+                    queryset = queryset.filter(**{utility: True})
         
         if lat and lng:
             lat, lng = float(lat), float(lng)

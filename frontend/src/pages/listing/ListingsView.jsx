@@ -263,7 +263,7 @@ function ListingsView() {
                         <strong>Bathrooms:</strong> {listing.bathrooms}
                       </p>
                       <p>
-                        <strong>Square Feet:</strong> {listing.sqft_area}
+                        <strong>Square Feet:</strong> {listing.sqft_area} ft²
                       </p>
                       <p>
                         <strong>Parking Spaces:</strong>{" "}
@@ -272,11 +272,8 @@ function ListingsView() {
                     </div>
                     <div className="col-md-4 mb-2">
                       <p>
-                        <strong>AC:</strong> {listing.ac ? "Yes" : "No"}
-                      </p>
-                      <p>
-                        <strong>Heating:</strong>{" "}
-                        {listing.heating ? "Yes" : "No"}
+                        <strong>Furnished:</strong>{" "}
+                        {listing.furnished ? "Yes" : "No"}
                       </p>
                       <p>
                         <strong>Laundry:</strong> {listing.laundry_type}
@@ -285,12 +282,12 @@ function ListingsView() {
                         <strong>Pet Friendly:</strong>{" "}
                         {listing.pet_friendly ? "Yes" : "No"}
                       </p>
-                    </div>
-                    <div className="col-md-4 mb-2">
                       <p>
                         <strong>Roommates:</strong>{" "}
                         {listing.shareable ? "Yes" : "No"}
                       </p>
+                    </div>
+                    <div className="col-md-4 mb-2">
                       <p>
                         <strong>Payment Type:</strong> {listing.payment_type}
                       </p>
@@ -308,62 +305,76 @@ function ListingsView() {
             </div>
 
             <div className="accordion-item">
-              <h2 className="accordion-header" id="headingFinancials">
+              <h2 className="accordion-header" id="headingUtilities">
                 <button
                   className="accordion-button"
                   type="button"
                   data-bs-toggle="collapse"
-                  data-bs-target="#collapseFinancials"
+                  data-bs-target="#collapseUtilities"
                   aria-expanded="true"
                 >
-                  Financial Info
+                  Utilities
                 </button>
               </h2>
               <div
-                id="collapseFinancials"
+                id="collapseUtilities"
                 className="accordion-collapse collapse show"
-                aria-labelledby="headingFinancials"
+                aria-labelledby="headingUtilites"
               >
                 <div className="accordion-body">
                   <ul className="list-unstyled">
                     <li>
-                      <strong>Utilities:</strong> ${listing.utilities_cost} (
-                      {listing.utilities_payable_by_tenant
-                        ? "Tenant"
-                        : "Included"}
-                      )
+                      <strong>Water:</strong>{" "}
+                      {listing.water ? "Included" : "Not Included"}
                     </li>
                     <li>
-                      <strong>Property Taxes:</strong> ${listing.property_taxes}{" "}
-                      (
-                      {listing.property_taxes_payable_by_tenant
-                        ? "Tenant"
-                        : "Included"}
-                      )
+                      <strong>Heat:</strong>{" "}
+                      {listing.heat ? "Included" : "Not Included"}
                     </li>
                     <li>
-                      <strong>Condo Fee:</strong> ${listing.condo_fee} (
-                      {listing.condo_fee_payable_by_tenant
-                        ? "Tenant"
-                        : "Included"}
-                      )
-                    </li>
-                    <li>
-                      <strong>HOA Fee:</strong> ${listing.hoa_fee} (
-                      {listing.hoa_fee_payable_by_tenant
-                        ? "Tenant"
-                        : "Included"}
-                      )
-                    </li>
-                    <li>
-                      <strong>Security Deposit:</strong> $
-                      {listing.security_deposit} (
-                      {listing.security_deposit_payable_by_tenant
-                        ? "Tenant"
-                        : "Included"}
-                      )
+                      <strong>Hydro:</strong>{" "}
+                      {listing.hydro ? "Included" : "Not Included"}
                     </li>
                   </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="accordion-item">
+              <h2 className="accordion-header" id="headingAmenities">
+                <button
+                  className="accordion-button"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseAmenities"
+                  aria-expanded="true"
+                >
+                  Amenities
+                </button>
+              </h2>
+              <div
+                id="collapseAmenities"
+                className="accordion-collapse collapse show"
+                aria-labelledby="headingAmenities"
+              >
+                <div className="accordion-body">
+                  <ul className="list-unstyled">
+                    <li>
+                      <strong>Air Conditioning:</strong>{" "}
+                      {listing.ac ? "Yes" : "No"}
+                    </li>
+                    <li>
+                      <strong>Heating:</strong> {listing.heating ? "Yes" : "No"}
+                    </li>
+                    <li>
+                      <strong>Internet:</strong>{" "}
+                      {listing.internet ? "Yes" : "No"}
+                    </li>
+                    <li>
+                      <strong>Fridge:</strong> {listing.fridge ? "Yes" : "No"}
+                    </li>
+                  </ul>
+                  <strong>Extra Amenities: </strong> {listing.extra_amenities}
                 </div>
               </div>
             </div>
@@ -378,9 +389,7 @@ function ListingsView() {
           >
             <div className="text-center">
               <img
-                src={
-                  owner.profile_picture || "../../../public/default_profile.png"
-                }
+                src={owner.profile_picture || "/default_profile.png"}
                 alt="Owner"
                 className="rounded-circle mb-3"
                 style={{

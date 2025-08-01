@@ -89,10 +89,6 @@ function Header() {
                   Roommates
                 </NavLink>
               </li>
-              {/* Optional: add Groups link if you have a route */}
-              {/* <li className="nav-item">
-                <NavLink to="/groups" className="nav-link">Groups</NavLink>
-              </li> */}
             </ul>
 
             {/* Right actions */}
