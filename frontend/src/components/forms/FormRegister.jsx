@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../../api.js";
 import "../../styles/forms.css";
@@ -36,39 +36,38 @@ function FormRegister({ method = "register", profile }) {
   );
   const [deleteProfilePicture, setDeleteProfilePicture] = useState(false);
 
-  // Google Places
+  // Google Places Autocomplete refs
   const cityInputRef = useRef(null);
   const preferredLocationInputRef = useRef(null);
   const autocompleteCityRef = useRef(null);
   const autocompletePreferredRef = useRef(null);
   const { googleMaps } = useGoogleMaps();
 
+  // Initialize Google Places autocomplete
   useEffect(() => {
     if (!googleMaps) return;
 
-    // Clear existing autocomplete listeners if any
-    if (autocompleteCityRef.current) {
+    if (autocompleteCityRef.current)
       googleMaps.maps.event.clearInstanceListeners(autocompleteCityRef.current);
-      autocompleteCityRef.current = null;
-    }
-    if (autocompletePreferredRef.current) {
-      googleMaps.maps.event.clearInstanceListeners(autocompletePreferredRef.current);
-      autocompletePreferredRef.current = null;
-    }
+    if (autocompletePreferredRef.current)
+      googleMaps.maps.event.clearInstanceListeners(
+        autocompletePreferredRef.current
+      );
 
     const options = { types: ["(cities)"] };
 
-    // City input
+    // City autocomplete
     if (cityInputRef.current) {
       autocompleteCityRef.current = new googleMaps.maps.places.Autocomplete(
         cityInputRef.current,
         options
       );
-
       autocompleteCityRef.current.addListener("place_changed", () => {
         const place = autocompleteCityRef.current.getPlace();
         const cityName =
-          place.address_components?.find((c) => c.types.includes("locality"))?.long_name ||
+          place.address_components?.find((c) =>
+            c.types.includes("locality")
+          )?.long_name ||
           place.address_components?.find((c) =>
             c.types.includes("administrative_area_level_1")
           )?.long_name ||
@@ -78,35 +77,33 @@ function FormRegister({ method = "register", profile }) {
       });
     }
 
-    // Preferred Location input
+    // Preferred location autocomplete
     if (preferredLocationInputRef.current) {
-      autocompletePreferredRef.current = new googleMaps.maps.places.Autocomplete(
-        preferredLocationInputRef.current,
-        options
-      );
-
+      autocompletePreferredRef.current =
+        new googleMaps.maps.places.Autocomplete(
+          preferredLocationInputRef.current,
+          options
+        );
       autocompletePreferredRef.current.addListener("place_changed", () => {
         const place = autocompletePreferredRef.current.getPlace();
         const cityName =
-          place.address_components?.find((c) => c.types.includes("locality"))?.long_name ||
+          place.address_components?.find((c) =>
+            c.types.includes("locality")
+          )?.long_name ||
           place.address_components?.find((c) =>
             c.types.includes("administrative_area_level_1")
           )?.long_name ||
           place.name ||
           "";
-        setFormData((prev) => ({ ...prev, preferred_location: cityName }));
+        setFormData((prev) => ({
+          ...prev,
+          preferred_location: cityName,
+        }));
       });
     }
-
-    return () => {
-      if (autocompleteCityRef.current)
-        googleMaps.maps.event.clearInstanceListeners(autocompleteCityRef.current);
-      if (autocompletePreferredRef.current)
-        googleMaps.maps.event.clearInstanceListeners(autocompletePreferredRef.current);
-    };
   }, [googleMaps]);
 
-  // Step-specific validation
+  // Validation for each step
   const validateStep = (data = formData) => {
     const errors = {};
     if (step === 1) {
@@ -119,7 +116,16 @@ function FormRegister({ method = "register", profile }) {
         errors.password_confirmation = "Passwords must match.";
     }
     if (step === 2) {
-      ["first_name", "last_name", "age", "sex", "city", "preferred_location", "phone_number", "budget_max"].forEach((field) => {
+      [
+        "first_name",
+        "last_name",
+        "age",
+        "sex",
+        "city",
+        "preferred_location",
+        "phone_number",
+        "budget_max",
+      ].forEach((field) => {
         if (!data[field]) errors[field] = "Required.";
       });
     }
@@ -130,20 +136,48 @@ function FormRegister({ method = "register", profile }) {
     return Object.keys(errors).length === 0;
   };
 
+  // Calculate validity of the current step
+  const isStepValid = useMemo(() => {
+    if (step === 1) {
+      return (
+        formData.email &&
+        /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(formData.email) &&
+        formData.password &&
+        formData.password.length >= 8 &&
+        formData.password === formData.password_confirmation
+      );
+    }
+    if (step === 2) {
+      return [
+        "first_name",
+        "last_name",
+        "age",
+        "sex",
+        "city",
+        "preferred_location",
+        "phone_number",
+        "budget_max",
+      ].every((field) => !!formData[field]);
+    }
+    if (step === 3) {
+      return formData.terms_accepted;
+    }
+    return true;
+  }, [step, formData]);
+
   const handleNext = () => {
     if (validateStep()) setStep(step + 1);
   };
 
   const handleBack = () => setStep(step - 1);
 
-  // Only update value on change
   const handleChange = (e) => {
     const { name, type, checked, value, files } = e.target;
-    const newValue = type === "checkbox" ? checked : type === "file" ? files[0] : value;
+    const newValue =
+      type === "checkbox" ? checked : type === "file" ? files[0] : value;
     setFormData((prev) => ({ ...prev, [name]: newValue }));
   };
 
-  // Validate field on blur
   const handleBlur = (e) => {
     setTouched((prev) => ({ ...prev, [e.target.name]: true }));
     validateStep(formData);
@@ -157,7 +191,6 @@ function FormRegister({ method = "register", profile }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Validate last step before submission
     const allValid = validateStep(formData);
     setTouched(Object.fromEntries(Object.keys(formData).map((k) => [k, true])));
     if (!allValid) return;
@@ -176,8 +209,9 @@ function FormRegister({ method = "register", profile }) {
         { headers: { "Content-Type": "multipart/form-data" } }
       );
       navigate(method === "edit" ? `/profile/${resp.data.id}` : "/login");
-    } catch {
-      alert("Submission failed.");
+    } catch (err) {
+      console.error("Register error:", err.response?.data || err.message);
+      alert("Submission failed. Please check your details.");
     }
   };
 
@@ -204,7 +238,6 @@ function FormRegister({ method = "register", profile }) {
       </div>
     );
 
-  // Helper for errors
   const errMsg = (field) =>
     touched[field] && fieldErrors[field] ? (
       <div className="invalid-feedback d-block">{fieldErrors[field]}</div>
@@ -222,6 +255,7 @@ function FormRegister({ method = "register", profile }) {
             {[1, 2, 3].map((i) => (
               <li className="nav-item" key={i}>
                 <button
+                  type="button"
                   className={`nav-link${
                     step === i ? " active" : step > i ? "" : " disabled"
                   }`}
@@ -287,7 +321,9 @@ function FormRegister({ method = "register", profile }) {
                 ].map((field) => (
                   <div className="mb-3" key={field}>
                     <label className="form-label">
-                      {field.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                      {field
+                        .replace(/_/g, " ")
+                        .replace(/\b\w/g, (c) => c.toUpperCase())}
                     </label>
                     <input
                       type={
@@ -371,7 +407,9 @@ function FormRegister({ method = "register", profile }) {
                     checked={formData.receive_email_notifications}
                     onChange={handleChange}
                   />
-                  <label className="form-check-label">Receive Email Notifications</label>
+                  <label className="form-check-label">
+                    Receive Email Notifications
+                  </label>
                 </div>
                 <div className="form-check mb-3">
                   <input
@@ -381,7 +419,9 @@ function FormRegister({ method = "register", profile }) {
                     checked={formData.receive_sms_notifications}
                     onChange={handleChange}
                   />
-                  <label className="form-check-label">Receive SMS Notifications</label>
+                  <label className="form-check-label">
+                    Receive SMS Notifications
+                  </label>
                 </div>
                 <div className="form-check mb-3">
                   <input
@@ -392,7 +432,9 @@ function FormRegister({ method = "register", profile }) {
                     onChange={handleChange}
                     onBlur={handleBlur}
                   />
-                  <label className="form-check-label">I accept the terms and conditions</label>
+                  <label className="form-check-label">
+                    I accept the terms and conditions
+                  </label>
                   {errMsg("terms_accepted")}
                 </div>
               </>
@@ -416,11 +458,16 @@ function FormRegister({ method = "register", profile }) {
                   type="button"
                   className="btn btn-primary"
                   onClick={handleNext}
+                  disabled={!isStepValid}
                 >
                   Next
                 </button>
               ) : (
-                <button type="submit" className="btn btn-success">
+                <button
+                  type="submit"
+                  className="btn btn-success"
+                  disabled={!isStepValid}
+                >
                   {method === "edit" ? "Save Changes" : "Register"}
                 </button>
               )}
