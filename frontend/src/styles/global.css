@@ -1,0 +1,20 @@
+@import url("https://fonts.googleapis.com/css2?family=Libertinus+Sans:ital,wght@0,400;0,700;1,400&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap");
+
+/* ============ GLOBAL WOOD COLORS ============ */
+:root {
+  --wood-primary: #7b5e57;
+  --wood-accent: #d7bba8;
+  --wood-hover: #e7d4c7;
+  --wood-highlight: #b86b4b;
+  --wood-bg: #fdf7f0;
+  --wood-white: #f8f3ed;
+  --wood-dark: #6a4e47;
+  --url-bg: url("/wood_background.png");
+}
+
+body {
+  font-family: "Libertinus Sans", sans-serif;
+  background: var(--wood-bg);
+  color: var(--wood-dark);
+  margin: 0;
+}
