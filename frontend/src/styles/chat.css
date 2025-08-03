@@ -157,6 +157,7 @@
 
   /* make it stand out */
   background: linear-gradient(90deg, var(--wood-primary), var(--wood-dark));
+  background-blend-mode: multiply;
   box-shadow: 0 6px 14px rgba(47, 60, 82, 0.08);
   position: sticky; /* keep visible when scrolling */
   top: 0;
@@ -321,7 +322,8 @@
 
 .chat-input-section {
   padding: 16px 24px;
-  background-color: var(--wood-white);
+  background: linear-gradient(90deg, var(--wood-primary), var(--wood-dark));
+  background-blend-mode: multiply;
   flex-shrink: 0;
   display: flex;
   gap: 12px;

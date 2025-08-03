@@ -2,7 +2,7 @@
   max-width: 900px;
   margin: 40px auto;
   padding: 24px;
-  background: var(--wood-white);
+  background: #f3f6fb;
   border-radius: 14px;
   box-shadow: 0 2px 16px rgba(22, 29, 43, 0.07);
 }
@@ -10,7 +10,7 @@
 .groups-title {
   text-align: center;
   margin-bottom: 2px;
-  color: var(--wood-dark);
+  color: white;
   font-weight: 700;
 }
 
@@ -52,7 +52,7 @@
 
 /* Sections */
 .group-section {
-  background: #f3f6fb;
+  background: var(--wood-white);
   border: 1px solid #dbe4ff;
   border-radius: 10px;
   padding: 16px 18px;
@@ -145,7 +145,8 @@
   position: sticky;
   top: 0;
   z-index: 6;
-  background: var(--wood-white);
+  background: linear-gradient(90deg, var(--wood-primary), var(--wood-dark));
+  background-blend-mode: multiply;
   padding: 10px 12px 12px;
   margin: -12px -12px 12px;
   border-bottom: 1px solid #dbe4ff;
@@ -209,7 +210,7 @@
 
 /* Section accordion */
 .apps-section {
-  background: #f3f6fb;
+  background: var(--wood-white);
   border: 1px solid #dbe4ff;
   border-radius: 12px;
   margin-bottom: 14px;
@@ -283,7 +284,7 @@
 
 /* ---------- Group card (modern) ---------- */
 .group-card {
-  background: var(--wood-white);
+  background: #f3f6fb;
   border: 1px solid var(--wood-dark);
   border-radius: 12px;
   padding: 14px 14px 12px;

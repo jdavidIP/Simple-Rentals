@@ -10,11 +10,12 @@
   --wood-white: #f8f3ed; /* off-white for sections/cards */
   --wood-dark: #2c3a4a; /* deep navy-brown mix for text */
   --wood-subtitle: #5a6269; /* neutral gray for subtext */
+  --denim-bg-blue: #f3f6fb;
 }
 
 body {
   font-family: "Libertinus Sans", sans-serif;
-  background: var(--wood-bg);
+  background: #fbf8f4;
   color: var(--wood-dark);
   margin: 0;
 }

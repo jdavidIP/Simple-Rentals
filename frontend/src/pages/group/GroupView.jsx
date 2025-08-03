@@ -246,7 +246,9 @@ function GroupView() {
       ) : (
         <>
           {/* Header */}
-          <h2 className="groups-title mb-1">{group.name}</h2>
+          <div className="apps-header">
+            <h2 className="groups-title mb-1">{group.name}</h2>
+          </div>
 
           {/* Listing Preview */}
           <div
