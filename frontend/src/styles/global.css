@@ -10,8 +10,6 @@
   --wood-white: #f8f3ed;
   --wood-dark: #6a4e47;
   --wood-subtitle: #5a6269;
-
-  --url-bg: url("/wood_background.png");
 }
 
 body {
@@ -22,8 +20,7 @@ body {
 }
 
 footer {
-  background: var(--url-bg),
-    linear-gradient(90deg, var(--wood-primary), var(--wood-dark));
+  background: linear-gradient(90deg, var(--wood-primary), var(--wood-dark));
   background-blend-mode: multiply;
   color: var(--wood-white);
 }

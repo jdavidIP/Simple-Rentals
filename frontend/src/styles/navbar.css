@@ -1,7 +1,6 @@
 /* ============ NAVBAR ============ */
 .custom-navbar {
-  background: var(--url-bg),
-    linear-gradient(90deg, var(--wood-primary), var(--wood-dark));
+  background: linear-gradient(90deg, var(--wood-primary), var(--wood-dark));
   padding: 0.65rem 1rem;
   border-radius: 0 0 16px 16px;
   box-shadow: 0 8px 24px rgba(123, 94, 87, 0.35);
