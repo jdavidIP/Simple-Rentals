@@ -106,9 +106,13 @@ function ConversationWindow() {
       {/* Sidebar listing preview */}
       {conversation?.listing && (
         <aside className="chat-sidebar">
-          <ListingCard listing={listing} styling={true} />
+          <div className="sidebar-panel">
+            <h4 className="sidebar-title">Listing Preview</h4>
+            <ListingCard listing={listing} styling={true} />
+          </div>
         </aside>
       )}
+
       <div className="chat-main">
         <header className="chat-header">
           <h2 className="chat-title">{chatTitle}</h2>

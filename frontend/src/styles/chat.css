@@ -152,7 +152,6 @@
   /* spacing & look */
   padding: 16px 20px;
   margin: 0 0 16px 0;
-  border: 1px solid var(--wood-dark);
   border-radius: 12px;
 
   /* make it stand out */
@@ -407,6 +406,7 @@
   flex-direction: column;
   height: 85vh;
   border-radius: 12px;
+  border: solid 1px var(--wood-dark);
   box-shadow: 0 12px 30px rgba(47, 60, 82, 0.1);
   overflow: hidden;
   background: white;
@@ -416,18 +416,38 @@
   flex: 0 0 30%;
   max-width: 360px;
   display: flex;
-  align-items: center; /* center horizontally */
-  justify-content: center; /* center vertically */
-  padding: 12px;
+  flex-direction: column;
+  align-items: center;
+}
+.sidebar-panel {
+  width: 100%;
+  background: var(--denim-bg-blue);
+  border: solid 1px var(--wood-dark);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sidebar-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--wood-primary);
+  text-align: center;
+  border-bottom: 1px solid var(--wood-primary);
+  padding-bottom: 8px;
+  width: 100%;
 }
 
 .chat-sidebar .card {
-  order: -1;
   width: 100%;
-  height: auto; /* fit content, no full stretch */
-  max-height: 520px; /* optional: cap the card height */
-  border-radius: 12px;
-  align-self: center; /* prevent stretch */
+  height: auto;
+  max-height: 500px;
+  border: none; /* remove double border */
+  box-shadow: none; /* card inherits sidebar shadow */
+  background-color: var(--denim-bg-blue);
 }
 
 .chat-avatar:hover {
