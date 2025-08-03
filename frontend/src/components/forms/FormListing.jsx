@@ -327,7 +327,6 @@ function FormListing({ method, listing }) {
     ));
 
   const renderNewFrontImagePreview = () => {
-    console.log("Rendering new front image preview", formData.front_image);
     if (!formData.front_image) return null;
 
     return (

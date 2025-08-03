@@ -1,6 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Libertinus+Sans:ital,wght@0,400;0,700;1,400&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap");
 
-/* ============ GLOBAL WOOD COLORS ============ */
+/* ============ GLOBAL DENIM COLORS ============ */
 :root {
   --wood-primary: #3b4d63; /* denim blue - new main brand color */
   --wood-accent: #d7bba8; /* soft beige for balance */
@@ -53,4 +53,17 @@ footer {
 
 .text-price {
   color: var(--denim-strong-blue);
+}
+
+.page-btn:active {
+  background-color: var(--denim-strong-blue);
+}
+
+.page-btn.active {
+  background-color: var(--denim-strong-blue);
+  color: white;
+}
+
+.page-btn:hover {
+  background-color: var(--wood-highlight);
 }

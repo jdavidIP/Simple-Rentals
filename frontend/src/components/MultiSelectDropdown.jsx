@@ -43,7 +43,11 @@ function MultiSelectDropdown({ label, options, selected, setSelected }) {
       {isOpen && (
         <div
           className="dropdown-menu show w-100 p-2 border rounded shadow-sm"
-          style={{ maxHeight: "200px", overflowY: "auto" }}
+          style={{
+            maxHeight: "200px",
+            overflowY: "auto",
+            backgroundColor: "white",
+          }}
         >
           {options.map((opt) => (
             <div key={opt.value} className="form-check">

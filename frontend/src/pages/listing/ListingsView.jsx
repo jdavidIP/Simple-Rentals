@@ -3,6 +3,7 @@ import api from "../../api.js";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useProfileContext } from "../../contexts/ProfileContext.jsx";
 import useGoogleMaps from "../../hooks/useGoogleMaps";
+import "../../styles/listing_details.css";
 
 function ListingsView() {
   const { id } = useParams();
@@ -199,14 +200,17 @@ function ListingsView() {
 
           <div className="card mb-4 shadow-sm">
             <div className="card-body">
-              <h4 className="fw-bold mb-1">
+              <h4
+                className="fw-bold mb-1"
+                style={{ color: "var(--wood-primary)" }}
+              >
                 {listing.property_type} for Rent in {listing.city}
               </h4>
               <p className="text-muted mb-2">
                 {listing.unit_number && `${listing.unit_number}, `}
                 {listing.street_address}, {listing.city}, {listing.postal_code}
               </p>
-              <h5 className="text-primary fw-bold mb-2">
+              <h5 className="text-price fw-bold mb-2">
                 ${listing.price} / month
               </h5>
               {income &&
@@ -253,7 +257,9 @@ function ListingsView() {
                 className="accordion-collapse collapse show"
                 aria-labelledby="headingDesc"
               >
-                <div className="accordion-body">{listing.description}</div>
+                <div className="accordion-body" style={{ fontSize: "1.10rem" }}>
+                  {listing.description}
+                </div>
               </div>
             </div>
 
@@ -395,7 +401,8 @@ function ListingsView() {
                       <strong>Fridge:</strong> {listing.fridge ? "Yes" : "No"}
                     </li>
                   </ul>
-                  <strong>Extra Amenities: </strong> {listing.extra_amenities}
+                  <strong>Extra Amenities: </strong>
+                  {listing.extra_amenities || "None"}
                 </div>
               </div>
             </div>
@@ -469,8 +476,8 @@ function ListingsView() {
                 See Groups
               </button>
             </div>
-            
-             {/* --- Google Map --- */}
+
+            {/* --- Google Map --- */}
             {listing.latitude && listing.longitude && (
               <div
                 ref={mapRef}
