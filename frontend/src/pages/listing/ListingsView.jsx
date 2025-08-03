@@ -91,7 +91,11 @@ function ListingsView() {
   }, [googleLoaded, listing]);
 
   if (!listing) {
-    return <div className="text-center fs-4 mt-5">Loading listing...</div>;
+    return (
+      <div className="d-flex justify-content-center py-5">
+        <div className="spinner-border text-primary" role="status" />
+      </div>
+    );
   }
 
   const handleStartConversation = async (listingId) => {
@@ -103,12 +107,11 @@ function ListingsView() {
           String(conv.listing.id) === String(listingId) &&
           conv.participants &&
           conv.participants.length === 2 &&
-          conv.participants.some((p) => p === profile.id) &&
-          conv.participants.some((p) => p === listing.owner.id)
+          conv.participants.some((p) => p.id === profile.id) &&
+          conv.participants.some((p) => p.id === listing.owner.id)
       );
 
       if (existingConversation) {
-        console.log("Existing conversation found:", existingConversation.id);
         navigate(`/conversations/${existingConversation.id}`);
         return;
       }

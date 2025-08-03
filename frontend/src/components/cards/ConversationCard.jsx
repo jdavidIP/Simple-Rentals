@@ -6,49 +6,16 @@ import api from "../../api";
 function ConversationCard({ conv, onUpdate }) {
   const { profile } = useProfileContext();
   const navigate = useNavigate();
-
-  const getFullName = (u) =>
-    `${u?.first_name ?? ""} ${u?.last_name ?? ""}`.trim();
-
-  // ---- Build participants title from IDs + known user objects ----
-  const participantIds = Array.isArray(conv.participants)
-    ? conv.participants
-    : [];
   const myId = profile?.id;
 
-  // All "other" user IDs (exclude me)
-  const otherIds = participantIds.filter((id) => id !== myId);
+  const otherUsers = conv.participants.filter((u) => u.id !== myId);
 
-  // Known user objects we can map: last_message.sender, listing.owner
-  const knownUsers = new Map();
-  if (conv.last_message?.sender?.id) {
-    knownUsers.set(
-      conv.last_message.sender.id,
-      getFullName(conv.last_message.sender)
-    );
-  }
-  if (conv.listing?.owner?.id) {
-    knownUsers.set(conv.listing.owner.id, getFullName(conv.listing.owner));
-  }
-
-  // Assemble names we know for those "other" IDs
-  const knownNames = otherIds.map((id) => knownUsers.get(id)).filter(Boolean);
-
-  // Compose a compact title
   let participantsTitle = "Conversation";
-  if (otherIds.length === 0) {
-    participantsTitle = "Conversation";
-  } else if (knownNames.length === otherIds.length) {
-    // We know all other names
-    participantsTitle = knownNames.join(", ");
-  } else if (knownNames.length > 0) {
-    const unknownCount = otherIds.length - knownNames.length;
-    participantsTitle = `${knownNames.join(", ")} +${unknownCount} more`;
-  } else {
-    // We don't know any names — generic but informative
-    participantsTitle = conv.isGroup
-      ? `Group (${otherIds.length + 1} participants)` // +1 to include me
-      : "Conversation";
+  if (otherUsers.length > 0) {
+    const shown = otherUsers.slice(0, 4).map((user) => user.full_name);
+    const extraCount = otherUsers.length - shown.length;
+    participantsTitle =
+      shown.join(", ") + (extraCount > 0 ? ` +${extraCount} more` : "");
   }
 
   const unreadCount = Array.isArray(conv.messages)
@@ -56,7 +23,8 @@ function ConversationCard({ conv, onUpdate }) {
         .length
     : 0;
 
-  const isOnlyUser = participantIds.length === 1 && participantIds[0] === myId;
+  const isOnlyUser =
+    conv.participants === 1 && conv.participants[0].id === myId;
 
   const handleLeave = async (convId) => {
     try {

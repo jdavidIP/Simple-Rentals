@@ -46,6 +46,16 @@ class UserSerializer(serializers.ModelSerializer):
             'roommate_profile'
         ]
 
+class UserBasicSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = MarketplaceUser
+        fields = ['id', 'full_name', 'email', 'profile_picture']
+
+    def get_full_name(self, obj):
+        return f"{obj.first_name} {obj.last_name}".strip()
+    
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
@@ -265,6 +275,25 @@ class ListingSerializer(serializers.ModelSerializer):
         model = Listing
         fields = '__all__'
 
+class ListingBasicSerializer(serializers.ModelSerializer):
+    pictures = ListingPictureSerializer(many=True)
+    owner = UserSerializer(read_only=True)
+    property_type = serializers.CharField(source='get_property_type_display')
+
+    class Meta:
+        model = Listing
+        fields = [
+            'id', 'price', 'property_type', 'bedrooms', 'bathrooms', 'sqft_area',
+            'description', 'street_address', 'city', 'postal_code', 'move_in_date',
+            'pictures', 'owner'
+        ]
+
+    def get_primary_image(self, obj):
+        primary = obj.pictures.filter(is_primary=True).first()
+        if primary:
+            return ListingPictureSerializer(primary).data
+        return None
+
 class ListingPostingSerializer(serializers.ModelSerializer):
     price = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0)
     bedrooms = serializers.IntegerField(min_value=0)
@@ -426,10 +455,11 @@ class FavoritesSerializer(serializers.ModelSerializer):
         }
 
 class ConversationSerializer(serializers.ModelSerializer):
-    listing = ListingSerializer(read_only=True)  # Include listing details
+    listing = ListingBasicSerializer(read_only=True)  # Include listing details
     last_message = serializers.SerializerMethodField()  # Add the last message in the conversation
     messages = serializers.SerializerMethodField()  # Add all messages in the conversation
     isGroup = serializers.SerializerMethodField() 
+    participants = UserBasicSerializer(many=True, read_only=True)
 
     class Meta:
         model = Conversation

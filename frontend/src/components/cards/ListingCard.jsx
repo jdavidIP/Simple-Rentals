@@ -3,7 +3,7 @@ import { useProfileContext } from "../../contexts/ProfileContext";
 import api from "../../api";
 import { useState } from "react";
 
-function ListingCard({ listing, income }) {
+function ListingCard({ listing, income, styling = null }) {
   const navigate = useNavigate();
   const { isProfileSelf, profile } = useProfileContext();
   const [error, setError] = useState(null);
@@ -17,8 +17,8 @@ function ListingCard({ listing, income }) {
           String(conv.listing.id) === String(listingId) &&
           conv.participants &&
           conv.participants.length === 2 &&
-          conv.participants.some((p) => p === profile.id) &&
-          conv.participants.some((p) => p === listing.owner.id)
+          conv.participants.some((p) => p.id === profile.id) &&
+          conv.participants.some((p) => p.id === listing.owner.id)
       );
 
       if (existingConversation) {
@@ -64,8 +64,12 @@ function ListingCard({ listing, income }) {
   return (
     <div
       key={listing.id}
-      className="card col-12 col-sm-6 col-md-4 col-lg-4 mb-4 shadow-sm position-relative"
-      style={{ minHeight: "100%" }}
+      className={
+        styling
+          ? "card shadow-sm position-relative"
+          : "card col-12 col-sm-6 col-md-4 col-lg-4 mb-4 shadow-sm position-relative"
+      }
+      style={styling ? { maxHeight: "1000px" } : { minHeight: "100%" }}
     >
       {/* Affordability Tag */}
       {income &&
@@ -109,7 +113,10 @@ function ListingCard({ listing, income }) {
           <h5 className="card-title mb-1 text-capitalize">
             {listing.bedrooms} bedroom {listing.property_type}
           </h5>
-          <p className="text-muted mb-2">{listing.city}</p>
+          <p className="text-muted mb-2">
+            {" "}
+            {listing.street_address}, {listing.city}, {listing.postal_code}
+          </p>
 
           <h6
             className="text-price fw-bold"

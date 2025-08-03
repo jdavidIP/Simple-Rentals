@@ -254,6 +254,7 @@
   height: 40px;
   background: var(--wood-primary);
   color: white;
+  border: 2px solid var(--wood-white);
   font-weight: 700;
   font-size: 1rem;
   border-radius: 50%;
@@ -388,4 +389,48 @@
   fill: #fff; /* icon color */
   transform: translateX(1px);
   pointer-events: none;
+}
+
+.chat-page-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.chat-main {
+  flex: 0 0 65%; /* main column takes 65% */
+  max-width: 720px; /* narrower cap */
+  display: flex;
+  flex-direction: column;
+  height: 85vh;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(47, 60, 82, 0.1);
+  overflow: hidden;
+  background: white;
+}
+
+.chat-sidebar {
+  flex: 0 0 30%;
+  max-width: 360px;
+  display: flex;
+  align-items: center; /* center horizontally */
+  justify-content: center; /* center vertically */
+  padding: 12px;
+}
+
+.chat-sidebar .card {
+  order: -1;
+  width: 100%;
+  height: auto; /* fit content, no full stretch */
+  max-height: 520px; /* optional: cap the card height */
+  border-radius: 12px;
+  align-self: center; /* prevent stretch */
+}
+
+.chat-avatar:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
 }
