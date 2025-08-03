@@ -23,7 +23,7 @@ function NotFound() {
 
       <div className="d-flex gap-3 flex-wrap justify-content-center">
         <button className="btn btn-primary" onClick={() => navigate("/")}>
-          🔙 Go Home
+          Go Home
         </button>
         <button
           className="btn btn-outline-secondary"

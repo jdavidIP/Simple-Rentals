@@ -106,7 +106,9 @@ function GroupManage() {
         <Unauthorized />
       ) : (
         <>
-          <h2 className="groups-title">{group.name}</h2>
+          <h2 className="groups-title" style={{ color: "var(--wood-dark)" }}>
+            {group.name}
+          </h2>
           <p>
             <strong>Listing:</strong>{" "}
             {listing.unit_number && `${listing.unit_number}, `}

@@ -65,7 +65,10 @@ const RoommateCard = ({
 
         {/* Budget as Pill */}
         <div className="d-flex justify-content-center mb-3">
-          <span className="badge bg-primary px-3 py-2">
+          <span
+            className="badge px-3 py-2"
+            style={{ backgroundColor: "var(--denim-strong-blue)" }}
+          >
             💰 ${roommate.roommate_budget.toLocaleString()}
           </span>
         </div>

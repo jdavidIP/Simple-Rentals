@@ -60,7 +60,7 @@
   border-radius: 6px;
   font-size: 1rem;
   color: var(--wood-dark);
-  background-color: #f7f9fb; /* subtle denim-tinted bg */
+  background-color: white; /* subtle denim-tinted bg */
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
