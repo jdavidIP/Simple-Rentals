@@ -401,7 +401,9 @@ function FormEdit({ profile }) {
       )}
       <h5 className="form-section-title">Basic Information</h5>
       <div>
-        <label htmlFor="profile_picture">Profile Picture</label>
+        <label htmlFor="profile_picture" className="form-label">
+          Profile Picture
+        </label>
         <input
           type="file"
           id="profile_picture"
@@ -412,7 +414,9 @@ function FormEdit({ profile }) {
       </div>
       {renderAvatarPreview()}
       <div className="mb-6">
-        <label htmlFor="email">Email</label>
+        <label htmlFor="email" className="form-label">
+          Email
+        </label>
         <input
           type="email"
           id="email"
@@ -429,7 +433,9 @@ function FormEdit({ profile }) {
       </div>
       <div className="form-grid">
         <div>
-          <label htmlFor="first_name">First Name</label>
+          <label htmlFor="first_name" className="form-label">
+            First Name
+          </label>
           <input
             type="text"
             id="first_name"
@@ -444,7 +450,9 @@ function FormEdit({ profile }) {
           {errMsg("first_name")}
         </div>
         <div>
-          <label htmlFor="last_name">Last Name</label>
+          <label htmlFor="last_name" className="form-label">
+            Last Name
+          </label>
           <input
             type="text"
             id="last_name"
@@ -460,7 +468,9 @@ function FormEdit({ profile }) {
         </div>
 
         <div>
-          <label htmlFor="password">Password</label>
+          <label htmlFor="password" className="form-label">
+            Password
+          </label>
           <button
             type="button"
             className="btn btn-secondary py-1"
@@ -517,7 +527,9 @@ function FormEdit({ profile }) {
       <h5 className="form-section-title">Personal Information</h5>
       <div className="form-grid">
         <div>
-          <label htmlFor="age">Age</label>
+          <label htmlFor="age" className="form-label">
+            Age
+          </label>
           <input
             type="number"
             id="age"
@@ -533,7 +545,9 @@ function FormEdit({ profile }) {
           {errMsg("age")}
         </div>
         <div>
-          <label htmlFor="sex">Gender</label>
+          <label htmlFor="sex" className="form-label">
+            Gender
+          </label>
           <select
             id="sex"
             name="sex"
@@ -552,7 +566,9 @@ function FormEdit({ profile }) {
       </div>
       <div className="form-grid">
         <div>
-          <label htmlFor="city">Current City</label>
+          <label htmlFor="city" className="form-label">
+            Current City
+          </label>
           <input
             type="text"
             id="city"
@@ -567,7 +583,9 @@ function FormEdit({ profile }) {
           {errMsg("city")}
         </div>
         <div>
-          <label htmlFor="preferred_location">Preferred Location</label>
+          <label htmlFor="preferred_location" className="form-label">
+            Preferred Location
+          </label>
           <input
             type="text"
             id="preferred_location"
@@ -602,7 +620,9 @@ function FormEdit({ profile }) {
           {errMsg("budget_min")}
         </div>
         <div>
-          <label htmlFor="budget_max">Budget Max</label>
+          <label htmlFor="budget_max" className="form-label">
+            Budget Max
+          </label>
           <input
             type="number"
             id="budget_max"
@@ -619,7 +639,9 @@ function FormEdit({ profile }) {
         </div>
       </div>
       <div className="mb-6">
-        <label htmlFor="yearly_income">Yearly Income</label>
+        <label htmlFor="yearly_income" className="form-label">
+          Yearly Income
+        </label>
         <input
           type="number"
           id="yearly_income"
@@ -637,7 +659,9 @@ function FormEdit({ profile }) {
       <h5 className="form-section-title">Contact Information</h5>
       <div className="form-grid">
         <div>
-          <label htmlFor="phone_number">Phone Number</label>
+          <label htmlFor="phone_number" className="form-label">
+            Phone Number
+          </label>
           <input
             type="text"
             id="phone_number"
@@ -652,7 +676,9 @@ function FormEdit({ profile }) {
           {errMsg("phone_number")}
         </div>
         <div>
-          <label htmlFor="instagram_link">Instagram</label>
+          <label htmlFor="instagram_link" className="form-label">
+            Instagram
+          </label>
           <input
             type="url"
             id="instagram_link"
@@ -665,7 +691,9 @@ function FormEdit({ profile }) {
           {errMsg("instagram_link")}
         </div>
         <div>
-          <label htmlFor="facebook_link">Facebook</label>
+          <label htmlFor="facebook_link" className="form-label">
+            Facebook
+          </label>
           <input
             type="url"
             id="facebook_link"
