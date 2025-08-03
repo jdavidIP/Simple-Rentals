@@ -52,27 +52,34 @@
 
 /* Sections */
 .group-section {
-  background: var(--wood-white);
-  border: 1px solid #dbe4ff;
-  border-radius: 10px;
-  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid #dce3f5;
+  border-radius: 14px;
+  padding: 20px;
+  margin: 20px auto;
+  box-shadow: 0 2px 10px rgba(22, 29, 43, 0.05);
 }
 
 .group-section-title {
-  margin: 0 0 10px;
-  color: var(--wood-dark);
+  color: var(--wood-primary);
+  font-size: 1.15rem;
   font-weight: 700;
+  margin-bottom: 14px;
 }
 
 /* Meta rows */
 .meta-label {
-  font-size: 0.85rem;
-  color: #7a889f;
+  font-size: 0.8rem;
+  color: #6b768c;
 }
-
 .meta-value {
   font-weight: 600;
-  color: var(--wood-dark);
+  color: #1f2a44;
+}
+
+/* Members grid */
+.group-section .row {
+  gap: 18px;
 }
 
 /* Status badge (reuse your palette) */
@@ -413,4 +420,43 @@
 }
 .gc-btn:active {
   transform: translateY(1px);
+}
+
+/* Action bar (sticky bottom) */
+.action-bar {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  border-top: 1px solid #dce3f5;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 -2px 10px rgba(22, 29, 43, 0.08);
+}
+.action-bar .btn {
+  border-radius: 8px;
+  font-weight: 600;
+  min-width: 120px;
+}
+.action-bar .btn-primary {
+  background: var(--wood-primary);
+  border-color: var(--wood-primary);
+}
+.action-bar .btn-primary:hover {
+  background: #1b4ed7;
+}
+
+/* Listing preview inside card */
+.listing-preview {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.listing-preview img {
+  border-radius: 10px;
+  border: 1px solid #e4e9f2;
+  width: 160px;
+  height: 106px;
+  object-fit: cover;
 }
