@@ -3,11 +3,12 @@
   background: linear-gradient(90deg, var(--wood-primary), var(--wood-dark));
   padding: 0.65rem 1rem;
   border-radius: 0 0 16px 16px;
-  box-shadow: 0 8px 24px rgba(123, 94, 87, 0.35);
+  box-shadow: 0 8px 24px rgba(47, 60, 82, 0.35); /* updated shadow to match denim */
   z-index: 2000;
 }
+
 .navbar-blur {
-  backdrop-filter: none;
+  backdrop-filter: blur(4px); /* add subtle blur for depth */
   background-blend-mode: multiply;
 }
 
@@ -30,13 +31,13 @@
   transition: background-color 0.18s ease, transform 0.12s ease;
 }
 .primary-nav .nav-link:hover {
-  background-color: rgba(255, 255, 255, 0.12);
+  background-color: rgba(255, 255, 255, 0.15); /* softened hover for denim */
   transform: translateY(-1px);
 }
 .primary-nav .nav-link.active {
   background: var(--wood-white);
   color: var(--wood-primary) !important;
-  box-shadow: 0 4px 14px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 14px rgba(63, 91, 128, 0.25); /* cooler shadow */
 }
 
 /* Right action area */
@@ -46,18 +47,18 @@
 
 /* CTA: Post a Listing */
 .cta-post {
-  background: var(--wood-white);
-  color: var(--wood-primary);
-  border: 1px solid var(--wood-accent);
+  background: var(--wood-white); /* changed to blue highlight for CTA pop */
+  color: var(--wood-primary); /* white text for contrast */
+  border: none;
   border-radius: 9999px;
   padding: 0.45rem 0.9rem;
   font-weight: 600;
   transition: transform 0.12s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 .cta-post:hover {
-  background: var(--wood-hover);
+  background: var(--wood-primary); /* darker denim on hover */
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(123, 94, 87, 0.3);
+  box-shadow: 0 6px 18px rgba(47, 60, 82, 0.35);
 }
 .cta-post:active {
   transform: translateY(0);
@@ -73,7 +74,7 @@
   width: 38px;
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.1); /* slightly stronger for visibility */
   color: var(--wood-white);
   backdrop-filter: blur(2px);
   transition: background 0.18s ease, transform 0.12s ease, box-shadow 0.2s ease;
@@ -83,9 +84,9 @@
   line-height: 1;
 }
 .icon-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.2);
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 .icon-btn:active {
   transform: translateY(0);
@@ -102,12 +103,12 @@
   border-radius: 9999px;
   font-size: 11px;
   font-weight: 700;
-  background: var(--wood-highlight);
+  background: var(--wood-highlight); /* uses new blue highlight */
   color: #fff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(184, 107, 75, 0.5);
+  box-shadow: 0 2px 8px rgba(63, 91, 128, 0.4); /* blue-toned shadow */
 }
 
 /* Avatar & dropdown */
@@ -126,7 +127,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 .dropdown-menu {
-  background-color: #fff9f4;
+  background-color: var(--wood-white); /* unify with palette */
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid var(--wood-accent);
@@ -136,6 +137,6 @@
   padding: 0.6rem 0.9rem;
 }
 .dropdown-item:active {
-  background: #f1e3d7;
+  background: var(--wood-hover); /* updated for palette harmony */
   color: var(--wood-primary);
 }

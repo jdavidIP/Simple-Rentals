@@ -2,14 +2,14 @@
 
 /* ============ GLOBAL WOOD COLORS ============ */
 :root {
-  --wood-primary: #7b5e57;
-  --wood-accent: #d7bba8;
-  --wood-hover: #e7d4c7;
-  --wood-highlight: #b86b4b;
-  --wood-bg: #fdf7f0;
-  --wood-white: #f8f3ed;
-  --wood-dark: #6a4e47;
-  --wood-subtitle: #5a6269;
+  --wood-primary: #3b4d63; /* denim blue - new main brand color */
+  --wood-accent: #d7bba8; /* soft beige for balance */
+  --wood-hover: #e7d4c7; /* warm beige hover */
+  --wood-highlight: #5f7ca5; /* lighter denim for CTAs */
+  --wood-bg: #fdf7f0; /* soft cream background */
+  --wood-white: #f8f3ed; /* off-white for sections/cards */
+  --wood-dark: #2c3a4a; /* deep navy-brown mix for text */
+  --wood-subtitle: #5a6269; /* neutral gray for subtext */
 }
 
 body {
