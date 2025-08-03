@@ -127,7 +127,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 .dropdown-menu {
-  background-color: #fffdfa; /* unify with palette */
+  background-color: var(--wood-white); /* unify with palette */
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid var(--wood-accent);

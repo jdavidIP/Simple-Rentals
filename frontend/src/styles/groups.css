@@ -145,8 +145,8 @@
   position: sticky;
   top: 0;
   z-index: 6;
-  background: linear-gradient(90deg, var(--wood-primary), var(--wood-dark));
-  background-blend-mode: multiply;
+  background: var(--wood-highlight);
+  border-color: var(--wood-dark);
   padding: 10px 12px 12px;
   margin: -12px -12px 12px;
   border-bottom: 1px solid #dbe4ff;

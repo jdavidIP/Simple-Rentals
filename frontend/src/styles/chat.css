@@ -156,7 +156,7 @@
   border-radius: 12px;
 
   /* make it stand out */
-  background: linear-gradient(90deg, var(--wood-primary), var(--wood-dark));
+  background: var(--wood-highlight);
   background-blend-mode: multiply;
   box-shadow: 0 6px 14px rgba(47, 60, 82, 0.08);
   position: sticky; /* keep visible when scrolling */
@@ -322,7 +322,7 @@
 
 .chat-input-section {
   padding: 16px 24px;
-  background: linear-gradient(90deg, var(--wood-primary), var(--wood-dark));
+  background: var(--wood-highlight);
   background-blend-mode: multiply;
   flex-shrink: 0;
   display: flex;

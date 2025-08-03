@@ -57,7 +57,7 @@ function Groups() {
     <div className="groups-container">
       <div className="apps-header">
         <div
-          className="group-section mt-3 p-3"
+          className="mt-3 p-3"
           role="button"
           onClick={() => navigate(`/listings/${listing.id}`)}
           onKeyDown={(e) =>
@@ -65,12 +65,17 @@ function Groups() {
             navigate(`/listings/${listing.id}`)
           }
           tabIndex={0}
-          style={{ cursor: "pointer" }}
+          style={{ cursor: "pointer", backgroundColor: "var(--denim-bg-blue)" }}
           aria-label="Open listing"
         >
           <h5 className="group-section-title">Listing</h5>
           {listing ? (
-            <div className="d-flex align-items-center gap-3 px-1">
+            <div
+              className="d-flex align-items-center gap-3 px-1"
+              style={{
+                backgroundColor: "var(--denim-bg-blue)",
+              }}
+            >
               {" "}
               <div
                 className="rounded overflow-hidden flex-shrink-0"
@@ -101,7 +106,7 @@ function Groups() {
                     {`${listing.property_type} for Rent in ${listing.city}`}
                   </h6>
                   <div
-                    className="fw-bold text-primary ms-2"
+                    className="text-price fw-bold"
                     style={{ whiteSpace: "nowrap" }}
                   >
                     ${Number(listing.price).toLocaleString()}

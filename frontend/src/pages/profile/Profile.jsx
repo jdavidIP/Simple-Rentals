@@ -163,7 +163,7 @@ function Profile() {
                   ) : (
                     <button
                       onClick={() => navigate(`/profile/${id}/reviews`)}
-                      className="btn btn-outline-primary btn-sm"
+                      className="btn btn-outline-secondary btn-sm"
                     >
                       Write a Review
                     </button>

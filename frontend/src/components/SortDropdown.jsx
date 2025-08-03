@@ -12,6 +12,9 @@ function SortDropdown({ sortOption, setSortOption }) {
         className="sort-dropdown-select"
         value={sortOption}
         onChange={(e) => setSortOption(e.target.value)}
+        style={{
+          borderColor: "var(--wood-accent)",
+        }}
       >
         <option value="newest">Newest First</option>
         <option value="oldest">Oldest First</option>

@@ -153,6 +153,7 @@ function Pagination({
                 onClick={() => onPageChange(item)}
                 aria-current={item === safeCurrent ? "page" : undefined}
                 aria-label={`Page ${item}`}
+                style={{ backgroundColor: "var(--denim-strong-blue)" }}
               >
                 {item}
               </button>

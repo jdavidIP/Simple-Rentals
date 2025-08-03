@@ -112,8 +112,10 @@ function ListingCard({ listing, income }) {
           <p className="text-muted mb-2">{listing.city}</p>
 
           <h6
-            className="text-primary fw-bold display-6 mb-3"
-            style={{ fontSize: "1.25rem" }}
+            className="text-price fw-bold"
+            style={{
+              fontSize: "1.75rem",
+            }}
           >
             ${listing.price.toLocaleString()}
           </h6>
