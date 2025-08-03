@@ -554,6 +554,7 @@ class RoommateListView(generics.ListAPIView):
         budget_min = filters.get("budget_min")
         budget_max = filters.get("budget_max")
         gender = filters.get("gender")
+        group_id = filters.get("group_id")
 
         user = self.request.user
         if user.is_authenticated:
@@ -591,6 +592,12 @@ class RoommateListView(generics.ListAPIView):
             queryset = queryset.filter(roommate_budget__lte=budget_max)
         if gender:
             queryset = queryset.filter(user__sex=gender)
+        if group_id:
+            try:
+                group = Group.objects.get(id=group_id)
+                queryset = queryset.exclude(id__in=group.members.values_list("id", flat=True))
+            except Group.DoesNotExist:
+                raise NotFound("Group not found.")
 
         return queryset
     

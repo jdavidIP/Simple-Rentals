@@ -1,7 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-const RoommateCard = ({ roommate, isListingOwner, getFitRanking }) => {
+const RoommateCard = ({
+  roommate,
+  isListingOwner,
+  getFitRanking,
+  styling = null,
+}) => {
   const navigate = useNavigate();
   const fit = isListingOwner
     ? getFitRanking(roommate.user?.yearly_income)
@@ -16,7 +21,11 @@ const RoommateCard = ({ roommate, isListingOwner, getFitRanking }) => {
   return (
     <div
       key={roommate.id}
-      className="card col-12 col-sm-6 col-md-4 col-lg-4 mb-4 shadow-sm position-relative"
+      className={
+        styling
+          ? "card roommate-card shadow-sm position-relative"
+          : "card col-12 col-sm-6 col-md-4 col-lg-4 mb-4 shadow-sm position-relative"
+      }
       onClick={() => navigate(`/roommates/${roommate.id}`)}
       onMouseEnter={(e) =>
         (e.currentTarget.style.transform = "translateY(-2px)")

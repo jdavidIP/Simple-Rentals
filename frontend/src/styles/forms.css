@@ -276,6 +276,41 @@ button[disabled] {
   border-radius: 12px;
 }
 
+.card-remove-btn {
+  line-height: 1;
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  line-height: 28px;
+  text-align: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.2s ease;
+}
+
+.card-remove-btn:hover {
+  background: #dc3545;
+}
+
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.card-wrapper {
+  position: relative;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .form-container {

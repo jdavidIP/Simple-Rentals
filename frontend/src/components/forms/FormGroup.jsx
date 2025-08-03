@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api.js";
 import "../../styles/forms.css";
 import { useProfileContext } from "../../contexts/ProfileContext.jsx";
+import RoommateCard from "../cards/RoommateCard.jsx";
 
 function FormGroup({ method, group }) {
   const { id } = useParams(); // listing id for POST, group id for EDIT
@@ -80,6 +81,7 @@ function FormGroup({ method, group }) {
     }
     try {
       const params = {};
+      params.group_id = group.id;
       if (searchName) params.name = searchName;
       const res = await api.get("/roommates/", { params });
       setAllRoommates(res.data);
@@ -94,10 +96,15 @@ function FormGroup({ method, group }) {
   };
 
   const handleSelectChange = (e) => {
-    const selected = Array.from(e.target.selectedOptions, (opt) =>
+    const selectedIds = Array.from(e.target.selectedOptions, (opt) =>
       Number(opt.value)
     );
-    setSelectedToAdd(selected);
+
+    const selectedRoommates = selectedIds
+      .map((id) => allRoommates.find((r) => r.id === id))
+      .filter(Boolean); // remove any null/undefined if not found
+
+    setSelectedToAdd(selectedRoommates);
   };
 
   const handleAdd = () => {
@@ -136,7 +143,7 @@ function FormGroup({ method, group }) {
         for (const roommateId of invited) {
           await api.post(`/groups/${id}/invite`, {
             group: group.id,
-            invited_user: roommateId,
+            invited_user: roommateId.id,
           });
         }
       }
@@ -167,7 +174,10 @@ function FormGroup({ method, group }) {
       ...prev,
       member_ids: prev.member_ids.filter((id) => id !== memberId),
     }));
-    setInvited((prev) => prev.filter((id) => id !== memberId));
+  };
+
+  const handleCancelInvite = (idToRemove) => {
+    setInvited((prev) => prev.filter((r) => r.id !== idToRemove));
   };
 
   // Helper to show added members' info
@@ -188,12 +198,8 @@ function FormGroup({ method, group }) {
   };
 
   return (
-    <form
-      className="form-container"
-      onSubmit={handleSubmit}
-      style={{ maxWidth: 600, margin: "2rem auto" }}
-    >
-      <h2>{method === "edit" ? "Edit Group" : "Create a Group"}</h2>
+    <form className="form-container" onSubmit={handleSubmit}>
+      <h1>{method === "edit" ? "Edit Group" : "Create a Group"}</h1>
       {error && (
         <div className="alert alert-danger" ref={errorRef}>
           {error.map((msg, idx) => (
@@ -202,6 +208,7 @@ function FormGroup({ method, group }) {
         </div>
       )}
 
+      <h5 className="form-section-title">Basic Information</h5>
       <div className="mb-3">
         <label className="form-label">Group Name</label>
         <input
@@ -268,26 +275,49 @@ function FormGroup({ method, group }) {
 
       {/* Name search and member selection */}
       {canInvite && (
-        <>
-          <div className="mb-3">
-            <label className="form-label">Search Roommates by Name</label>
-            <div style={{ display: "flex", gap: "10px" }}>
-              <input
-                type="text"
-                className="form-control"
-                value={searchName}
-                onChange={(e) => setSearchName(e.target.value)}
-                placeholder="Enter name to search"
-              />
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={handleSearch}
-              >
-                Search
-              </button>
-            </div>
+        <div>
+          <h5 className="form-section-title">Manage Members</h5>
+          <label className="form-label">Search a user</label>
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <input
+              type="text"
+              className="form-control"
+              value={searchName}
+              onChange={(e) => setSearchName(e.target.value)}
+              placeholder="Enter name to search"
+              style={{ height: "38px" }} // Ensure input height consistent
+            />
+            <button
+              type="button"
+              onClick={handleSearch}
+              style={{
+                backgroundColor: "#d7bba8",
+                borderColor: "#d7bba8",
+                height: "38px",
+                padding: "0 14px",
+                marginBottom: "21px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                whiteSpace: "nowrap",
+                cursor: "pointer",
+                borderRadius: "4px",
+                transition: "background-color 0.3s ease, color 0.3s ease",
+                userSelect: "none",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#c19a87";
+                e.currentTarget.style.color = "#fff";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#d7bba8";
+                e.currentTarget.style.color = "initial";
+              }}
+            >
+              🔍
+            </button>
           </div>
+
           {allRoommates.length > 0 && (
             <div className="mb-3">
               <label className="form-label">Select Members</label>
@@ -323,60 +353,54 @@ function FormGroup({ method, group }) {
               </small>
             </div>
           )}
-          {formData.member_ids.length > 0 || invited.length > 0 ? (
-            <div className="mb-3">
+          {(formData.member_ids.length > 0 || invited.length > 0) && (
+            <div className="mb-4">
               <label className="form-label">Added Members</label>
-              <ul>
-                {formData.member_ids.map((memberId) => (
-                  <li
-                    key={`member-${memberId}`}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                    }}
-                  >
-                    {getMemberInfo(memberId)}
-                    {memberId !== profile.roommate_profile && (
+              <div className="card-container">
+                {group.members.map((member) => (
+                  <div key={`member-${member.id}`} className="card-wrapper">
+                    <div className="roommate-card">
+                      <RoommateCard
+                        roommate={member}
+                        isListingOwner={false}
+                        styling={true}
+                      />
+                      {member.id !== profile.roommate_profile && (
+                        <button
+                          type="button"
+                          className="card-remove-btn"
+                          onClick={() => handleRemoveMember(member.id)}
+                          title="Remove"
+                        >
+                          <span className="image-remove-x">&times;</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {invited.map((member) => (
+                  <div key={`invite-${member.id}`} className="card-wrapper">
+                    <div className="roommate-card">
+                      <RoommateCard
+                        roommate={member}
+                        isListingOwner={false}
+                        styling={true}
+                      />
                       <button
                         type="button"
-                        className="btn btn-sm btn-danger"
-                        style={{ marginLeft: "10px" }}
-                        onClick={() => handleRemoveMember(memberId)}
+                        className="card-remove-btn"
+                        onClick={() => handleCancelInvite(member.id)}
+                        title="Cancel Invite"
                       >
-                        Remove
+                        <span className="image-remove-x">&times;</span>
                       </button>
-                    )}
-                  </li>
+                    </div>
+                  </div>
                 ))}
-                {invited.map((invitedId) => (
-                  <li
-                    key={`invited-${invitedId}`}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                    }}
-                  >
-                    {getMemberInfo(invitedId)}
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-warning"
-                      style={{ marginLeft: "10px" }}
-                      onClick={() =>
-                        setInvited((prev) =>
-                          prev.filter((id) => id !== invitedId)
-                        )
-                      }
-                    >
-                      Cancel Invite
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              </div>
             </div>
-          ) : null}
-        </>
+          )}
+        </div>
       )}
 
       <button type="submit" className="btn btn-primary">
