@@ -217,7 +217,7 @@
 
 /* Section accordion */
 .apps-section {
-  background: var(--wood-white);
+  background: white;
   border: 1px solid #dbe4ff;
   border-radius: 12px;
   margin-bottom: 14px;
@@ -291,8 +291,8 @@
 
 /* ---------- Group card (modern) ---------- */
 .group-card {
-  background: #f3f6fb;
-  border: 1px solid var(--wood-dark);
+  background: var(--wood-white);
+  border: 1px solid var(--wood-accent);
   border-radius: 12px;
   padding: 14px 14px 12px;
   box-shadow: 0 2px 10px rgba(22, 29, 43, 0.05);
