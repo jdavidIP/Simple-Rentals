@@ -22,8 +22,6 @@ function MultiSelectDropdown({ label, options, selected, setSelected }) {
     } else {
       setSelected([...selected, value]);
     }
-
-    console.log(selected);
   };
 
   const selectedLabels = options
