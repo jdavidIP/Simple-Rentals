@@ -115,7 +115,9 @@ function Groups() {
               </div>
             </div>
           ) : (
-            <div className="p-3 text-muted small">Loading listing…</div>
+            <div className="d-flex justify-content-center py-5">
+              <div className="spinner-border text-primary" role="status" />
+            </div>
           )}
         </div>
       </div>
