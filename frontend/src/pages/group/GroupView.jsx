@@ -236,7 +236,13 @@ function GroupView() {
   };
 
   return (
-    <div className="groups-container">
+    <div
+      className="groups-container"
+      style={{
+        backgroundColor: "var(--wood-white)",
+        border: "1px solid var(--wood-accent)",
+      }}
+    >
       {error ? (
         <div className="alert alert-danger">{error}</div>
       ) : loadingConversation || loadingGroup ? (
@@ -245,26 +251,66 @@ function GroupView() {
         </div>
       ) : (
         <>
-          {/* Header Banner */}
-          <div className="apps-header">
+          {/* Header */}
+          <header
+            className="apps-header text-center mb-4"
+            style={{ border: "1px solid var(--wood-primary)" }}
+          >
             <h2 className="groups-title">{group.name}</h2>
-          </div>
+          </header>
 
-          <div className="px-3 pb-5">
+          <main className="px-3 pb-5">
+            {/* Group Details */}
+            <section className="group-section group-details">
+              <h5 className="group-section-title">Details</h5>
+              <div className="details-list">
+                <div className="detail-item">
+                  <span className="detail-label">Move-in Date:</span>
+                  <span className="detail-value">
+                    {group.move_in_date || "—"}
+                  </span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Move-in Ready:</span>
+                  <span className="detail-value">
+                    <span
+                      className={`badge ${
+                        group.move_in_ready ? "bg-success" : "bg-secondary"
+                      }`}
+                    >
+                      {group.move_in_ready ? "Yes" : "No"}
+                    </span>
+                  </span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Status:</span>
+                  <span className="detail-value">
+                    <span
+                      className={`status-badge ${status.cls}`}
+                      title={status.label}
+                    >
+                      {status.label}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </section>
+
             {/* Listing Preview */}
-            <div
-              className="group-section listing-preview"
-              role="button"
-              onClick={() => navigate(`/listings/${group.listing}`)}
-              onKeyDown={(e) =>
-                (e.key === "Enter" || e.key === " ") &&
-                navigate(`/listings/${group.listing}`)
-              }
-              tabIndex={0}
-              aria-label="Open listing"
-            >
+            <section className="group-section">
+              <h5 className="group-section-title">Listing</h5>
               {listing ? (
-                <>
+                <section
+                  className="group-section listing-preview"
+                  role="button"
+                  onClick={() => navigate(`/listings/${group.listing}`)}
+                  onKeyDown={(e) =>
+                    (e.key === "Enter" || e.key === " ") &&
+                    navigate(`/listings/${group.listing}`)
+                  }
+                  tabIndex={0}
+                  aria-label="Open listing"
+                >
                   <img
                     src={
                       listing.pictures?.find((p) => p.is_primary)?.image ||
@@ -272,8 +318,8 @@ function GroupView() {
                     }
                     alt="Listing preview"
                   />
-                  <div className="flex-grow-1">
-                    <h6 className="mb-1">
+                  <div>
+                    <h6 className="mb-1 fw-bold">
                       {`${listing.property_type} in ${listing.city}`}
                     </h6>
                     <div className="fw-bold text-price mb-1">
@@ -284,71 +330,22 @@ function GroupView() {
                       {listing.postal_code}
                     </div>
                   </div>
-                </>
+                </section>
               ) : (
                 <div className="p-3 text-muted small">Loading listing…</div>
               )}
-            </div>
+            </section>
 
-            {/* About & Details */}
-            <div className="row g-4 mt-2">
-              <div className="col-md-7">
-                <div className="group-section">
-                  <h5 className="group-section-title">About this group</h5>
-                  <p className="mb-0 text-muted">
-                    {group.description || "No description provided."}
-                  </p>
-                </div>
-              </div>
+            {/* About Group */}
+            <section className="group-section">
+              <h5 className="group-section-title">About this group</h5>
+              <p className="mb-0 text-muted">
+                {group.description || "No description provided."}
+              </p>
+            </section>
 
-              <div className="col-md-5">
-                <div className="group-section">
-                  <h5 className="group-section-title">Details</h5>
-                  <div className="row gy-3">
-                    <div className="col-6">
-                      <div className="meta">
-                        <div className="meta-label">Move-in Date</div>
-                        <div className="meta-value">
-                          {group.move_in_date || "—"}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="col-6">
-                      <div className="meta">
-                        <div className="meta-label">Move-in Ready</div>
-                        <div className="meta-value">
-                          <span
-                            className={`badge ${
-                              group.move_in_ready
-                                ? "bg-success"
-                                : "bg-secondary"
-                            }`}
-                          >
-                            {group.move_in_ready ? "Yes" : "No"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="col-12">
-                      <div className="meta">
-                        <div className="meta-label">Status</div>
-                        <div className="meta-value">
-                          <span
-                            className={`status-badge ${status.cls}`}
-                            title={status.label}
-                          >
-                            {status.label}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Members */}
-            <div className="group-section mt-3">
+            {/* Group Members */}
+            <section className="group-section">
               <h5 className="group-section-title">Group Members</h5>
               {members.length === 0 ? (
                 <p className="text-muted mb-0">No members yet.</p>
@@ -364,11 +361,11 @@ function GroupView() {
                   ))}
                 </div>
               )}
-            </div>
-          </div>
+            </section>
+          </main>
 
           {/* Sticky Action Bar */}
-          <div className="action-bar">
+          <footer className="action-bar">
             <button
               className={`btn ${
                 isOwner
@@ -475,7 +472,7 @@ function GroupView() {
                 Back
               </button>
             )}
-          </div>
+          </footer>
         </>
       )}
     </div>

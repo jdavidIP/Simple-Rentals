@@ -21,22 +21,6 @@
   justify-content: center;
 }
 
-.group-card {
-  background: #f3f6fb; /* subtle denim tint */
-  border-radius: 10px;
-  box-shadow: 0 1px 6px rgba(22, 29, 43, 0.06);
-  padding: 20px 24px;
-  min-width: 260px;
-  max-width: 320px;
-  flex: 1 1 260px;
-  margin-bottom: 16px;
-  transition: box-shadow 0.2s;
-}
-
-.group-card:hover {
-  box-shadow: 0 4px 18px rgba(22, 29, 43, 0.13);
-}
-
 .group-name {
   font-size: 1.3rem;
   font-weight: 600;
@@ -52,8 +36,8 @@
 
 /* Sections */
 .group-section {
-  background: #fff;
-  border: 1px solid #dce3f5;
+  background: var(--denim-bg-blue);
+  border: 1px solid var(--wood-highlight);
   border-radius: 14px;
   padding: 20px;
   margin: 20px auto;
@@ -65,6 +49,37 @@
   font-size: 1.15rem;
   font-weight: 700;
   margin-bottom: 14px;
+}
+
+.group-details {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.details-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f9faff;
+  border: 1px solid #dce3f5;
+  border-radius: 10px;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.detail-value {
+  font-weight: 500;
+  color: #2d3748;
 }
 
 /* Meta rows */
@@ -426,8 +441,8 @@
 .action-bar {
   position: sticky;
   bottom: 0;
-  background: #fff;
-  border-top: 1px solid #dce3f5;
+  background: var(--denim-bg-blue);
+  border: 1px solid var(--wood-primary);
   padding: 14px 16px;
   display: flex;
   justify-content: center;
@@ -452,6 +467,14 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  border: 1px solid var(--wood-primary);
+  background-color: white;
+}
+
+.listing-preview:hover {
+  transform: translateY(-2px);
+  border-color: #c5d3f4;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.12);
 }
 .listing-preview img {
   border-radius: 10px;
