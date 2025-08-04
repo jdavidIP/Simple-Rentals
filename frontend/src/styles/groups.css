@@ -21,67 +21,6 @@
   justify-content: center;
 }
 
-.group-name {
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: var(--wood-primary);
-}
-
-.group-description {
-  font-size: 1rem;
-  margin-bottom: 10px;
-  color: #6a7588; /* softer denim gray */
-}
-
-/* Sections */
-.group-section {
-  background: var(--denim-bg-blue);
-  border: 1px solid var(--wood-highlight);
-  border-radius: 14px;
-  padding: 20px;
-  margin: 20px auto;
-  box-shadow: 0 2px 10px rgba(22, 29, 43, 0.05);
-}
-
-.group-section-title {
-  color: var(--wood-primary);
-  font-size: 1.15rem;
-  font-weight: 700;
-  margin-bottom: 14px;
-}
-
-.group-details {
-  max-width: 420px;
-  margin: 0 auto;
-}
-
-.details-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.detail-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  background: #f9faff;
-  border: 1px solid #dce3f5;
-  border-radius: 10px;
-}
-
-.detail-label {
-  font-weight: 600;
-  color: #4a5568;
-}
-
-.detail-value {
-  font-weight: 500;
-  color: #2d3748;
-}
-
 /* Meta rows */
 .meta-label {
   font-size: 0.8rem;
@@ -435,51 +374,4 @@
 }
 .gc-btn:active {
   transform: translateY(1px);
-}
-
-/* Action bar (sticky bottom) */
-.action-bar {
-  position: sticky;
-  bottom: 0;
-  background: var(--denim-bg-blue);
-  border: 1px solid var(--wood-primary);
-  padding: 14px 16px;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  box-shadow: 0 -2px 10px rgba(22, 29, 43, 0.08);
-}
-.action-bar .btn {
-  border-radius: 8px;
-  font-weight: 600;
-  min-width: 120px;
-}
-.action-bar .btn-primary {
-  background: var(--wood-primary);
-  border-color: var(--wood-primary);
-}
-.action-bar .btn-primary:hover {
-  background: #1b4ed7;
-}
-
-/* Listing preview inside card */
-.listing-preview {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  border: 1px solid var(--wood-primary);
-  background-color: white;
-}
-
-.listing-preview:hover {
-  transform: translateY(-2px);
-  border-color: #c5d3f4;
-  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.12);
-}
-.listing-preview img {
-  border-radius: 10px;
-  border: 1px solid #e4e9f2;
-  width: 160px;
-  height: 106px;
-  object-fit: cover;
 }

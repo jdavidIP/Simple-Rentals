@@ -238,7 +238,7 @@ function Roommates() {
               </div>
               <div className="col-md-4">
                 <MultiSelectDropdown
-                  label="Preferences"
+                  label="Lifestyle Preferences"
                   options={PREFERENCES_OPTIONS}
                   selected={filters.preferences || []}
                   setSelected={(newSelected) =>

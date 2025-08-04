@@ -175,7 +175,7 @@ function Profile() {
                       >
                         Create Listing
                       </button>
-                      {isProfileSelf(id) && !roommate && (
+                      {!roommate && (
                         <button
                           onClick={() => navigate("/roommates/post")}
                           className="btn btn-outline-success btn-sm"

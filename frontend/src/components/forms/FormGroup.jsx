@@ -42,8 +42,8 @@ function FormGroup({ method, group }) {
     if (!data.name || data.name.trim().length < 2)
       errors.name = "Group name must be at least 2 characters.";
     if (!data.move_in_date) errors.move_in_date = "Move-in date is required.";
-    if (data.description && data.description.length > 400)
-      errors.description = "Description cannot exceed 400 characters.";
+    if (data.description && data.description.length > 800)
+      errors.description = "Description cannot exceed 800 characters.";
     return errors;
   }
 
@@ -178,23 +178,6 @@ function FormGroup({ method, group }) {
 
   const handleCancelInvite = (idToRemove) => {
     setInvited((prev) => prev.filter((r) => r.id !== idToRemove));
-  };
-
-  // Helper to show added members' info
-  const getMemberInfo = (memberId) => {
-    let roommate = allRoommates.find((r) => r.id === memberId);
-    if (!roommate && group?.members) {
-      roommate = group.members.find((m) => m.id === memberId);
-    }
-    if (!roommate && invited.length > 0) {
-      roommate = allRoommates.find(
-        (r) => invited.includes(r.id) && r.id === memberId
-      );
-    }
-    if (roommate) {
-      return `${roommate.user?.first_name} ${roommate.user?.last_name} (${roommate.user?.email})`;
-    }
-    return `User ID: ${memberId}`;
   };
 
   return (

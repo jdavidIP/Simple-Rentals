@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import "../../styles/groups.css";
+import "../../styles/group_view.css";
 import { useProfileContext } from "../../contexts/ProfileContext";
 import RoommateCard from "../../components/cards/RoommateCard";
 
@@ -260,42 +260,6 @@ function GroupView() {
           </header>
 
           <main className="px-3 pb-5">
-            {/* Group Details */}
-            <section className="group-section group-details">
-              <h5 className="group-section-title">Details</h5>
-              <div className="details-list">
-                <div className="detail-item">
-                  <span className="detail-label">Move-in Date:</span>
-                  <span className="detail-value">
-                    {group.move_in_date || "—"}
-                  </span>
-                </div>
-                <div className="detail-item">
-                  <span className="detail-label">Move-in Ready:</span>
-                  <span className="detail-value">
-                    <span
-                      className={`badge ${
-                        group.move_in_ready ? "bg-success" : "bg-secondary"
-                      }`}
-                    >
-                      {group.move_in_ready ? "Yes" : "No"}
-                    </span>
-                  </span>
-                </div>
-                <div className="detail-item">
-                  <span className="detail-label">Status:</span>
-                  <span className="detail-value">
-                    <span
-                      className={`status-badge ${status.cls}`}
-                      title={status.label}
-                    >
-                      {status.label}
-                    </span>
-                  </span>
-                </div>
-              </div>
-            </section>
-
             {/* Listing Preview */}
             <section className="group-section">
               <h5 className="group-section-title">Listing</h5>
@@ -336,13 +300,51 @@ function GroupView() {
               )}
             </section>
 
-            {/* About Group */}
-            <section className="group-section">
-              <h5 className="group-section-title">About this group</h5>
-              <p className="mb-0 text-muted">
-                {group.description || "No description provided."}
-              </p>
-            </section>
+            <div className="group-info-row">
+              {/* About Group */}
+              <section className="group-section about-section">
+                <h5 className="group-section-title">About this group</h5>
+                <div className="about-content">
+                  {group.description || "No description provided."}
+                </div>
+              </section>
+
+              {/* Group Details */}
+              <section className="group-section group-details">
+                <h5 className="group-section-title">Details</h5>
+                <div className="details-list">
+                  <div className="detail-item">
+                    <span className="detail-label">Move-in Date:</span>
+                    <span className="detail-value">
+                      {group.move_in_date || "—"}
+                    </span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Move-in Ready:</span>
+                    <span className="detail-value">
+                      <span
+                        className={`badge ${
+                          group.move_in_ready ? "bg-success" : "bg-secondary"
+                        }`}
+                      >
+                        {group.move_in_ready ? "Yes" : "No"}
+                      </span>
+                    </span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Status:</span>
+                    <span className="detail-value">
+                      <span
+                        className={`status-badge ${status.cls}`}
+                        title={status.label}
+                      >
+                        {status.label}
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              </section>
+            </div>
 
             {/* Group Members */}
             <section className="group-section">
@@ -408,15 +410,12 @@ function GroupView() {
 
             {isOwner && ["O", "P", "F"].includes(group.group_status) && (
               <>
-                <button
-                  onClick={handleApplication}
-                  className="btn btn-outline-success"
-                >
+                <button onClick={handleApplication} className="btn btn-success">
                   Apply
                 </button>
                 <button
                   onClick={() => navigate(`/groups/edit/${id}`)}
-                  className="btn btn-outline-secondary"
+                  className="btn btn-secondary"
                 >
                   Edit
                 </button>
@@ -426,7 +425,7 @@ function GroupView() {
             {isOwner && !conversation && (
               <button
                 onClick={handleStartConversation}
-                className="btn btn-outline-secondary"
+                className="btn btn-secondary"
               >
                 Start Chat
               </button>
@@ -435,7 +434,7 @@ function GroupView() {
             {conversation && isMember && (
               <button
                 onClick={handleStartConversation}
-                className="btn btn-outline-secondary"
+                className="btn btn-secondary"
               >
                 See Chat
               </button>
@@ -444,13 +443,13 @@ function GroupView() {
             {isProfileSelf(listing.owner.id) ? (
               <>
                 <button
-                  className="btn btn-outline-secondary"
+                  className="btn btn-secondary"
                   onClick={() => navigate(`/listings/${group.listing}/groups`)}
                 >
                   See Groups
                 </button>
                 <button
-                  className="btn btn-outline-secondary"
+                  className="btn btn-secondary"
                   onClick={() => navigate(`/applications`)}
                 >
                   See Applications
@@ -466,7 +465,7 @@ function GroupView() {
               </>
             ) : (
               <button
-                className="btn btn-outline-secondary"
+                className="btn btn-secondary"
                 onClick={() => navigate(-1)}
               >
                 Back
