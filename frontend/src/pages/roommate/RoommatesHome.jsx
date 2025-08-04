@@ -4,6 +4,8 @@ import Pagination from "../../components/Pagination.jsx";
 import RoommateCard from "../../components/cards/RoommateCard.jsx";
 import useGoogleMaps from "../../hooks/useGoogleMaps";
 import MultiSelectDropdown from "../../components/MultiSelectDropdown.jsx";
+import "../../styles/listings.css";
+
 function Roommates() {
   const [roommates, setRoommates] = useState([]);
   const [filters, setFilters] = useState({
@@ -294,9 +296,15 @@ function Roommates() {
           {paginatedRoommates.length === 0 ? (
             <p className="text-muted text-center fs-5">No roommates found.</p>
           ) : (
-            <div className="row gx-4 gy-4">
+            <div className="row roommates-grid">
               {paginatedRoommates.map((roommate) => (
-                <RoommateCard key={roommate.id} roommate={roommate} />
+                <div className="col-md-4" key={roommate.id}>
+                  <RoommateCard
+                    key={roommate.id}
+                    roommate={roommate}
+                    styling={true}
+                  />
+                </div>
               ))}
             </div>
           )}

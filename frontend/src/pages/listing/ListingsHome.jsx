@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import api from "../../api.js";
 import { useNavigate } from "react-router-dom";
+import "../../styles/listings.css";
 
 function ListingsHome() {
   const [city, setCity] = useState("");

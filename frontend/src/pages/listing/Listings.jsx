@@ -7,6 +7,7 @@ import SortDropdown from "../../components/SortDropdown.jsx";
 import Pagination from "../../components/Pagination.jsx";
 import useGoogleMaps from "../../hooks/useGoogleMaps";
 import MultiSelectDropdown from "../../components/MultiSelectDropdown.jsx";
+import "../../styles/listings.css";
 
 function Listings() {
   const location = useLocation();
@@ -284,6 +285,8 @@ function Listings() {
     currentPage * itemsPerPage
   );
 
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
+
   return (
     <div>
       <div className="container py-5">
@@ -315,7 +318,6 @@ function Listings() {
                       onChange={handleInputChange}
                       placeholder="Type a location..."
                       autoComplete="off"
-                      aria-label="Location"
                     />
                     <select
                       className="form-select"
@@ -330,11 +332,6 @@ function Listings() {
                       <option value="50">50 km</option>
                     </select>
                   </div>
-                  {filters.location && !locationSelected && (
-                    <small className="text-danger">
-                      Please select a location from the dropdown.
-                    </small>
-                  )}
                 </div>
 
                 {/* Price Range */}
@@ -346,7 +343,6 @@ function Listings() {
                     className="form-control rounded-3 shadow-sm"
                     value={filters.min_price}
                     onChange={handleInputChange}
-                    min="0"
                     placeholder="e.g. 500"
                   />
                 </div>
@@ -358,7 +354,6 @@ function Listings() {
                     className="form-control rounded-3 shadow-sm"
                     value={filters.max_price}
                     onChange={handleInputChange}
-                    min="0"
                     placeholder="e.g. 2000"
                   />
                 </div>
@@ -376,117 +371,134 @@ function Listings() {
                     <option value="tooExpensive">Too Expensive</option>
                   </select>
                 </div>
-
-                {/* Property Info */}
-                <div className="col-md-4">
-                  <label className="form-label fw-medium">Property Type</label>
-                  <select
-                    name="property_type"
-                    className="form-select rounded-3 shadow-sm"
-                    value={filters.property_type}
-                    onChange={handleInputChange}
-                  >
-                    <option value="">Any</option>
-                    <option value="H">House</option>
-                    <option value="A">Apartment</option>
-                    <option value="C">Condo</option>
-                    <option value="T">Townhouse</option>
-                    <option value="O">Other</option>
-                  </select>
-                </div>
-                <div className="col-md-4">
-                  <label className="form-label fw-medium">Bedrooms</label>
-                  <input
-                    type="number"
-                    name="bedrooms"
-                    className="form-control rounded-3 shadow-sm"
-                    value={filters.bedrooms}
-                    onChange={handleInputChange}
-                    min="0"
-                    placeholder="Any"
-                  />
-                </div>
-                <div className="col-md-4">
-                  <label className="form-label fw-medium">Bathrooms</label>
-                  <input
-                    type="number"
-                    name="bathrooms"
-                    className="form-control rounded-3 shadow-sm"
-                    value={filters.bathrooms}
-                    onChange={handleInputChange}
-                    min="0"
-                    placeholder="Any"
-                  />
-                </div>
-
-                {/* Amenities, Utilities, Furnished, Pet Friendly, Roommates */}
-                <div className="col-md-2">
-                  <label className="form-label fw-medium">Furnished</label>
-                  <select
-                    name="furnished"
-                    className="form-select rounded-3 shadow-sm"
-                    value={filters.furnished}
-                    onChange={handleInputChange}
-                  >
-                    <option value="">Any</option>
-                    <option value={true}>Yes</option>
-                    <option value={false}>No</option>
-                  </select>
-                </div>
-                <div className="col-md-2">
-                  <label className="form-label fw-medium">Pet Friendly</label>
-                  <select
-                    name="pet_friendly"
-                    className="form-select rounded-3 shadow-sm"
-                    value={filters.pet_friendly}
-                    onChange={handleInputChange}
-                  >
-                    <option value="">Any</option>
-                    <option value={true}>Yes</option>
-                    <option value={false}>No</option>
-                  </select>
-                </div>
-                <div className="col-md-2">
-                  <label className="form-label fw-medium">Roommates</label>
-                  <select
-                    name="shareable"
-                    className="form-select rounded-3 shadow-sm"
-                    value={filters.shareable}
-                    onChange={handleInputChange}
-                  >
-                    <option value="">Any</option>
-                    <option value={true}>Yes</option>
-                    <option value={false}>No</option>
-                  </select>
-                </div>
-                <div className="col-md-3">
-                  <MultiSelectDropdown
-                    label="Amenities"
-                    options={AMENITY_OPTIONS}
-                    selected={filters.amenities || []}
-                    setSelected={(newSelected) =>
-                      setFilters((prev) => ({
-                        ...prev,
-                        amenities: newSelected,
-                      }))
-                    }
-                  />
-                </div>
-
-                <div className="col-md-3">
-                  <MultiSelectDropdown
-                    label="Utilities"
-                    options={UTILITY_OPTIONS}
-                    selected={filters.utilities || []}
-                    setSelected={(newSelected) =>
-                      setFilters((prev) => ({
-                        ...prev,
-                        utilities: newSelected,
-                      }))
-                    }
-                  />
-                </div>
               </div>
+
+              {/* Toggle More Filters */}
+              <div className="text-end mt-3">
+                <button
+                  type="button"
+                  className="btn btn-link p-0"
+                  onClick={() => setShowMoreFilters(!showMoreFilters)}
+                >
+                  {showMoreFilters
+                    ? "Hide Advanced Filters ▲"
+                    : "Show More Filters ▼"}
+                </button>
+              </div>
+
+              {showMoreFilters && (
+                <div className="row g-3 mt-1">
+                  {/* Property Info */}
+                  <div className="col-md-4">
+                    <label className="form-label fw-medium">
+                      Property Type
+                    </label>
+                    <select
+                      name="property_type"
+                      className="form-select rounded-3 shadow-sm"
+                      value={filters.property_type}
+                      onChange={handleInputChange}
+                    >
+                      <option value="">Any</option>
+                      <option value="H">House</option>
+                      <option value="A">Apartment</option>
+                      <option value="C">Condo</option>
+                      <option value="T">Townhouse</option>
+                      <option value="O">Other</option>
+                    </select>
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label fw-medium">Bedrooms</label>
+                    <input
+                      type="number"
+                      name="bedrooms"
+                      className="form-control rounded-3 shadow-sm"
+                      value={filters.bedrooms}
+                      onChange={handleInputChange}
+                      placeholder="Any"
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label fw-medium">Bathrooms</label>
+                    <input
+                      type="number"
+                      name="bathrooms"
+                      className="form-control rounded-3 shadow-sm"
+                      value={filters.bathrooms}
+                      onChange={handleInputChange}
+                      placeholder="Any"
+                    />
+                  </div>
+
+                  {/* Amenities & Other Options */}
+                  <div className="col-md-3">
+                    <label className="form-label fw-medium">Furnished</label>
+                    <select
+                      name="furnished"
+                      className="form-select rounded-3 shadow-sm"
+                      value={filters.furnished}
+                      onChange={handleInputChange}
+                    >
+                      <option value="">Any</option>
+                      <option value={true}>Yes</option>
+                      <option value={false}>No</option>
+                    </select>
+                  </div>
+                  <div className="col-md-3">
+                    <label className="form-label fw-medium">Pet Friendly</label>
+                    <select
+                      name="pet_friendly"
+                      className="form-select rounded-3 shadow-sm"
+                      value={filters.pet_friendly}
+                      onChange={handleInputChange}
+                    >
+                      <option value="">Any</option>
+                      <option value={true}>Yes</option>
+                      <option value={false}>No</option>
+                    </select>
+                  </div>
+                  <div className="col-md-3">
+                    <label className="form-label fw-medium">Roommates</label>
+                    <select
+                      name="shareable"
+                      className="form-select rounded-3 shadow-sm"
+                      value={filters.shareable}
+                      onChange={handleInputChange}
+                    >
+                      <option value="">Any</option>
+                      <option value={true}>Yes</option>
+                      <option value={false}>No</option>
+                    </select>
+                  </div>
+
+                  <div className="col-md-3">
+                    <MultiSelectDropdown
+                      label="Amenities"
+                      options={AMENITY_OPTIONS}
+                      selected={filters.amenities || []}
+                      setSelected={(newSelected) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          amenities: newSelected,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="col-md-3">
+                    <MultiSelectDropdown
+                      label="Utilities"
+                      options={UTILITY_OPTIONS}
+                      selected={filters.utilities || []}
+                      setSelected={(newSelected) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          utilities: newSelected,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Actions */}
               <div className="d-flex justify-content-end gap-2 mt-4">
@@ -494,13 +506,6 @@ function Listings() {
                   type="submit"
                   className="btn btn-primary"
                   disabled={!filters.location.trim() || !locationSelected}
-                  title={
-                    filters.location && !locationSelected
-                      ? "Please select a location from the dropdown"
-                      : !filters.location.trim()
-                      ? "Please enter and select a location"
-                      : ""
-                  }
                 >
                   🔍 Apply Filters
                 </button>
@@ -516,11 +521,9 @@ function Listings() {
           </div>
         </div>
 
-        {/* Error & Listings */}
+        {/* Listings */}
         {error ? (
-          <div ref={errorRef} className="alert alert-danger">
-            {error}
-          </div>
+          <div className="alert alert-danger">{error}</div>
         ) : loadingListings ? (
           <div className="d-flex justify-content-center py-5">
             <div className="spinner-border text-primary" role="status" />
@@ -535,13 +538,15 @@ function Listings() {
             {paginatedListings.length === 0 ? (
               <p className="text-muted text-center">No listings found.</p>
             ) : (
-              <div className="row gx-3">
+              <div className="row listings-grid">
                 {paginatedListings.map((listing) => (
-                  <ListingCard
-                    key={listing.id}
-                    listing={listing}
-                    income={userIncome}
-                  />
+                  <div className="col-md-4" key={listing.id}>
+                    <ListingCard
+                      listing={listing}
+                      income={userIncome}
+                      styling={true}
+                    />
+                  </div>
                 ))}
               </div>
             )}
