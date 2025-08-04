@@ -11,10 +11,7 @@ function NotFound() {
       style={{ padding: "2rem" }}
     >
       <div className="mb-4">
-        <h1
-          className="display-1 fw-bold text-primary"
-          style={{ fontSize: "6rem" }}
-        >
+        <h1 className="display-1 fw-bold" style={{ fontSize: "6rem" }}>
           404
         </h1>
         <h2 className="mb-3">Oops! Page not found 😕</h2>
@@ -26,7 +23,7 @@ function NotFound() {
 
       <div className="d-flex gap-3 flex-wrap justify-content-center">
         <button className="btn btn-primary" onClick={() => navigate("/")}>
-          🔙 Go Home
+          Go Home
         </button>
         <button
           className="btn btn-outline-secondary"

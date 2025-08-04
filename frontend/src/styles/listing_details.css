@@ -1,34 +1,97 @@
-.listing-details-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
+.accordion-body {
+  background-color: var(--denim-bg-blue);
+  border-radius: 8px;
+  padding: 1.25rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #333;
 }
 
-.listing-details {
-  margin-bottom: 20px;
+.accordion-body p,
+.accordion-body li {
+  margin-bottom: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--wood-dark);
+  padding-bottom: 0.5rem;
 }
 
-.carousel-container {
-  max-width: 750px;
-  margin: auto;
+.accordion-body strong {
+  color: var(--wood-primary); /* denim-like strong blue */
+  font-weight: 600;
 }
 
-.carousel-item img {
-  max-height: 400px;
-  object-fit: cover;
+.accordion-body ul {
+  padding: 0;
+  margin: 0;
 }
 
-.owner-sidebar {
-  position: sticky;
-  top: 100px;
-  z-index: 1;
+.accordion-body li:last-child,
+.accordion-body p:last-child {
+  border-bottom: none;
 }
 
-.carousel-item img {
-  max-height: 400px;
-  object-fit: cover;
+.accordion-item {
+  border: none; /* cleaner look */
+  margin-bottom: 10px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
-.accordion-button:focus {
-  box-shadow: none;
+.accordion-button {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--wood-primary);
+  background-color: var(--wood-white);
+  transition: background-color 0.2s ease;
+  border: 1px solid var(--wood-primary);
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: var(--denim-strong-blue); /* light blue when expanded */
+  color: var(--wood-white);
+}
+
+.accordion-button:hover {
+  background-color: var(--wood-primary);
+  color: var(--wood-white);
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem 1.25rem;
+}
+
+.detail-item {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.detail-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+}
+
+.detail-label {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1d3557;
 }

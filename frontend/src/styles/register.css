@@ -1,0 +1,190 @@
+/* --- RegisterForm.css --- */
+
+.register-form {
+  background-color: var(--wood-white);
+  border: 1px solid var(--wood-accent);
+  border-radius: 12px;
+  box-shadow: 0 6px 14px rgba(47, 60, 82, 0.15);
+  padding: 30px;
+  max-width: 600px;
+  margin: auto;
+}
+
+.register-form .card-title {
+  font-weight: 700;
+  color: var(--wood-dark);
+}
+
+.register-form .nav-pills .nav-link {
+  border-radius: 20px;
+  font-weight: 500;
+  color: var(--wood-subtitle);
+  background-color: #e4e9f2;
+}
+
+.register-form .nav-pills .nav-link.active {
+  background-color: var(--wood-primary);
+  color: #fff;
+}
+
+.register-form .nav-pills .nav-link.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.register-form .form-label {
+  font-weight: 500;
+  color: var(--wood-subtitle);
+  margin-bottom: 6px;
+}
+
+.register-form .form-control,
+.register-form .form-select {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--wood-accent);
+  background-color: #fff;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.2s ease;
+}
+
+.register-form .form-control:focus,
+.register-form .form-select:focus {
+  border-color: var(--wood-highlight);
+  box-shadow: 0 0 0 4px rgba(95, 124, 165, 0.15);
+}
+
+.register-form .form-check-label {
+  font-size: 0.95rem;
+  color: var(--wood-subtitle);
+}
+
+.register-form .form-check-input {
+  transform: scale(1.2);
+  margin-right: 8px;
+}
+
+.register-form .btn {
+  min-width: 120px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.register-form .btn-primary {
+  background-color: var(--wood-primary);
+  border: none;
+}
+
+.register-form .btn-primary:hover {
+  background-color: var(--wood-dark);
+}
+
+.register-form .btn-outline-secondary {
+  border-color: var(--wood-accent);
+  color: var(--wood-subtitle);
+}
+
+.register-form .btn-outline-secondary:hover {
+  background-color: var(--wood-hover);
+}
+
+.register-form .text-center a {
+  color: var(--wood-highlight);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.register-form .text-center a:hover {
+  text-decoration: underline;
+  color: var(--wood-primary);
+}
+
+/* Progress Tracker */
+.register-progress {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 30px;
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+}
+
+/* connector line spans between circles, not the edges */
+.register-progress::before {
+  content: "";
+  position: absolute;
+  top: 19px; /* aligns with circle centers */
+  left: calc(38px / 2); /* half circle width */
+  right: calc(38px / 2);
+  height: 4px;
+  background: #dcdcdc;
+  z-index: 1;
+}
+
+.register-progress li {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* ensures circle is centered */
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  padding-right: 20px;
+}
+
+.progress-step .circle {
+  width: 38px;
+  height: 38px;
+  line-height: 38px;
+  border-radius: 50%;
+  border: 2px solid var(--wood-accent);
+  background: var(--wood-white);
+  text-align: center;
+  font-weight: bold;
+  color: var(--wood-dark);
+  margin-bottom: 6px;
+}
+
+.progress-step {
+  position: relative;
+  text-align: center;
+  flex: 1;
+  z-index: 2;
+}
+
+.progress-step.active .circle {
+  border-color: var(--wood-primary);
+  background: var(--wood-primary);
+  color: #fff;
+  box-shadow: 0 0 6px rgba(95, 124, 165, 0.3);
+}
+
+.progress-step.completed .circle {
+  border-color: var(--wood-highlight);
+  background: var(--wood-highlight);
+  color: #fff;
+}
+
+.progress-step .label {
+  font-size: 0.9rem;
+  color: var(--wood-subtitle);
+  display: block;
+  font-size: 0.9rem;
+  color: var(--wood-subtitle);
+}
+
+/* Step fade-in animation */
+.fade-in-step {
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

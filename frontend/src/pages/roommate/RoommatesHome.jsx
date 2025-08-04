@@ -3,6 +3,9 @@ import api from "../../api.js";
 import Pagination from "../../components/Pagination.jsx";
 import RoommateCard from "../../components/cards/RoommateCard.jsx";
 import useGoogleMaps from "../../hooks/useGoogleMaps";
+import MultiSelectDropdown from "../../components/MultiSelectDropdown.jsx";
+import "../../styles/listings.css";
+
 function Roommates() {
   const [roommates, setRoommates] = useState([]);
   const [filters, setFilters] = useState({
@@ -16,6 +19,7 @@ function Roommates() {
     couple_friendly: "",
     occupation: "",
     gender: "",
+    preferences: [],
   });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,6 +32,13 @@ function Roommates() {
   const cityInputRef = useRef(null);
   const autocompleteRef = useRef(null);
   const { googleMaps } = useGoogleMaps(); // Load Google Maps
+
+  const PREFERENCES_OPTIONS = [
+    { value: "pet_friendly", label: "Pet Friendly" },
+    { value: "smoke_friendly", label: "Smoke Friendly" },
+    { value: "cannabis_friendly", label: "Cannabis Friendly" },
+    { value: "couple_friendly", label: "Couple Friendly" },
+  ];
 
   // Slice roommates by current page
   const paginatedRoommates = roommates.slice(
@@ -91,14 +102,8 @@ function Roommates() {
         params.budget_max = customFilters.budget_max;
       if (customFilters.gender_preference)
         params.gender_preference = customFilters.gender_preference;
-      if (customFilters.pet_friendly)
-        params.pet_friendly = customFilters.pet_friendly;
-      if (customFilters.smoke_friendly)
-        params.smoke_friendly = customFilters.smoke_friendly;
-      if (customFilters.cannabis_friendly)
-        params.cannabis_friendly = customFilters.cannabis_friendly;
-      if (customFilters.couple_friendly)
-        params.couple_friendly = customFilters.couple_friendly;
+      if (customFilters.preferences.length > 0)
+        params.preferences = customFilters.preferences;
       if (customFilters.occupation)
         params.occupation = customFilters.occupation;
       if (customFilters.gender) params.gender = customFilters.gender;
@@ -144,6 +149,7 @@ function Roommates() {
       couple_friendly: "",
       occupation: "",
       gender: "",
+      preferences: [],
     };
     setFilters(cleared);
     fetchRoommates(cleared);
@@ -231,33 +237,17 @@ function Roommates() {
                 </select>
               </div>
               <div className="col-md-4">
-                <label className="form-label fw-medium d-block">
-                  Preferences
-                </label>
-                <div className="row row-cols-2 g-2">
-                  {[
-                    ["pet_friendly", "Pet Friendly"],
-                    ["smoke_friendly", "Smoke Friendly"],
-                    ["cannabis_friendly", "Cannabis Friendly"],
-                    ["couple_friendly", "Couple Friendly"],
-                  ].map(([key, label]) => (
-                    <div className="col" key={key}>
-                      <div className="form-check">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          name={key}
-                          id={key}
-                          checked={filters[key] === "true"}
-                          onChange={handleInputChange}
-                        />
-                        <label className="form-check-label" htmlFor={key}>
-                          {label}
-                        </label>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <MultiSelectDropdown
+                  label="Lifestyle Preferences"
+                  options={PREFERENCES_OPTIONS}
+                  selected={filters.preferences || []}
+                  setSelected={(newSelected) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      preferences: newSelected,
+                    }))
+                  }
+                />
               </div>
               <div className="col-md-4">
                 <label className="form-label fw-medium">
@@ -306,9 +296,15 @@ function Roommates() {
           {paginatedRoommates.length === 0 ? (
             <p className="text-muted text-center fs-5">No roommates found.</p>
           ) : (
-            <div className="row gx-4 gy-4">
+            <div className="row roommates-grid">
               {paginatedRoommates.map((roommate) => (
-                <RoommateCard key={roommate.id} roommate={roommate} />
+                <div className="col-md-4" key={roommate.id}>
+                  <RoommateCard
+                    key={roommate.id}
+                    roommate={roommate}
+                    styling={true}
+                  />
+                </div>
               ))}
             </div>
           )}

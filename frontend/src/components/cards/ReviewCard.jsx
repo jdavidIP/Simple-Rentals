@@ -30,12 +30,13 @@ function ReviewCard({ review }) {
         <div className="d-flex align-items-center justify-content-between mb-2">
           <div className="d-flex align-items-center">
             <div
-              className="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-3"
+              className="rounded-circle text-white d-flex justify-content-center align-items-center me-3"
               style={{
                 width: 44,
                 height: 44,
                 fontSize: "0.95rem",
                 fontWeight: "bold",
+                backgroundColor: "var(--denim-strong-blue)",
               }}
             >
               {review.reviewer
@@ -106,7 +107,10 @@ function ReviewCard({ review }) {
 
         {/* Meta + Actions */}
         <div className="d-flex align-items-center justify-content-between mt-3">
-          <span className="badge bg-secondary">
+          <span
+            className="badge"
+            style={{ backgroundColor: "var(--denim-strong-blue)" }}
+          >
             Reviewed as: {review.reviewee_role_display}
           </span>
 

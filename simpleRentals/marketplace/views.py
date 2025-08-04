@@ -545,15 +545,12 @@ class RoommateListView(generics.ListAPIView):
 
         name = filters.get("name")
         gender_preference = filters.get("gender_preference")
-        pet_friendly = filters.get("pet_friendly")
-        smoke_friendly = filters.get("smoke_friendly")
-        cannabis_friendly = filters.get("cannabis_friendly")
-        couple_friendly = filters.get("couple_friendly")
         occupation = filters.get("occupation")
         preferred_location = filters.get("preferred_location")
         budget_min = filters.get("budget_min")
         budget_max = filters.get("budget_max")
         gender = filters.get("gender")
+        group_id = filters.get("group_id")
 
         user = self.request.user
         if user.is_authenticated:
@@ -573,14 +570,6 @@ class RoommateListView(generics.ListAPIView):
                 )
         if gender_preference:
             queryset = queryset.filter(gender_preference=gender_preference)
-        if pet_friendly is not None:
-            queryset = queryset.filter(pet_friendly=pet_friendly.lower() in ["true", "1"])
-        if smoke_friendly is not None:
-            queryset = queryset.filter(smoke_friendly=smoke_friendly.lower() in ["true", "1"])
-        if cannabis_friendly is not None:
-            queryset = queryset.filter(cannabis_friendly=cannabis_friendly.lower() in ["true", "1"])
-        if couple_friendly is not None:
-            queryset = queryset.filter(couple_friendly=couple_friendly.lower() in ["true", "1"])
         if occupation:
             queryset = queryset.filter(occupation=occupation)
         if preferred_location:
@@ -591,6 +580,19 @@ class RoommateListView(generics.ListAPIView):
             queryset = queryset.filter(roommate_budget__lte=budget_max)
         if gender:
             queryset = queryset.filter(user__sex=gender)
+        if group_id:
+            try:
+                group = Group.objects.get(id=group_id)
+                queryset = queryset.exclude(id__in=group.members.values_list("id", flat=True))
+            except Group.DoesNotExist:
+                raise NotFound("Group not found.")
+            
+
+        preferences = self.request.query_params.getlist('preferences[]')
+        if preferences:
+            for preference in [a.strip().lower() for a in preferences]:
+                if preference in ['pet_friendly', 'couple_friendly', 'cannabis_friendly', 'smoke_friendly']:
+                    queryset = queryset.filter(**{preference: True})
 
         return queryset
     

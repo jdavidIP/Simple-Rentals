@@ -67,7 +67,7 @@ const NotificationSidebar = React.forwardRef(
           {/* Content */}
           <div className="sidebar-content">
             {/* Messages */}
-            <section className="notif-section">
+            <section className="notif-section" style={{ paddingTop: "10px" }}>
               <div className="notif-section-head">
                 <h6 className="mb-0">Unread Messages</h6>
                 <span className="chip">{unreadMessages}</span>

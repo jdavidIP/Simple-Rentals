@@ -1,7 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-const RoommateCard = ({ roommate, isListingOwner, getFitRanking }) => {
+const RoommateCard = ({
+  roommate,
+  isListingOwner,
+  getFitRanking,
+  styling = null,
+}) => {
   const navigate = useNavigate();
   const fit = isListingOwner
     ? getFitRanking(roommate.user?.yearly_income)
@@ -16,7 +21,11 @@ const RoommateCard = ({ roommate, isListingOwner, getFitRanking }) => {
   return (
     <div
       key={roommate.id}
-      className="card col-12 col-sm-6 col-md-4 col-lg-4 mb-4 shadow-sm position-relative"
+      className={
+        styling
+          ? "card roommate-card shadow-sm position-relative"
+          : "card col-12 col-sm-6 col-md-4 col-lg-4 mb-4 shadow-sm position-relative"
+      }
       onClick={() => navigate(`/roommates/${roommate.id}`)}
       onMouseEnter={(e) =>
         (e.currentTarget.style.transform = "translateY(-2px)")
@@ -56,7 +65,10 @@ const RoommateCard = ({ roommate, isListingOwner, getFitRanking }) => {
 
         {/* Budget as Pill */}
         <div className="d-flex justify-content-center mb-3">
-          <span className="badge bg-primary px-3 py-2">
+          <span
+            className="badge px-3 py-2"
+            style={{ backgroundColor: "var(--denim-strong-blue)" }}
+          >
             💰 ${roommate.roommate_budget.toLocaleString()}
           </span>
         </div>

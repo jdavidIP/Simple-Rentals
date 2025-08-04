@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-from ...models import Listing, ListingPicture, RoommateUser, Group, Review  # Adjust import if needed
+from ...models import Listing, ListingPicture, RoommateUser, Group, Review 
 from django.core.files.base import ContentFile
 import base64
 

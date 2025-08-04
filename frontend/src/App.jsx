@@ -33,6 +33,7 @@ import ReviewsEdit from "./pages/review/ReviewsEdit";
 import VerifyPending from "./pages/auth/VerifyPending";
 import VerifyEmail from "./pages/auth/VerifyEmail";
 import AuthLayout from "./components/AuthLayout";
+import "./styles/global.css";
 
 function App() {
   return (

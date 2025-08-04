@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import "../../styles/groups.css";
+import "../../styles/group_view.css";
 import { useProfileContext } from "../../contexts/ProfileContext";
 import RoommateCard from "../../components/cards/RoommateCard";
 
@@ -236,7 +236,13 @@ function GroupView() {
   };
 
   return (
-    <div className="groups-container">
+    <div
+      className="groups-container"
+      style={{
+        backgroundColor: "var(--wood-white)",
+        border: "1px solid var(--wood-accent)",
+      }}
+    >
       {error ? (
         <div className="alert alert-danger">{error}</div>
       ) : loadingConversation || loadingGroup ? (
@@ -246,36 +252,28 @@ function GroupView() {
       ) : (
         <>
           {/* Header */}
-          <h2 className="groups-title mb-1">{group.name}</h2>
-
-          {/* Listing Preview */}
-          <div
-            className="group-section mt-3 p-3"
-            role="button"
-            onClick={() => navigate(`/listings/${group.listing}`)}
-            onKeyDown={(e) =>
-              (e.key === "Enter" || e.key === " ") &&
-              navigate(`/listings/${group.listing}`)
-            }
-            tabIndex={0}
-            style={{ cursor: "pointer" }}
-            aria-label="Open listing"
+          <header
+            className="apps-header text-center mb-4"
+            style={{ border: "1px solid var(--wood-primary)" }}
           >
-            <h5 className="group-section-title">Listing</h5>
+            <h2 className="groups-title">{group.name}</h2>
+          </header>
 
-            {listing ? (
-              <div className="d-flex align-items-center gap-3 px-1">
-                {" "}
-                {/* ⬅️ small inner pad */}
-                {/* Thumbnail */}
-                <div
-                  className="rounded overflow-hidden flex-shrink-0"
-                  style={{
-                    width: 160,
-                    height: 106,
-                    background: "#f1f3f5",
-                    border: "1px solid #e9ecef",
-                  }}
+          <main className="px-3 pb-5">
+            {/* Listing Preview */}
+            <section className="group-section">
+              <h5 className="group-section-title">Listing</h5>
+              {listing ? (
+                <section
+                  className="group-section listing-preview"
+                  role="button"
+                  onClick={() => navigate(`/listings/${group.listing}`)}
+                  onKeyDown={(e) =>
+                    (e.key === "Enter" || e.key === " ") &&
+                    navigate(`/listings/${group.listing}`)
+                  }
+                  tabIndex={0}
+                  aria-label="Open listing"
                 >
                   <img
                     src={
@@ -283,117 +281,93 @@ function GroupView() {
                       "/static/img/placeholder.jpg"
                     }
                     alt="Listing preview"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
                   />
-                </div>
-                {/* Text content */}
-                <div className="flex-grow-1">
-                  <div className="d-flex justify-content-between align-items-start">
-                    <h6 className="mb-1 me-2">
-                      {`${listing.property_type} for Rent in ${listing.city}`}
+                  <div>
+                    <h6 className="mb-1 fw-bold">
+                      {`${listing.property_type} in ${listing.city}`}
                     </h6>
-                    <div
-                      className="fw-bold text-primary ms-2"
-                      style={{ whiteSpace: "nowrap" }}
-                    >
+                    <div className="fw-bold text-price mb-1">
                       ${Number(listing.price).toLocaleString()}
                     </div>
+                    <div className="text-muted small">
+                      {listing.street_address}, {listing.city},{" "}
+                      {listing.postal_code}
+                    </div>
                   </div>
+                </section>
+              ) : (
+                <div className="p-3 text-muted small">Loading listing…</div>
+              )}
+            </section>
 
-                  <div className="text-muted small">
-                    {listing.street_address}, {listing.city},{" "}
-                    {listing.postal_code}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="p-3 text-muted small">Loading listing…</div>
-            )}
-          </div>
-
-          {/* Top sections: About + Details */}
-          <div className="row g-4 mt-1">
-            {/* About */}
-            <div className="col-md-7">
-              <div className="group-section">
+            <div className="group-info-row">
+              {/* About Group */}
+              <section className="group-section about-section">
                 <h5 className="group-section-title">About this group</h5>
-                <p className="mb-0 text-muted">
+                <div className="about-content">
                   {group.description || "No description provided."}
-                </p>
-              </div>
-            </div>
+                </div>
+              </section>
 
-            {/* Details */}
-            <div className="col-md-5">
-              <div className="group-section">
-                <h5 className="group-section-title mb-3">Details</h5>
-
-                <div className="row gy-2">
-                  <div className="col-6">
-                    <div className="meta">
-                      <div className="meta-label">Move-in Date</div>
-                      <div className="meta-value">
-                        {group.move_in_date || "—"}
-                      </div>
-                    </div>
+              {/* Group Details */}
+              <section className="group-section group-details">
+                <h5 className="group-section-title">Details</h5>
+                <div className="details-list">
+                  <div className="detail-item">
+                    <span className="detail-label">Move-in Date:</span>
+                    <span className="detail-value">
+                      {group.move_in_date || "—"}
+                    </span>
                   </div>
-                  <div className="col-6">
-                    <div className="meta">
-                      <div className="meta-label">Status</div>
-                      <div className="meta-value">
-                        <span
-                          className={`status-badge ${status.cls}`}
-                          title={status.label}
-                        >
-                          {status.label}
-                        </span>
-                      </div>
-                    </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Move-in Ready:</span>
+                    <span className="detail-value">
+                      <span
+                        className={`badge ${
+                          group.move_in_ready ? "bg-success" : "bg-secondary"
+                        }`}
+                      >
+                        {group.move_in_ready ? "Yes" : "No"}
+                      </span>
+                    </span>
                   </div>
-                  <div className="col-12">
-                    <div className="meta">
-                      <div className="meta-label">Move-in Ready</div>
-                      <div className="meta-value">
-                        <span
-                          className={`badge ${
-                            group.move_in_ready ? "bg-success" : "bg-secondary"
-                          }`}
-                        >
-                          {group.move_in_ready ? "Yes" : "No"}
-                        </span>
-                      </div>
-                    </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Status:</span>
+                    <span className="detail-value">
+                      <span
+                        className={`status-badge ${status.cls}`}
+                        title={status.label}
+                      >
+                        {status.label}
+                      </span>
+                    </span>
                   </div>
                 </div>
-              </div>
+              </section>
             </div>
-          </div>
 
-          {/* Members */}
-          <div className="group-section mt-3">
-            <h5 className="group-section-title">Group Members</h5>
-            {members.length === 0 ? (
-              <p className="text-muted mb-0">No members yet.</p>
-            ) : (
-              <div className="row g-4 justify-content-center">
-                {members.map((roommate) => (
-                  <RoommateCard
-                    key={roommate.id}
-                    roommate={roommate}
-                    isListingOwner={isListingOwner}
-                    getFitRanking={getFitRanking}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+            {/* Group Members */}
+            <section className="group-section">
+              <h5 className="group-section-title">Group Members</h5>
+              {members.length === 0 ? (
+                <p className="text-muted mb-0">No members yet.</p>
+              ) : (
+                <div className="row g-4 justify-content-center">
+                  {members.map((roommate) => (
+                    <RoommateCard
+                      key={roommate.id}
+                      roommate={roommate}
+                      isListingOwner={isListingOwner}
+                      getFitRanking={getFitRanking}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          </main>
 
-          {/* Actions */}
-          <div className="action-bar d-flex flex-wrap gap-2 mt-4">
+          {/* Sticky Action Bar */}
+          <footer className="action-bar">
             <button
               className={`btn ${
                 isOwner
@@ -401,7 +375,7 @@ function GroupView() {
                   : isMember
                   ? "btn-outline-danger"
                   : "btn-primary"
-              } btn-sm`}
+              }`}
               onClick={
                 !roommate
                   ? () => navigate("/roommates/post")
@@ -434,35 +408,24 @@ function GroupView() {
                 : "Join Group"}
             </button>
 
-            {isOwner &&
-              (group.group_status === "O" ||
-                group.group_status === "P" ||
-                group.group_status === "F") && (
-                <>
-                  <button
-                    onClick={handleApplication}
-                    className="btn btn-outline-success btn-sm"
-                    disabled={
-                      group.group_status !== "O" &&
-                      group.group_status !== "P" &&
-                      group.group_status !== "F"
-                    }
-                  >
-                    Apply
-                  </button>
-                  <button
-                    onClick={() => navigate(`/groups/edit/${id}`)}
-                    className="btn btn-outline-secondary btn-sm"
-                  >
-                    Edit Group
-                  </button>
-                </>
-              )}
+            {isOwner && ["O", "P", "F"].includes(group.group_status) && (
+              <>
+                <button onClick={handleApplication} className="btn btn-success">
+                  Apply
+                </button>
+                <button
+                  onClick={() => navigate(`/groups/edit/${id}`)}
+                  className="btn btn-secondary"
+                >
+                  Edit
+                </button>
+              </>
+            )}
 
             {isOwner && !conversation && (
               <button
                 onClick={handleStartConversation}
-                className="btn btn-outline-secondary btn-sm"
+                className="btn btn-secondary"
               >
                 Start Chat
               </button>
@@ -471,7 +434,7 @@ function GroupView() {
             {conversation && isMember && (
               <button
                 onClick={handleStartConversation}
-                className="btn btn-outline-secondary btn-sm"
+                className="btn btn-secondary"
               >
                 See Chat
               </button>
@@ -480,38 +443,35 @@ function GroupView() {
             {isProfileSelf(listing.owner.id) ? (
               <>
                 <button
-                  className="btn btn-outline-secondary btn-sm"
+                  className="btn btn-secondary"
                   onClick={() => navigate(`/listings/${group.listing}/groups`)}
                 >
-                  See Groups for this Listing
+                  See Groups
                 </button>
                 <button
-                  className="btn btn-outline-secondary btn-sm"
+                  className="btn btn-secondary"
                   onClick={() => navigate(`/applications`)}
                 >
-                  See All Applications
+                  See Applications
                 </button>
-                <button
-                  onClick={() => navigate(`/groups/manage/${group.id}`)}
-                  className="btn btn-outline-warning btn-sm"
-                  disabled={
-                    group.group_status === "O" ||
-                    group.group_status === "P" ||
-                    group.group_status === "F"
-                  }
-                >
-                  Manage Application
-                </button>
+                {!["O", "P", "F"].includes(group.group_status) && (
+                  <button
+                    onClick={() => navigate(`/groups/manage/${group.id}`)}
+                    className="btn btn-warning"
+                  >
+                    Manage Application
+                  </button>
+                )}
               </>
             ) : (
               <button
-                className="btn btn-outline-secondary btn-sm"
+                className="btn btn-secondary"
                 onClick={() => navigate(-1)}
               >
                 Back
               </button>
             )}
-          </div>
+          </footer>
         </>
       )}
     </div>

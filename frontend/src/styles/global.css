@@ -1,0 +1,70 @@
+@import url("https://fonts.googleapis.com/css2?family=Libertinus+Sans:ital,wght@0,400;0,700;1,400&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap");
+
+/* ============ GLOBAL DENIM COLORS ============ */
+:root {
+  --wood-primary: #3b4d63; /* denim blue - new main brand color */
+  --wood-accent: #d7bba8; /* soft beige for balance */
+  --wood-hover: #e7d4c7; /* warm beige hover */
+  --wood-highlight: #5f7ca5; /* lighter denim for CTAs */
+  --wood-bg: #fdf7f0; /* soft cream background */
+  --wood-white: #f8f3ed; /* off-white for sections/cards */
+  --wood-dark: #2c3a4a; /* deep navy-brown mix for text */
+  --wood-subtitle: #5a6269; /* neutral gray for subtext */
+  --denim-bg-blue: #f3f6fb;
+  --denim-strong-blue: #416daa;
+  --denim-lighter-gray: #7c828d;
+}
+
+body {
+  font-family: "Libertinus Sans", sans-serif;
+  background: #fbf8f4;
+  color: var(--wood-primary);
+  margin: 0;
+}
+
+footer {
+  background: linear-gradient(90deg, var(--wood-primary), var(--wood-dark));
+  background-blend-mode: multiply;
+  color: var(--wood-white);
+}
+
+.btn-primary {
+  background-color: var(--denim-strong-blue);
+  border-color: var(--wood-primary);
+}
+
+.btn-primary:hover {
+  background-color: var(--wood-primary);
+}
+
+.btn-primary:active {
+  background-color: var(--wood-dark);
+}
+
+.btn-outline-primary {
+  border-color: var(--denim-strong-blue);
+  color: var(--denim-strong-blue);
+  background-color: var(--denim-bg-blue);
+}
+
+.btn-outline-primary:hover {
+  background: var(--denim-strong-blue);
+  border-color: var(--wood-primary);
+}
+
+.text-price {
+  color: var(--denim-strong-blue);
+}
+
+.page-btn:active {
+  background-color: var(--denim-strong-blue);
+}
+
+.page-btn.active {
+  background-color: var(--denim-strong-blue);
+  color: white;
+}
+
+.page-btn:hover {
+  background-color: var(--wood-highlight);
+}

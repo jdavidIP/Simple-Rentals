@@ -14,53 +14,82 @@ function Profile() {
   const [averageRating, setAverageRating] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadingRoommate, setLoadingRoommate] = useState(true);
   const [selectedTab, setSelectedTab] = useState("listings");
-  const { isProfileSelf, roommate } = useProfileContext();
+  const { isProfileSelf } = useProfileContext();
+
+  const [roommate, setRoommate] = useState(null);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [profileRes, listingsRes, reviewsRes] = await Promise.all([
+        api.get(`/profile/${id}`),
+        api.get(`/listings/viewAll`, { params: { owner: id } }),
+        api.get(`/profile/reviews`, { params: { reviewee: id } }),
+      ]);
+
+      setProfile(profileRes.data);
+
+      const processedListings = listingsRes.data.map((listing) => {
+        const primaryImage = listing.pictures.find((p) => p.is_primary);
+        return {
+          ...listing,
+          pictures: primaryImage
+            ? [
+                primaryImage,
+                ...listing.pictures.filter((p) => p.id !== primaryImage.id),
+              ]
+            : listing.pictures,
+        };
+      });
+      setListings(processedListings);
+
+      setReviews(reviewsRes.data);
+      const total = reviewsRes.data.reduce((acc, r) => acc + r.rating, 0);
+      setAverageRating(
+        reviewsRes.data.length > 0
+          ? (total / reviewsRes.data.length).toFixed(1)
+          : null
+      );
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load profile data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchRoommate = async () => {
+    setLoadingRoommate(true);
+    try {
+      const roommateRes = await api.get(
+        `/roommates/${profile.roommate_profile}`
+      );
+      setRoommate(roommateRes.data);
+    } catch (err) {
+      console.log("Error fetching roommate.", err);
+      setRoommate(null);
+    } finally {
+      setLoadingRoommate(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [profileRes, listingsRes, reviewsRes] = await Promise.all([
-          api.get(`/profile/${id}`),
-          api.get(`/listings/viewAll`, { params: { owner: id } }),
-          api.get(`/profile/reviews`, { params: { reviewee: id } }),
-        ]);
-
-        setProfile(profileRes.data);
-
-        const processedListings = listingsRes.data.map((listing) => {
-          const primaryImage = listing.pictures.find((p) => p.is_primary);
-          return {
-            ...listing,
-            pictures: primaryImage
-              ? [
-                  primaryImage,
-                  ...listing.pictures.filter((p) => p.id !== primaryImage.id),
-                ]
-              : listing.pictures,
-          };
-        });
-        setListings(processedListings);
-
-        setReviews(reviewsRes.data);
-        const total = reviewsRes.data.reduce((acc, r) => acc + r.rating, 0);
-        setAverageRating((total / reviewsRes.data.length).toFixed(1));
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load profile data.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, [id]);
+
+  useEffect(() => {
+    if (profile && !loading) {
+      fetchRoommate();
+    }
+  }, [profile]);
 
   return (
     <div className="profile-layout container my-5">
       {error ? (
         <div className="alert alert-danger text-center">{error}</div>
-      ) : loading ? (
+      ) : loading || loadingRoommate ? (
         <div className="d-flex justify-content-center py-5">
           <div className="spinner-border text-primary" role="status" />
         </div>
@@ -130,6 +159,14 @@ function Profile() {
                 </div>
 
                 <div className="mt-3 d-grid gap-2">
+                  {roommate && (
+                    <button
+                      onClick={() => navigate(`/roommates/${roommate.id}`)}
+                      className="btn btn-outline-success btn-sm"
+                    >
+                      See Roommate Profile
+                    </button>
+                  )}
                   {isProfileSelf(profile.id) ? (
                     <>
                       <button
@@ -138,14 +175,7 @@ function Profile() {
                       >
                         Create Listing
                       </button>
-                      {roommate ? (
-                        <button
-                          onClick={() => navigate(`/roommates/${roommate.id}`)}
-                          className="btn btn-outline-success btn-sm"
-                        >
-                          See Roommate Profile
-                        </button>
-                      ) : (
+                      {!roommate && (
                         <button
                           onClick={() => navigate("/roommates/post")}
                           className="btn btn-outline-success btn-sm"
@@ -163,7 +193,7 @@ function Profile() {
                   ) : (
                     <button
                       onClick={() => navigate(`/profile/${id}/reviews`)}
-                      className="btn btn-outline-primary btn-sm"
+                      className="btn btn-outline-secondary btn-sm"
                     >
                       Write a Review
                     </button>

@@ -36,8 +36,9 @@ class TestStartConversationView(APITestCase):
     def test_start_conversation_with_landlord(self):
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertIn(self.tenant.id, response.data['participants'])
-        self.assertIn(self.landlord.id, response.data['participants'])
+        participant_ids = [p['id'] for p in response.data['participants']]
+        self.assertIn(self.tenant.id, participant_ids)
+        self.assertIn(self.landlord.id, participant_ids)
 
     def test_start_conversation_with_self(self):
         self.client.force_authenticate(user=self.landlord)

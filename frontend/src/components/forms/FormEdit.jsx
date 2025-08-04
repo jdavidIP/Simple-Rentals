@@ -15,7 +15,7 @@ function FormEdit({ profile }) {
     first_name: profile?.first_name || "",
     last_name: profile?.last_name || "",
     age: profile?.age || "",
-    sex: profile?.sex[0] || "",
+    sex: profile?.sex?.[0] ?? "",
     budget_min: profile?.budget_min ?? "",
     budget_max: profile?.budget_max ?? "",
     yearly_income: profile?.yearly_income ?? "",
@@ -38,6 +38,9 @@ function FormEdit({ profile }) {
   );
   const [deleteProfilePicture, setDeleteProfilePicture] = useState(false);
   const navigate = useNavigate();
+  const [phoneInput, setPhoneInput] = useState(
+    formatPhoneDisplay(profile?.phone_number) || ""
+  );
 
   // Load Google Maps via hook
   const { googleMaps } = useGoogleMaps();
@@ -106,7 +109,9 @@ function FormEdit({ profile }) {
 
     return () => {
       if (autocompleteCityRef.current) {
-        googleMaps.maps.event.clearInstanceListeners(autocompleteCityRef.current);
+        googleMaps.maps.event.clearInstanceListeners(
+          autocompleteCityRef.current
+        );
         autocompleteCityRef.current = null;
       }
       if (autocompletePreferredRef.current) {
@@ -129,6 +134,7 @@ function FormEdit({ profile }) {
         budget_min: profile.budget_min ?? "",
         budget_max: profile.budget_max ?? "",
         yearly_income: profile.yearly_income ?? "",
+        sex: profile.sex[0] ?? "",
       }));
       setExistingProfilePicture(profile.profile_picture || null);
       setDeleteProfilePicture(false);
@@ -220,6 +226,7 @@ function FormEdit({ profile }) {
     const { name, value, type, checked } = e.target;
     const newValue = type === "checkbox" ? checked : value;
     setFormData((prev) => ({ ...prev, [name]: newValue }));
+    console.log(formData);
   };
 
   // --- HANDLE BLUR (VALIDATE WHEN FIELD LOSES FOCUS) ---
@@ -385,9 +392,38 @@ function FormEdit({ profile }) {
     return null;
   };
 
+  function formatPhoneDisplay(input) {
+    if (!input) return "";
+
+    let digits = input.replace(/\D/g, "");
+
+    if (digits.length === 11 && digits.startsWith("1")) {
+      digits = digits.substring(1);
+    }
+
+    digits = digits.substring(0, 10);
+
+    const area = digits.substring(0, 3);
+    const prefix = digits.substring(3, 6);
+    const line = digits.substring(6, 10);
+
+    if (digits.length > 6) return `(${area}) ${prefix}-${line}`;
+    if (digits.length > 3) return `(${area}) ${prefix}`;
+    if (digits.length > 0) return `(${area}`;
+    return "";
+  }
+
+  function formatPhoneBackend(digits) {
+    if (digits.length !== 10) return "";
+    return `+1-${digits.substring(0, 3)}-${digits.substring(
+      3,
+      6
+    )}-${digits.substring(6, 10)}`;
+  }
+
   return (
     <form onSubmit={handleSubmit} className="form-container" autoComplete="off">
-      <h1> Edit Profile</h1>
+      <h1> Edit Your Profile</h1>
       {error && (
         <ul className="error-list">
           {error.map((errMsg, index) => (
@@ -395,237 +431,323 @@ function FormEdit({ profile }) {
           ))}
         </ul>
       )}
-
-      <input
-        type="email"
-        id="email"
-        name="email"
-        placeholder="Email"
-        value={formData.email}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        required
-        disabled={true}
-        autoComplete="username"
-      />
-      {errMsg("email")}
-
-      <button
-        type="button"
-        className="btn btn-secondary"
-        style={{ margin: "10px 0" }}
-        onClick={() => setShowPasswordFields((prev) => !prev)}
-      >
-        {showPasswordFields ? "Cancel Password Change" : "Change Password"}
-      </button>
-
-      {showPasswordFields && (
-        <>
-          <input
-            type="password"
-            id="old_password"
-            name="old_password"
-            placeholder="Current Password"
-            value={formData.old_password}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            autoComplete="current-password"
-            required
-          />
-          {errMsg("old_password")}
-
-          <input
-            type="password"
-            id="password"
-            name="password"
-            placeholder="New Password"
-            value={formData.password}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            autoComplete="new-password"
-            required
-          />
-          {errMsg("password")}
-          <input
-            type="password"
-            id="password_confirmation"
-            name="password_confirmation"
-            placeholder="Confirm New Password"
-            value={formData.password_confirmation}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            autoComplete="new-password"
-            required
-          />
-          {errMsg("password_confirmation")}
-        </>
-      )}
-
-      <input
-        type="text"
-        id="first_name"
-        name="first_name"
-        placeholder="First Name"
-        value={formData.first_name}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        required
-        maxLength={50}
-      />
-      {errMsg("first_name")}
-
-      <input
-        type="text"
-        id="last_name"
-        name="last_name"
-        placeholder="Last Name"
-        value={formData.last_name}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        required
-        maxLength={50}
-      />
-      {errMsg("last_name")}
-
-      <input
-        type="number"
-        id="age"
-        name="age"
-        placeholder="Age"
-        value={formData.age}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        min="0"
-        required
-        step="1"
-      />
-      {errMsg("age")}
-
-      <select
-        id="sex"
-        name="sex"
-        value={formData.sex[0]}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        required
-      >
-        <option value="">Select your gender</option>
-        <option value="M">Male</option>
-        <option value="F">Female</option>
-        <option value="O">Other</option>
-      </select>
-      {errMsg("sex")}
-
-      <input
-        type="number"
-        id="budget_min"
-        name="budget_min"
-        placeholder="Budget Min (Optional)"
-        value={formData.budget_min}
-        min="0"
-        max={formData.budget_max || undefined}
-        step="0.01"
-        onChange={handleChange}
-        onBlur={handleBlur}
-      />
-      {errMsg("budget_min")}
-
-      <input
-        type="number"
-        id="budget_max"
-        name="budget_max"
-        placeholder="Budget Max"
-        value={formData.budget_max}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        min="0"
-        step="0.01"
-        required
-      />
-      {errMsg("budget_max")}
-
-      <input
-        type="number"
-        id="yearly_income"
-        name="yearly_income"
-        placeholder="Yearly Income (Optional)"
-        value={formData.yearly_income}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        step="0.01"
-        min="0"
-      />
-      {errMsg("yearly_income")}
-
-      <input
-        type="text"
-        id="city"
-        name="city"
-        placeholder="City"
-        value={formData.city}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        required
-        ref={cityInputRef}
-      />
-      {errMsg("city")}
-
-      <input
-        type="text"
-        id="preferred_location"
-        name="preferred_location"
-        placeholder="Preferred Location to live"
-        value={formData.preferred_location}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        required
-        ref={preferredLocationInputRef}
-      />
-      {errMsg("preferred_location")}
-
-      <input
-        type="text"
-        id="phone_number"
-        name="phone_number"
-        placeholder="Phone Number (e.g., +1-123-456-7890)"
-        value={formData.phone_number}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        pattern="^\+?[0-9\-()\s]{7,20}$"
-        required
-      />
-      {errMsg("phone_number")}
-
-      <input
-        type="url"
-        id="instagram_link"
-        name="instagram_link"
-        placeholder="Instagram Link"
-        value={formData.instagram_link}
-        onChange={handleChange}
-        onBlur={handleBlur}
-      />
-      {errMsg("instagram_link")}
-
-      <input
-        type="url"
-        id="facebook_link"
-        name="facebook_link"
-        placeholder="Facebook Link"
-        value={formData.facebook_link}
-        onChange={handleChange}
-        onBlur={handleBlur}
-      />
-      {errMsg("facebook_link")}
-
-      <input
-        type="file"
-        id="profile_picture"
-        name="profile_picture"
-        accept="image/*"
-        onChange={handleFileInputChange}
-      />
+      <h5 className="form-section-title">Basic Information</h5>
+      <div>
+        <label htmlFor="profile_picture" className="form-label">
+          Profile Picture
+        </label>
+        <input
+          type="file"
+          id="profile_picture"
+          name="profile_picture"
+          accept="image/*"
+          onChange={handleFileInputChange}
+        />
+      </div>
       {renderAvatarPreview()}
+      <div className="mb-6">
+        <label htmlFor="email" className="form-label">
+          Email
+        </label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="Email"
+          value={formData.email}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          required
+          disabled={true}
+          autoComplete="username"
+        />
+        {errMsg("email")}
+      </div>
+      <div className="form-grid">
+        <div>
+          <label htmlFor="first_name" className="form-label">
+            First Name
+          </label>
+          <input
+            type="text"
+            id="first_name"
+            name="first_name"
+            placeholder="First Name"
+            value={formData.first_name}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            required
+            maxLength={50}
+          />
+          {errMsg("first_name")}
+        </div>
+        <div>
+          <label htmlFor="last_name" className="form-label">
+            Last Name
+          </label>
+          <input
+            type="text"
+            id="last_name"
+            name="last_name"
+            placeholder="Last Name"
+            value={formData.last_name}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            required
+            maxLength={50}
+          />
+          {errMsg("last_name")}
+        </div>
+
+        <div>
+          <label htmlFor="password" className="form-label">
+            Password
+          </label>
+          <button
+            type="button"
+            className="btn btn-secondary py-1"
+            style={{ margin: "10px 0" }}
+            onClick={() => setShowPasswordFields((prev) => !prev)}
+          >
+            {showPasswordFields ? "Cancel" : "Change Password"}
+          </button>
+        </div>
+
+        {showPasswordFields && (
+          <>
+            <input
+              type="password"
+              id="old_password"
+              name="old_password"
+              placeholder="Current Password"
+              value={formData.old_password}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              autoComplete="current-password"
+              required
+            />
+            {errMsg("old_password")}
+
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="New Password"
+              value={formData.password}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              autoComplete="new-password"
+              required
+            />
+            {errMsg("password")}
+            <input
+              type="password"
+              id="password_confirmation"
+              name="password_confirmation"
+              placeholder="Confirm New Password"
+              value={formData.password_confirmation}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              autoComplete="new-password"
+              required
+            />
+            {errMsg("password_confirmation")}
+          </>
+        )}
+      </div>
+
+      <h5 className="form-section-title">Personal Information</h5>
+      <div className="form-grid">
+        <div>
+          <label htmlFor="age" className="form-label">
+            Age
+          </label>
+          <input
+            type="number"
+            id="age"
+            name="age"
+            placeholder="Age"
+            value={formData.age}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            min="0"
+            required
+            step="1"
+          />
+          {errMsg("age")}
+        </div>
+        <div>
+          <label htmlFor="sex" className="form-label">
+            Gender
+          </label>
+          <select
+            id="sex"
+            name="sex"
+            value={formData.sex[0]}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            required
+          >
+            <option value="">Select your gender</option>
+            <option value="M">Male</option>
+            <option value="F">Female</option>
+            <option value="O">Other</option>
+          </select>
+          {errMsg("sex")}
+        </div>
+      </div>
+      <div className="form-grid">
+        <div>
+          <label htmlFor="city" className="form-label">
+            Current City
+          </label>
+          <input
+            type="text"
+            id="city"
+            name="city"
+            placeholder="City"
+            value={formData.city}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            required
+            ref={cityInputRef}
+          />
+          {errMsg("city")}
+        </div>
+        <div>
+          <label htmlFor="preferred_location" className="form-label">
+            Preferred Location
+          </label>
+          <input
+            type="text"
+            id="preferred_location"
+            name="preferred_location"
+            placeholder="Preferred Location to live"
+            value={formData.preferred_location}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            required
+            ref={preferredLocationInputRef}
+          />
+          {errMsg("preferred_location")}
+        </div>
+      </div>
+
+      <h5 className="form-section-title">Financial Information</h5>
+      <div className="form-grid">
+        <div>
+          <label htmlFor="budget_min">Budget Min</label>
+          <input
+            type="number"
+            id="budget_min"
+            name="budget_min"
+            placeholder="Budget Min (Optional)"
+            value={formData.budget_min}
+            min="0"
+            max={formData.budget_max || undefined}
+            step="0.01"
+            onChange={handleChange}
+            onBlur={handleBlur}
+          />
+          {errMsg("budget_min")}
+        </div>
+        <div>
+          <label htmlFor="budget_max" className="form-label">
+            Budget Max
+          </label>
+          <input
+            type="number"
+            id="budget_max"
+            name="budget_max"
+            placeholder="Budget Max"
+            value={formData.budget_max}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            min="0"
+            step="0.01"
+            required
+          />
+          {errMsg("budget_max")}
+        </div>
+      </div>
+      <div className="mb-6">
+        <label htmlFor="yearly_income" className="form-label">
+          Yearly Income
+        </label>
+        <input
+          type="number"
+          id="yearly_income"
+          name="yearly_income"
+          placeholder="Yearly Income (Optional)"
+          value={formData.yearly_income}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          step="0.01"
+          min="0"
+        />
+        {errMsg("yearly_income")}
+      </div>
+
+      <h5 className="form-section-title">Contact Information</h5>
+      <div className="form-grid">
+        <div>
+          <label htmlFor="phone_number" className="form-label">
+            Phone Number
+          </label>
+          <input
+            type="text"
+            id="phone_number"
+            name="phone_number"
+            placeholder="(123) 456-7890"
+            value={phoneInput}
+            onChange={(e) => {
+              const raw = e.target.value.replace(/\D/g, "").substring(0, 10);
+              const display = formatPhoneDisplay(raw);
+              const backend = formatPhoneBackend(raw);
+
+              setPhoneInput(display); // keep UI responsive
+              setFormData((prev) => ({
+                ...prev,
+                phone_number: backend, // backend-friendly
+              }));
+            }}
+            onBlur={handleBlur}
+            maxLength="14"
+            required
+          />
+          {errMsg("phone_number")}
+        </div>
+        <div>
+          <label htmlFor="instagram_link" className="form-label">
+            Instagram
+          </label>
+          <input
+            type="url"
+            id="instagram_link"
+            name="instagram_link"
+            placeholder="Instagram Link"
+            value={formData.instagram_link}
+            onChange={handleChange}
+            onBlur={handleBlur}
+          />
+          {errMsg("instagram_link")}
+        </div>
+        <div>
+          <label htmlFor="facebook_link" className="form-label">
+            Facebook
+          </label>
+          <input
+            type="url"
+            id="facebook_link"
+            name="facebook_link"
+            placeholder="Facebook Link"
+            value={formData.facebook_link}
+            onChange={handleChange}
+            onBlur={handleBlur}
+          />
+          {errMsg("facebook_link")}
+        </div>
+      </div>
 
       <label htmlFor="receive_email_notifications">
         <input

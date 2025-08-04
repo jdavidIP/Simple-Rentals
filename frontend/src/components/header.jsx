@@ -95,16 +95,6 @@ function Header() {
             <ul className="navbar-nav align-items-center right-actions">
               {profile ? (
                 <>
-                  {/* CTA: Post a Listing */}
-                  <li className="nav-item d-none d-lg-block">
-                    <NavLink
-                      to="/listings/post"
-                      className="btn cta-post ms-lg-2"
-                    >
-                      Post a Listing
-                    </NavLink>
-                  </li>
-
                   {/* Notifications */}
                   <li className="nav-item">
                     <button

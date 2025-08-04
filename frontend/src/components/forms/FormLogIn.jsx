@@ -87,7 +87,9 @@ function FormLogIn() {
       {error && <div className="alert alert-danger">{error}</div>}
 
       <form onSubmit={handleSubmit} noValidate>
-        <label htmlFor="email">Email</label>
+        <label htmlFor="email" className="form-label">
+          Email
+        </label>
         <input
           type="email"
           id="email"
@@ -99,7 +101,9 @@ function FormLogIn() {
         />
         {errMsg("email")}
 
-        <label htmlFor="password">Password</label>
+        <label htmlFor="password" className="form-label">
+          Password
+        </label>
         <input
           type="password"
           id="password"
