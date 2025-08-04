@@ -519,7 +519,7 @@ function FormRegister({ method = "register", profile }) {
           ) : (
             <button
               type="submit"
-              className="btn btn-success"
+              className="btn btn-primary"
               disabled={!isStepValid}
             >
               {method === "edit" ? "Save Changes" : "Register"}

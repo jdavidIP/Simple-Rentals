@@ -79,22 +79,13 @@
   background-color: var(--wood-dark);
 }
 
-.register-form .btn-success {
-  background-color: #28a745;
-  border: none;
-}
-
-.register-form .btn-success:hover {
-  background-color: #218838;
-}
-
 .register-form .btn-outline-secondary {
   border-color: var(--wood-accent);
   color: var(--wood-subtitle);
 }
 
 .register-form .btn-outline-secondary:hover {
-  background-color: #f3f5f9;
+  background-color: var(--wood-hover);
 }
 
 .register-form .text-center a {
