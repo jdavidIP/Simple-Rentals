@@ -55,77 +55,42 @@ function Groups() {
 
   return (
     <div className="groups-container">
-      <div className="apps-header">
-        <div
-          className="mt-3 p-3"
+      <h5 className="group-section-title">Listing</h5>
+      {listing ? (
+        <section
+          className="group-section listing-preview"
           role="button"
-          onClick={() => navigate(`/listings/${listing.id}`)}
+          onClick={() => navigate(`/listings/${group.listing}`)}
           onKeyDown={(e) =>
             (e.key === "Enter" || e.key === " ") &&
-            navigate(`/listings/${listing.id}`)
+            navigate(`/listings/${group.listing}`)
           }
           tabIndex={0}
-          style={{ cursor: "pointer", backgroundColor: "var(--denim-bg-blue)" }}
           aria-label="Open listing"
+          style={{ backgroundColor: "white" }}
         >
-          <h5 className="group-section-title">Listing</h5>
-          {listing ? (
-            <div
-              className="d-flex align-items-center gap-3 px-1"
-              style={{
-                backgroundColor: "var(--denim-bg-blue)",
-              }}
-            >
-              {" "}
-              <div
-                className="rounded overflow-hidden flex-shrink-0"
-                style={{
-                  width: 160,
-                  height: 106,
-                  background: "#f1f3f5",
-                  border: "1px solid #e9ecef",
-                }}
-              >
-                <img
-                  src={
-                    listing.pictures?.find((p) => p.is_primary)?.image ||
-                    "/static/img/placeholder.jpg"
-                  }
-                  alt="Listing preview"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                  }}
-                />
-              </div>
-              {/* Text content */}
-              <div className="flex-grow-1">
-                <div className="d-flex justify-content-between align-items-start">
-                  <h6 className="mb-1 me-2">
-                    {`${listing.property_type} for Rent in ${listing.city}`}
-                  </h6>
-                  <div
-                    className="text-price fw-bold"
-                    style={{ whiteSpace: "nowrap" }}
-                  >
-                    ${Number(listing.price).toLocaleString()}
-                  </div>
-                </div>
-
-                <div className="text-muted small">
-                  {listing.street_address}, {listing.city},{" "}
-                  {listing.postal_code}
-                </div>
-              </div>
+          <img
+            src={
+              listing.pictures?.find((p) => p.is_primary)?.image ||
+              "/static/img/placeholder.jpg"
+            }
+            alt="Listing preview"
+          />
+          <div>
+            <h6 className="mb-1 fw-bold">
+              {`${listing.property_type} in ${listing.city}`}
+            </h6>
+            <div className="fw-bold text-price mb-1">
+              ${Number(listing.price).toLocaleString()}
             </div>
-          ) : (
-            <div className="d-flex justify-content-center py-5">
-              <div className="spinner-border text-primary" role="status" />
+            <div className="text-muted small">
+              {listing.street_address}, {listing.city}, {listing.postal_code}
             </div>
-          )}
-        </div>
-      </div>
+          </div>
+        </section>
+      ) : (
+        <div className="p-3 text-muted small">Loading listing…</div>
+      )}
 
       {error ? (
         <div ref={errorRef} className="alert alert-danger mt-3">
