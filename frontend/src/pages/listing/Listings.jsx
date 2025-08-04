@@ -344,6 +344,7 @@ function Listings() {
                     value={filters.min_price}
                     onChange={handleInputChange}
                     placeholder="e.g. 500"
+                    min="0"
                   />
                 </div>
                 <div className="col-md-4">
@@ -355,6 +356,7 @@ function Listings() {
                     value={filters.max_price}
                     onChange={handleInputChange}
                     placeholder="e.g. 2000"
+                    min={filters.min_price || "0"}
                   />
                 </div>
                 <div className="col-md-4">
@@ -416,6 +418,7 @@ function Listings() {
                       value={filters.bedrooms}
                       onChange={handleInputChange}
                       placeholder="Any"
+                      min="0"
                     />
                   </div>
                   <div className="col-md-4">
@@ -427,6 +430,7 @@ function Listings() {
                       value={filters.bathrooms}
                       onChange={handleInputChange}
                       placeholder="Any"
+                      min="0"
                     />
                   </div>
 

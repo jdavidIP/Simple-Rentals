@@ -456,6 +456,7 @@ function FormListing({ method, listing }) {
             value={formData.sqft_area}
             onChange={handleChange}
             onBlur={handleBlur}
+            min="0"
             required
           />
           {errMsg("sqft_area")}
@@ -472,6 +473,7 @@ function FormListing({ method, listing }) {
             value={formData.bedrooms}
             onChange={handleChange}
             onBlur={handleBlur}
+            min="0"
             required
           />
           {errMsg("bedrooms")}
@@ -485,6 +487,7 @@ function FormListing({ method, listing }) {
             value={formData.bathrooms}
             onChange={handleChange}
             onBlur={handleBlur}
+            min="0"
             required
           />
           {errMsg("bathrooms")}
@@ -498,6 +501,7 @@ function FormListing({ method, listing }) {
             value={formData.parking_spaces}
             onChange={handleChange}
             onBlur={handleBlur}
+            min="0"
             required
           />
           {errMsg("parking_spaces")}
