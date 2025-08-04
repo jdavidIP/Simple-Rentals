@@ -35,6 +35,9 @@ function FormRegister({ method = "register", profile }) {
     profile?.profile_picture || null
   );
   const [deleteProfilePicture, setDeleteProfilePicture] = useState(false);
+  const [phoneInput, setPhoneInput] = useState(
+    formatPhoneDisplay(profile?.phone_number) || ""
+  );
 
   const { googleMaps } = useGoogleMaps();
 
@@ -234,6 +237,35 @@ function FormRegister({ method = "register", profile }) {
       <div className="invalid-feedback d-block">{fieldErrors[field]}</div>
     ) : null;
 
+  function formatPhoneDisplay(input) {
+    if (!input) return "";
+
+    let digits = input.replace(/\D/g, "");
+
+    if (digits.length === 11 && digits.startsWith("1")) {
+      digits = digits.substring(1);
+    }
+
+    digits = digits.substring(0, 10);
+
+    const area = digits.substring(0, 3);
+    const prefix = digits.substring(3, 6);
+    const line = digits.substring(6, 10);
+
+    if (digits.length > 6) return `(${area}) ${prefix}-${line}`;
+    if (digits.length > 3) return `(${area}) ${prefix}`;
+    if (digits.length > 0) return `(${area}`;
+    return "";
+  }
+
+  function formatPhoneBackend(digits) {
+    if (digits.length !== 10) return "";
+    return `+1-${digits.substring(0, 3)}-${digits.substring(
+      3,
+      6
+    )}-${digits.substring(6, 10)}`;
+  }
+
   return (
     <div className="form-container register-form">
       <h1>{method === "edit" ? "Edit Profile" : "Register"}</h1>
@@ -319,29 +351,58 @@ function FormRegister({ method = "register", profile }) {
                     .replace(/_/g, " ")
                     .replace(/\b\w/g, (c) => c.toUpperCase())}
                 </label>
-                <input
-                  type={
-                    field === "age" || field.includes("budget")
-                      ? "number"
-                      : "text"
-                  }
-                  name={field}
-                  ref={
-                    field === "city"
-                      ? cityInputRef
-                      : field === "preferred_location"
-                      ? preferredLocationInputRef
-                      : null
-                  }
-                  className="form-control"
-                  value={formData[field]}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  placeholder={`Enter ${field.replace(/_/g, " ")}`}
-                />
+
+                {field === "phone_number" ? (
+                  <input
+                    type="text"
+                    name="phone_number"
+                    className="form-control"
+                    placeholder="(123) 456-7890"
+                    value={phoneInput}
+                    onChange={(e) => {
+                      const raw = e.target.value
+                        .replace(/\D/g, "")
+                        .substring(0, 10);
+                      const display = formatPhoneDisplay(raw);
+                      const backend = formatPhoneBackend(raw);
+
+                      setPhoneInput(display); // keep UI responsive
+                      setFormData((prev) => ({
+                        ...prev,
+                        phone_number: backend, // backend-friendly
+                      }));
+                    }}
+                    onBlur={handleBlur}
+                    maxLength="14"
+                    required
+                  />
+                ) : (
+                  <input
+                    type={
+                      field === "age" || field.includes("budget")
+                        ? "number"
+                        : "text"
+                    }
+                    name={field}
+                    ref={
+                      field === "city"
+                        ? cityInputRef
+                        : field === "preferred_location"
+                        ? preferredLocationInputRef
+                        : null
+                    }
+                    className="form-control"
+                    value={formData[field]}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    placeholder={`Enter ${field.replace(/_/g, " ")}`}
+                  />
+                )}
+
                 {errMsg(field)}
               </div>
             ))}
+
             <div className="mb-3">
               <label className="form-label">Gender</label>
               <select

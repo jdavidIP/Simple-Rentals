@@ -38,6 +38,9 @@ function FormEdit({ profile }) {
   );
   const [deleteProfilePicture, setDeleteProfilePicture] = useState(false);
   const navigate = useNavigate();
+  const [phoneInput, setPhoneInput] = useState(
+    formatPhoneDisplay(profile?.phone_number) || ""
+  );
 
   // Load Google Maps via hook
   const { googleMaps } = useGoogleMaps();
@@ -389,6 +392,35 @@ function FormEdit({ profile }) {
     return null;
   };
 
+  function formatPhoneDisplay(input) {
+    if (!input) return "";
+
+    let digits = input.replace(/\D/g, "");
+
+    if (digits.length === 11 && digits.startsWith("1")) {
+      digits = digits.substring(1);
+    }
+
+    digits = digits.substring(0, 10);
+
+    const area = digits.substring(0, 3);
+    const prefix = digits.substring(3, 6);
+    const line = digits.substring(6, 10);
+
+    if (digits.length > 6) return `(${area}) ${prefix}-${line}`;
+    if (digits.length > 3) return `(${area}) ${prefix}`;
+    if (digits.length > 0) return `(${area}`;
+    return "";
+  }
+
+  function formatPhoneBackend(digits) {
+    if (digits.length !== 10) return "";
+    return `+1-${digits.substring(0, 3)}-${digits.substring(
+      3,
+      6
+    )}-${digits.substring(6, 10)}`;
+  }
+
   return (
     <form onSubmit={handleSubmit} className="form-container" autoComplete="off">
       <h1> Edit Your Profile</h1>
@@ -666,11 +698,21 @@ function FormEdit({ profile }) {
             type="text"
             id="phone_number"
             name="phone_number"
-            placeholder="Phone Number (e.g., +1-123-456-7890)"
-            value={formData.phone_number}
-            onChange={handleChange}
+            placeholder="(123) 456-7890"
+            value={phoneInput}
+            onChange={(e) => {
+              const raw = e.target.value.replace(/\D/g, "").substring(0, 10);
+              const display = formatPhoneDisplay(raw);
+              const backend = formatPhoneBackend(raw);
+
+              setPhoneInput(display); // keep UI responsive
+              setFormData((prev) => ({
+                ...prev,
+                phone_number: backend, // backend-friendly
+              }));
+            }}
             onBlur={handleBlur}
-            pattern="^\+?[0-9\-()\s]{7,20}$"
+            maxLength="14"
             required
           />
           {errMsg("phone_number")}
