@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../../api.js";
-import "../../styles/forms.css";
+import "../../styles/register.css";
 import useGoogleMaps from "../../hooks/useGoogleMaps";
 
 function FormRegister({ method = "register", profile }) {
@@ -36,72 +36,62 @@ function FormRegister({ method = "register", profile }) {
   );
   const [deleteProfilePicture, setDeleteProfilePicture] = useState(false);
 
+  const { googleMaps } = useGoogleMaps();
+
   // Google Places Autocomplete refs
   const cityInputRef = useRef(null);
   const preferredLocationInputRef = useRef(null);
   const autocompleteCityRef = useRef(null);
   const autocompletePreferredRef = useRef(null);
-  const { googleMaps } = useGoogleMaps();
 
   // Initialize Google Places autocomplete
   useEffect(() => {
-    if (!googleMaps) return;
-
-    if (autocompleteCityRef.current)
-      googleMaps.maps.event.clearInstanceListeners(autocompleteCityRef.current);
-    if (autocompletePreferredRef.current)
-      googleMaps.maps.event.clearInstanceListeners(
-        autocompletePreferredRef.current
-      );
+    if (!googleMaps || !googleMaps.maps || !googleMaps.maps.places) return;
 
     const options = { types: ["(cities)"] };
 
-    // City autocomplete
-    if (cityInputRef.current) {
-      autocompleteCityRef.current = new googleMaps.maps.places.Autocomplete(
-        cityInputRef.current,
+    const setupAutocomplete = (inputRef, field) => {
+      if (!inputRef.current) return null;
+      const autocomplete = new googleMaps.maps.places.Autocomplete(
+        inputRef.current,
         options
       );
-      autocompleteCityRef.current.addListener("place_changed", () => {
-        const place = autocompleteCityRef.current.getPlace();
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
         const cityName =
-          place.address_components?.find((c) =>
-            c.types.includes("locality")
-          )?.long_name ||
+          place.address_components?.find((c) => c.types.includes("locality"))
+            ?.long_name ||
           place.address_components?.find((c) =>
             c.types.includes("administrative_area_level_1")
           )?.long_name ||
           place.name ||
           "";
-        setFormData((prev) => ({ ...prev, city: cityName }));
+        setFormData((prev) => ({ ...prev, [field]: cityName }));
       });
-    }
+      return autocomplete;
+    };
 
-    // Preferred location autocomplete
-    if (preferredLocationInputRef.current) {
-      autocompletePreferredRef.current =
-        new googleMaps.maps.places.Autocomplete(
-          preferredLocationInputRef.current,
-          options
+    autocompleteCityRef.current = setupAutocomplete(cityInputRef, "city");
+    autocompletePreferredRef.current = setupAutocomplete(
+      preferredLocationInputRef,
+      "preferred_location"
+    );
+
+    return () => {
+      if (autocompleteCityRef.current) {
+        googleMaps.maps.event.clearInstanceListeners(
+          autocompleteCityRef.current
         );
-      autocompletePreferredRef.current.addListener("place_changed", () => {
-        const place = autocompletePreferredRef.current.getPlace();
-        const cityName =
-          place.address_components?.find((c) =>
-            c.types.includes("locality")
-          )?.long_name ||
-          place.address_components?.find((c) =>
-            c.types.includes("administrative_area_level_1")
-          )?.long_name ||
-          place.name ||
-          "";
-        setFormData((prev) => ({
-          ...prev,
-          preferred_location: cityName,
-        }));
-      });
-    }
-  }, [googleMaps]);
+        autocompleteCityRef.current = null;
+      }
+      if (autocompletePreferredRef.current) {
+        googleMaps.maps.event.clearInstanceListeners(
+          autocompletePreferredRef.current
+        );
+        autocompletePreferredRef.current = null;
+      }
+    };
+  }, [googleMaps, step]);
 
   // Validation for each step
   const validateStep = (data = formData) => {
@@ -215,28 +205,29 @@ function FormRegister({ method = "register", profile }) {
     }
   };
 
-  const renderImagePreview = () =>
-    (formData.profile_picture instanceof File || existingProfilePicture) && (
-      <div className="mb-3">
-        <img
-          src={
-            formData.profile_picture
-              ? URL.createObjectURL(formData.profile_picture)
-              : existingProfilePicture
-          }
-          alt="Preview"
-          className="img-thumbnail"
-          style={{ maxWidth: "150px" }}
-        />
-        <button
-          type="button"
-          className="btn btn-sm btn-danger ms-2"
-          onClick={handleDeletePicture}
-        >
-          Delete
-        </button>
-      </div>
-    );
+  const renderImagePreview = () => {
+    if (formData.profile_picture instanceof File) {
+      const src = URL.createObjectURL(formData.profile_picture);
+      return (
+        <div className="image-preview-grid">
+          <div className="image-tile">
+            <img src={src} alt="Profile preview" />
+            <button
+              type="button"
+              aria-label="Remove profile picture"
+              className="image-remove"
+              onClick={() =>
+                setFormData((prev) => ({ ...prev, profile_picture: null }))
+              }
+              title="Remove"
+            >
+              <span className="image-remove-x">&times;</span>
+            </button>
+          </div>
+        </div>
+      );
+    }
+  };
 
   const errMsg = (field) =>
     touched[field] && fieldErrors[field] ? (
@@ -244,243 +235,243 @@ function FormRegister({ method = "register", profile }) {
     ) : null;
 
   return (
-    <div className="container py-5">
-      <div className="card mx-auto shadow" style={{ maxWidth: "600px" }}>
-        <div className="card-body">
-          <h2 className="card-title text-center mb-4">
-            {method === "edit" ? "Edit Profile" : "Register"} (Step {step}/3)
-          </h2>
+    <div className="form-container register-form">
+      <h1>{method === "edit" ? "Edit Profile" : "Register"}</h1>
 
-          <ul className="nav nav-pills nav-fill mb-4">
-            {[1, 2, 3].map((i) => (
-              <li className="nav-item" key={i}>
-                <button
-                  type="button"
-                  className={`nav-link${
-                    step === i ? " active" : step > i ? "" : " disabled"
-                  }`}
-                >
-                  {["Credentials", "Info", "Extras"][i - 1]}
-                </button>
-              </li>
-            ))}
-          </ul>
+      {/* Step Progress Bar */}
+      <ul className="register-progress">
+        {[1, 2, 3].map((i) => (
+          <li
+            key={i}
+            className={`progress-step ${
+              step === i ? "active" : step > i ? "completed" : ""
+            }`}
+          >
+            <span className="circle">{i}</span>
+            <span className="label">
+              {["Credentials", "Info", "Extras"][i - 1]}
+            </span>
+          </li>
+        ))}
+      </ul>
 
-          <form onSubmit={handleSubmit}>
-            {step === 1 && (
-              <>
-                <div className="mb-3">
-                  <label className="form-label">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    className="form-control"
-                    value={formData.email}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  />
-                  {errMsg("email")}
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Password</label>
-                  <input
-                    type="password"
-                    name="password"
-                    className="form-control"
-                    value={formData.password}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  />
-                  {errMsg("password")}
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Confirm Password</label>
-                  <input
-                    type="password"
-                    name="password_confirmation"
-                    className="form-control"
-                    value={formData.password_confirmation}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  />
-                  {errMsg("password_confirmation")}
-                </div>
-              </>
-            )}
-
-            {step === 2 && (
-              <>
-                {[
-                  "first_name",
-                  "last_name",
-                  "age",
-                  "city",
-                  "preferred_location",
-                  "phone_number",
-                  "budget_max",
-                ].map((field) => (
-                  <div className="mb-3" key={field}>
-                    <label className="form-label">
-                      {field
-                        .replace(/_/g, " ")
-                        .replace(/\b\w/g, (c) => c.toUpperCase())}
-                    </label>
-                    <input
-                      type={
-                        field === "age" || field.includes("budget")
-                          ? "number"
-                          : "text"
-                      }
-                      name={field}
-                      ref={
-                        field === "city"
-                          ? cityInputRef
-                          : field === "preferred_location"
-                          ? preferredLocationInputRef
-                          : null
-                      }
-                      className="form-control"
-                      value={formData[field]}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                    />
-                    {errMsg(field)}
-                  </div>
-                ))}
-                <div className="mb-3">
-                  <label className="form-label">Gender</label>
-                  <select
-                    name="sex"
-                    className="form-select"
-                    value={formData.sex}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  >
-                    <option value="">Select</option>
-                    <option value="M">Male</option>
-                    <option value="F">Female</option>
-                    <option value="O">Other</option>
-                  </select>
-                  {errMsg("sex")}
-                </div>
-              </>
-            )}
-
-            {step === 3 && (
-              <>
-                <div className="mb-3">
-                  <label className="form-label">Profile Picture</label>
-                  <input
-                    type="file"
-                    name="profile_picture"
-                    accept="image/*"
-                    className="form-control"
-                    onChange={handleChange}
-                  />
-                  {renderImagePreview()}
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Instagram Link</label>
-                  <input
-                    type="url"
-                    name="instagram_link"
-                    className="form-control"
-                    value={formData.instagram_link}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Facebook Link</label>
-                  <input
-                    type="url"
-                    name="facebook_link"
-                    className="form-control"
-                    value={formData.facebook_link}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="form-check mb-3">
-                  <input
-                    type="checkbox"
-                    name="receive_email_notifications"
-                    className="form-check-input"
-                    checked={formData.receive_email_notifications}
-                    onChange={handleChange}
-                  />
-                  <label className="form-check-label">
-                    Receive Email Notifications
-                  </label>
-                </div>
-                <div className="form-check mb-3">
-                  <input
-                    type="checkbox"
-                    name="receive_sms_notifications"
-                    className="form-check-input"
-                    checked={formData.receive_sms_notifications}
-                    onChange={handleChange}
-                  />
-                  <label className="form-check-label">
-                    Receive SMS Notifications
-                  </label>
-                </div>
-                <div className="form-check mb-3">
-                  <input
-                    type="checkbox"
-                    name="terms_accepted"
-                    className="form-check-input"
-                    checked={formData.terms_accepted}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  />
-                  <label className="form-check-label">
-                    I accept the terms and conditions
-                  </label>
-                  {errMsg("terms_accepted")}
-                </div>
-              </>
-            )}
-
-            <div className="d-flex justify-content-between">
-              {step > 1 ? (
-                <button
-                  type="button"
-                  className="btn btn-outline-secondary"
-                  onClick={handleBack}
-                >
-                  Back
-                </button>
-              ) : (
-                <div />
-              )}
-
-              {step < 3 ? (
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={handleNext}
-                  disabled={!isStepValid}
-                >
-                  Next
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  className="btn btn-success"
-                  disabled={!isStepValid}
-                >
-                  {method === "edit" ? "Save Changes" : "Register"}
-                </button>
-              )}
+      <form onSubmit={handleSubmit} className="fade-in-step">
+        {step === 1 && (
+          <>
+            <h2 className="form-section-title">Account Credentials</h2>
+            <div className="mb-3">
+              <label className="form-label">Email</label>
+              <input
+                type="email"
+                name="email"
+                className="form-control"
+                value={formData.email}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="you@example.com"
+              />
+              {errMsg("email")}
             </div>
+            <div className="mb-3">
+              <label className="form-label">Password</label>
+              <input
+                type="password"
+                name="password"
+                className="form-control"
+                value={formData.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter a password (Min 8 characters)"
+              />
+              {errMsg("password")}
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Confirm Password</label>
+              <input
+                type="password"
+                name="password_confirmation"
+                className="form-control"
+                value={formData.password_confirmation}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Confirm Password"
+              />
+              {errMsg("password_confirmation")}
+            </div>
+          </>
+        )}
 
-            {method !== "edit" && step === 1 && (
-              <div className="text-center mt-3">
-                <Link to="/login">Already have an account? Log In</Link>
+        {step === 2 && (
+          <>
+            <h2 className="form-section-title">Personal Information</h2>
+            {[
+              "first_name",
+              "last_name",
+              "age",
+              "city",
+              "preferred_location",
+              "phone_number",
+              "budget_max",
+            ].map((field) => (
+              <div className="mb-3" key={field}>
+                <label className="form-label">
+                  {field
+                    .replace(/_/g, " ")
+                    .replace(/\b\w/g, (c) => c.toUpperCase())}
+                </label>
+                <input
+                  type={
+                    field === "age" || field.includes("budget")
+                      ? "number"
+                      : "text"
+                  }
+                  name={field}
+                  ref={
+                    field === "city"
+                      ? cityInputRef
+                      : field === "preferred_location"
+                      ? preferredLocationInputRef
+                      : null
+                  }
+                  className="form-control"
+                  value={formData[field]}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder={`Enter ${field.replace(/_/g, " ")}`}
+                />
+                {errMsg(field)}
               </div>
-            )}
-          </form>
+            ))}
+            <div className="mb-3">
+              <label className="form-label">Gender</label>
+              <select
+                name="sex"
+                className="form-select"
+                value={formData.sex}
+                onChange={handleChange}
+                onBlur={handleBlur}
+              >
+                <option value="">Select</option>
+                <option value="M">Male</option>
+                <option value="F">Female</option>
+                <option value="O">Other</option>
+              </select>
+              {errMsg("sex")}
+            </div>
+          </>
+        )}
+
+        {step === 3 && (
+          <>
+            <h2 className="form-section-title">Profile Extras</h2>
+            <div className="mb-3">
+              <label className="form-label">Profile Picture</label>
+              <div className="file-input-wrapper">
+                <input
+                  type="file"
+                  name="profile_picture"
+                  accept="image/*"
+                  className="form-control file-input"
+                  onChange={handleChange}
+                />
+                {renderImagePreview()}
+              </div>
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Instagram Link</label>
+              <input
+                type="url"
+                name="instagram_link"
+                className="form-control"
+                value={formData.instagram_link}
+                onChange={handleChange}
+                placeholder="https://instagram.com/yourprofile"
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Facebook Link</label>
+              <input
+                type="url"
+                name="facebook_link"
+                className="form-control"
+                value={formData.facebook_link}
+                onChange={handleChange}
+                placeholder="https://facebook.com/yourprofile"
+              />
+            </div>
+            <div className="checkbox-group">
+              <label>
+                <input
+                  type="checkbox"
+                  name="receive_email_notifications"
+                  checked={formData.receive_email_notifications}
+                  onChange={handleChange}
+                />
+                Receive Email Notifications
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  name="receive_sms_notifications"
+                  checked={formData.receive_sms_notifications}
+                  onChange={handleChange}
+                />
+                Receive SMS Notifications
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  name="terms_accepted"
+                  checked={formData.terms_accepted}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+                I accept the terms and conditions
+              </label>
+              {errMsg("terms_accepted")}
+            </div>
+          </>
+        )}
+
+        {/* Navigation */}
+        <div className="form-navigation">
+          {step > 1 ? (
+            <button
+              type="button"
+              className="btn btn-outline-secondary"
+              onClick={handleBack}
+            >
+              Back
+            </button>
+          ) : (
+            <div />
+          )}
+          {step < 3 ? (
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleNext}
+              disabled={!isStepValid}
+            >
+              Next
+            </button>
+          ) : (
+            <button
+              type="submit"
+              className="btn btn-success"
+              disabled={!isStepValid}
+            >
+              {method === "edit" ? "Save Changes" : "Register"}
+            </button>
+          )}
         </div>
-      </div>
+
+        {method !== "edit" && step === 1 && (
+          <div className="text-center mt-3">
+            <Link to="/login">Already have an account? Log In</Link>
+          </div>
+        )}
+      </form>
     </div>
   );
 }
