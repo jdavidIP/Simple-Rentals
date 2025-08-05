@@ -4,8 +4,40 @@ import api from "../../api.js";
 import "../../styles/register.css";
 import useGoogleMaps from "../../hooks/useGoogleMaps";
 
+function passwordStrength(password) {
+  if (!password) return "";
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[a-z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+  if (score <= 2) return "Weak";
+  if (score === 3 || score === 4) return "Medium";
+  return "Strong";
+}
+
+function passwordStrengthColor(strength) {
+  if (strength === "Weak") return "text-danger";
+  if (strength === "Medium") return "text-warning";
+  if (strength === "Strong") return "text-success";
+  return "";
+}
+
+function passwordImprovementHints(password) {
+  if (!password) return [];
+  const hints = [];
+  if (password.length < 8) hints.push("Use at least 8 characters");
+  if (!/[A-Z]/.test(password)) hints.push("Add an uppercase letter");
+  if (!/[a-z]/.test(password)) hints.push("Add a lowercase letter");
+  if (!/[0-9]/.test(password)) hints.push("Add a number");
+  if (!/[^A-Za-z0-9]/.test(password)) hints.push("Add a special symbol (e.g. !@#$%)");
+  return hints;
+}
+
 function FormRegister({ method = "register", profile }) {
   const [step, setStep] = useState(1);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: profile?.email || "",
@@ -30,6 +62,7 @@ function FormRegister({ method = "register", profile }) {
   });
 
   const [fieldErrors, setFieldErrors] = useState({});
+  const [passwordFocused, setPasswordFocused] = useState(false);
   const [touched, setTouched] = useState({});
   const [existingProfilePicture, setExistingProfilePicture] = useState(
     profile?.profile_picture || null
@@ -99,32 +132,84 @@ function FormRegister({ method = "register", profile }) {
   // Validation for each step
   const validateStep = (data = formData) => {
     const errors = {};
+
     if (step === 1) {
+      // Email
       if (!data.email) errors.email = "Email is required.";
       else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email))
         errors.email = "Invalid email format.";
-      if (!data.password || data.password.length < 8)
-        errors.password = "Min 8 characters.";
-      if (data.password !== data.password_confirmation)
-        errors.password_confirmation = "Passwords must match.";
+      else if (data.email.length > 255)
+        errors.email = "Email is too long.";
+
+      // Password
+      if (!data.password) errors.password = "Password is required.";
+      else if (data.password.length < 8)
+        errors.password = "Password must be at least 8 characters.";
+
+      // Confirm password
+      if (!data.password_confirmation)
+        errors.password_confirmation = "Please confirm your password.";
+      else if (data.password !== data.password_confirmation)
+        errors.password_confirmation = "Passwords do not match.";
     }
+
     if (step === 2) {
-      [
-        "first_name",
-        "last_name",
-        "age",
-        "sex",
-        "city",
-        "preferred_location",
-        "phone_number",
-        "budget_max",
-      ].forEach((field) => {
-        if (!data[field]) errors[field] = "Required.";
-      });
+      if (!data.first_name) errors.first_name = "First name is required.";
+      else if (!/^[A-Za-z\s'-]{2,30}$/.test(data.first_name))
+        errors.first_name = "Enter a valid first name (2-30 letters).";
+      if (!data.last_name) errors.last_name = "Last name is required.";
+      else if (!/^[A-Za-z\s'-]{2,30}$/.test(data.last_name))
+        errors.last_name = "Enter a valid last name (2-30 letters).";
+      if (!data.age && data.age !== 0) errors.age = "Age is required.";
+      else if (Number(data.age) < 18)
+        errors.age = "You must be at least 18 years old.";
+      else if (Number(data.age) > 120)
+        errors.age = "Enter a realistic age.";
+      if (!["M", "F", "O"].includes(data.sex)) errors.sex = "Please select a gender.";
+      if (!data.city) errors.city = "Current city is required.";
+      else if (data.city.length < 2 || data.city.length > 80)
+        errors.city = "Enter a valid city name.";
+      if (!data.preferred_location) errors.preferred_location = "Preferred location is required.";
+      else if (data.preferred_location.length < 2 || data.preferred_location.length > 80)
+        errors.preferred_location = "Enter a valid location name.";
+      if (!data.phone_number) errors.phone_number = "Phone number required.";
+      else if (!/^\+1-\d{3}-\d{3}-\d{4}$/.test(data.phone_number))
+        errors.phone_number = "Enter a valid US/Canada number: (123) 456-7890";
+      if (!data.budget_max) errors.budget_max = "Maximum budget required.";
+      else if (isNaN(data.budget_max) || Number(data.budget_max) < 100)
+        errors.budget_max = "Enter a valid max budget (at least $100).";
+      if (data.budget_min && (isNaN(data.budget_min) || Number(data.budget_min) < 0))
+        errors.budget_min = "Enter a valid minimum budget.";
+      if (
+        data.budget_min &&
+        data.budget_max &&
+        Number(data.budget_min) > Number(data.budget_max)
+      )
+        errors.budget_min = "Minimum budget cannot exceed maximum.";
+      if (
+        data.yearly_income &&
+        (isNaN(data.yearly_income) ||
+          Number(data.yearly_income) < 0 ||
+          Number(data.yearly_income) > 10000000)
+      )
+        errors.yearly_income = "Enter a valid yearly income.";
     }
-    if (step === 3 && !data.terms_accepted) {
-      errors.terms_accepted = "Please accept terms.";
+
+    if (step === 3) {
+      if (data.profile_picture && data.profile_picture instanceof File) {
+        const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+        if (!allowedTypes.includes(data.profile_picture.type))
+          errors.profile_picture = "Allowed formats: JPG, PNG, WEBP, GIF.";
+        else if (data.profile_picture.size > 3 * 1024 * 1024)
+          errors.profile_picture = "File too large (max 3MB).";
+      }
+      if (data.instagram_link && !/^https:\/\/(www\.)?instagram\.com\/[A-Za-z0-9_.-]+\/?$/.test(data.instagram_link))
+        errors.instagram_link = "Enter a valid Instagram URL.";
+      if (data.facebook_link && !/^https:\/\/(www\.)?facebook\.com\/[A-Za-z0-9.]+\/?$/.test(data.facebook_link))
+        errors.facebook_link = "Enter a valid Facebook URL.";
+      if (!data.terms_accepted) errors.terms_accepted = "Please accept the terms.";
     }
+
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -203,8 +288,34 @@ function FormRegister({ method = "register", profile }) {
       );
       navigate(method === "edit" ? `/profile/${resp.data.id}` : "/login");
     } catch (err) {
-      console.error("Register error:", err.response?.data || err.message);
-      alert("Submission failed. Please check your details.");
+      const apiErrors = err.response?.data || {};
+      if (typeof apiErrors === "object" && Object.keys(apiErrors).length) {
+        const newFieldErrors = {};
+        let allErrors = [];
+        for (const [field, value] of Object.entries(apiErrors)) {
+          let msgs = Array.isArray(value) ? value : [value];
+          msgs = msgs.map(msg => {
+            if (
+              field === "email" &&
+              msg.trim().toLowerCase().includes("already taken")
+            ) {
+              return (
+                msg +
+                " If you already have an account, you can sign in instead."
+              );
+            }
+            return msg;
+          });
+          newFieldErrors[field] = msgs[0];
+          allErrors.push(...msgs);
+        }
+        setFieldErrors(newFieldErrors);
+
+        alert(allErrors.join('\n'));
+      } else {
+        setFieldErrors({ non_field_error: "Submission failed. Please try again." });
+        alert("Submission failed. Please try again.");
+      }
     }
   };
 
@@ -304,17 +415,54 @@ function FormRegister({ method = "register", profile }) {
               />
               {errMsg("email")}
             </div>
-            <div className="mb-3">
+            <div className="mb-3" style={{ position: "relative" }}>
               <label className="form-label">Password</label>
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 className="form-control"
                 value={formData.password}
                 onChange={handleChange}
-                onBlur={handleBlur}
+                onFocus={() => setPasswordFocused(true)}
+                onBlur={e => {
+                  setPasswordFocused(false);
+                  handleBlur(e);
+                }}
                 placeholder="Enter a password (Min 8 characters)"
+                autoComplete="new-password"
+                style={{ paddingRight: 40 }}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                tabIndex={-1}
+                style={{
+                  position: "absolute",
+                  top: "38px",
+                  right: "12px",
+                  border: "none",
+                  background: "none",
+                  padding: 0,
+                  margin: 0,
+                  cursor: "pointer",
+                  outline: "none"
+                }}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                <i className={`bi ${showPassword ? "bi-eye-slash" : "bi-eye"}`} style={{ fontSize: 20 }}></i>
+              </button>
+              {formData.password && passwordFocused && (
+                <div className={`small ${passwordStrengthColor(passwordStrength(formData.password))}`}>
+                  Password strength: {passwordStrength(formData.password)}
+                </div>
+              )}
+              {formData.password && passwordFocused && passwordStrength(formData.password) !== "Strong" && (
+                <ul className="small text-muted mb-1" style={{ paddingLeft: 18 }}>
+                  {passwordImprovementHints(formData.password).map((hint) => (
+                    <li key={hint}>{hint}</li>
+                  ))}
+                </ul>
+              )}
               {errMsg("password")}
             </div>
             <div className="mb-3">

@@ -7,6 +7,7 @@ import "../../styles/forms.css";
 function FormLogIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -104,15 +105,41 @@ function FormLogIn() {
         <label htmlFor="password" className="form-label">
           Password
         </label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          placeholder="Enter your password"
-          value={password}
-          onChange={handleChange}
-          onBlur={handleBlur}
-        />
+        <div style={{ position: "relative" }}>
+          <input
+            type={showPassword ? "text" : "password"}
+            id="password"
+            name="password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            style={{ paddingRight: 40 }}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            tabIndex={-1}
+            style={{
+              position: "absolute",
+              top: "50%",
+              right: 12,
+              transform: "translateY(-50%)",
+              border: "none",
+              background: "none",
+              padding: 0,
+              margin: 0,
+              cursor: "pointer",
+              outline: "none"
+            }}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+          >
+            <i
+              className={`bi ${showPassword ? "bi-eye-slash" : "bi-eye"}`}
+              style={{ fontSize: 20 }}
+            ></i>
+          </button>
+        </div>
         {errMsg("password")}
 
         <button
