@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import "../../styles/verify.css";
+import "../../styles/auth-pages.css";
 import api from "../../api.js";
 
 function VerifyPending() {
@@ -23,7 +23,6 @@ function VerifyPending() {
     try {
       await api.post("/resend-verification/", { email });
       setResendStatus("sent");
-      // Optionally clear after 3s:
       setTimeout(() => setResendStatus("idle"), 3000);
     } catch (err) {
       setResendStatus("error");
@@ -57,7 +56,7 @@ function VerifyPending() {
         >
           <button
             type="submit"
-            className="verify-btn-outline"
+            className="btn btn-primary"
             disabled={resendStatus === "loading"}
           >
             {resendStatus === "loading"
@@ -73,7 +72,7 @@ function VerifyPending() {
         {resendStatus === "error" && (
           <div className="verify-status error">{resendError}</div>
         )}
-        <Link to="/login" className="verify-link">
+        <Link to="/login" className="link">
           Back to Login
         </Link>
       </div>

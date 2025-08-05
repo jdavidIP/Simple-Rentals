@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import "../../styles/verify.css";
+import "../../styles/auth-pages.css";
 import api from "../../api.js";
 
 function VerifyEmail() {
@@ -48,7 +48,10 @@ function VerifyEmail() {
         )}
         <Link
           to="/login"
-          className={status === "success" ? "verify-btn" : "verify-btn-outline"}
+          className={
+            "btn " +
+            (status === "success" ? "btn-primary" : "btn-outline-secondary")
+          }
         >
           Back to Login
         </Link>
