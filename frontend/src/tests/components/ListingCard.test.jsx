@@ -1,10 +1,10 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 import React from 'react';
-import ListingCard from '../../components/ListingCard';
+import ListingCard from '../../components/cards/ListingCard';
 import { MemoryRouter } from 'react-router-dom';
 
-// 🔧 Mock useNavigate
+// Mock useNavigate
 const navigateMock = vi.fn();
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
@@ -14,7 +14,7 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
-// 🔧 Mock API
+// Mock API
 vi.mock('../../api', () => ({
   default: {
     get: vi.fn(),
@@ -22,11 +22,14 @@ vi.mock('../../api', () => ({
   },
 }));
 
-// 🔧 Mock ProfileContext
+// Mock ProfileContext
 vi.mock('../../contexts/ProfileContext', () => ({
   useProfileContext: () => ({
     profile: { id: 1 },
     isProfileSelf: (id) => id === 1,
+    isFavourite: () => false,
+    addToFavourites: vi.fn(),
+    removeFromFavourites: vi.fn(),
   }),
 }));
 
@@ -111,7 +114,7 @@ describe('ListingCard Component', () => {
         {
           id: 888,
           listing: { id: 101 },
-          participants: [1, 2],
+          participants: [{ id: 1 }, { id: 2 }], // <-- correct shape
         },
       ],
     });
