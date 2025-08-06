@@ -36,6 +36,7 @@ import AuthLayout from "./components/AuthLayout";
 import ResetPassword from "./pages/auth/ResetPassword";
 import RequestPasswordReset from "./pages/auth/RequestPasswordReset";
 import "./styles/global.css";
+import Favourites from "./pages/listing/Favourites";
 
 function App() {
   return (
@@ -81,6 +82,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <GroupPost />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/listings/favourites"
+              element={
+                <ProtectedRoute>
+                  <Favourites />
                 </ProtectedRoute>
               }
             />
@@ -212,7 +221,10 @@ function App() {
             <Route path="/verify-pending" element={<VerifyPending />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/reset-password-request" element={<RequestPasswordReset />} />
+            <Route
+              path="/reset-password-request"
+              element={<RequestPasswordReset />}
+            />
           </Route>
         </Routes>
       </ProfileProvider>

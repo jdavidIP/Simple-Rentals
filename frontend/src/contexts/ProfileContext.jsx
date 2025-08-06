@@ -153,13 +153,12 @@ export const ProfileProvider = ({ children }) => {
   const isProfileSelf = (id) => profile && id === profile.id;
   const isRoommateSelf = (id) => profile && profile.roommate_profile == id;
 
-  const addToFavourites = async (listingId) => {
+  const addToFavourites = async (listing) => {
     setFavouritesLoading(true);
     setFavouritesError(null);
     try {
-      api.post(`/favourites/add/${listingId}`);
-      setFavourites((prev) => [...prev, listingId]);
-      console.log(favourites);
+      api.post(`/favourites/add/${listing.id}`);
+      setFavourites((prev) => [...prev, listing]);
     } catch (err) {
       setFavouritesError("Failed to add to favourites.");
       console.error("Failed to add to favourites.", err);
@@ -172,7 +171,9 @@ export const ProfileProvider = ({ children }) => {
     setFavouritesError(false);
     try {
       api.delete(`/favourites/remove/${listingId}`);
-      setFavourites((prev) => prev.filter((listing) => listing !== listingId));
+      setFavourites((prev) =>
+        prev.filter((listing) => listing.id !== listingId)
+      );
     } catch (err) {
       setFavouritesError("Failed to remove from favourites.");
       console.error("Failed to remove from favourites.", err);
@@ -181,7 +182,7 @@ export const ProfileProvider = ({ children }) => {
     }
   };
   const isFavourite = (listingId) => {
-    return favourites.some((listing) => listing === listingId);
+    return favourites.some((listing) => listing.id === listingId);
   };
 
   const value = {

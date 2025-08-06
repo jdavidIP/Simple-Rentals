@@ -74,7 +74,7 @@ function ListingCard({ listing, income, styling = null, showFavourite }) {
     if (favourite) {
       removeFromFavourites(listing.id);
     } else {
-      addToFavourites(listing.id);
+      addToFavourites(listing);
     }
   };
 
@@ -123,12 +123,14 @@ function ListingCard({ listing, income, styling = null, showFavourite }) {
         className="card-img-top border-bottom mt-2"
         style={{ objectFit: "cover", aspectRatio: "4/3" }}
       />
-      <button
-        className={`favourite-btn ${favourite ? "active" : ""}`}
-        onClick={handleFavourite}
-      >
-        ♥
-      </button>
+      {showFavourite && (
+        <button
+          className={`favourite-btn ${favourite ? "active" : ""}`}
+          onClick={handleFavourite}
+        >
+          ♥
+        </button>
+      )}
 
       {/* Card Body */}
       <div className="card-body d-flex flex-column justify-content-between">

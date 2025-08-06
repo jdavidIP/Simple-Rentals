@@ -549,6 +549,7 @@ function Listings() {
                       listing={listing}
                       income={userIncome}
                       styling={true}
+                      showFavourite={true}
                     />
                   </div>
                 ))}
