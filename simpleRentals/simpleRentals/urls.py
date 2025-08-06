@@ -18,6 +18,9 @@ urlpatterns = [
     path("edit-profile/", views.UserEditView.as_view(), name="edit_profile"),
     path("delete-profile", views.UserDeleteView.as_view(), name="delete_profile"),
     path("", views.home, name="home"),
+    path("favourites", views.FavouritesRetrieveView.as_view(), name="favourites_list"),
+    path("favourites/remove/<int:pk>", views.FavouriteDeleteView.as_view(), name="remove_favourite"), # pk = listing id
+    path("favourites/add/<int:pk>", views.FavouriteAddView.as_view(), name="add_favourite"), # pk = listing id
     path('conversations/', views.ConversationListView.as_view(), name='conversation_list'),
     path('conversations/<int:pk>/', views.ConversationDetailView.as_view(), name='conversation_detail'), # pk = conversation id
     path("conversations/delete/<int:pk>", views.ConversationDeleteView.as_view(), name="conversation_delete"),

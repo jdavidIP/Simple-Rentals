@@ -27,6 +27,7 @@ api.interceptors.request.use(
       "/applications",
       "/reviews",
       "/delete-profile",
+      "/favourites",
     ];
     const url = new URL(config.url, config.baseURL).pathname;
 

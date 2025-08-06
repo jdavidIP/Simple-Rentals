@@ -3,10 +3,17 @@ import { useProfileContext } from "../../contexts/ProfileContext";
 import api from "../../api";
 import { useState } from "react";
 
-function ListingCard({ listing, income, styling = null }) {
+function ListingCard({ listing, income, styling = null, showFavourite }) {
   const navigate = useNavigate();
-  const { isProfileSelf, profile } = useProfileContext();
+  const {
+    isProfileSelf,
+    profile,
+    addToFavourites,
+    removeFromFavourites,
+    isFavourite,
+  } = useProfileContext();
   const [error, setError] = useState(null);
+  const favourite = isFavourite(listing.id);
 
   const handleStartConversation = async (listingId) => {
     try {
@@ -61,6 +68,16 @@ function ListingCard({ listing, income, styling = null }) {
     }
   };
 
+  const handleFavourite = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (favourite) {
+      removeFromFavourites(listing.id);
+    } else {
+      addToFavourites(listing.id);
+    }
+  };
+
   return (
     <div
       key={listing.id}
@@ -79,8 +96,8 @@ function ListingCard({ listing, income, styling = null }) {
             <div
               style={{
                 position: "absolute",
-                top: "10px",
-                right: "10px",
+                top: "1rem",
+                left: "1rem",
                 backgroundColor: tag.color,
                 color: "white",
                 padding: "5px 10px",
@@ -106,6 +123,12 @@ function ListingCard({ listing, income, styling = null }) {
         className="card-img-top border-bottom mt-2"
         style={{ objectFit: "cover", aspectRatio: "4/3" }}
       />
+      <button
+        className={`favourite-btn ${favourite ? "active" : ""}`}
+        onClick={handleFavourite}
+      >
+        ♥
+      </button>
 
       {/* Card Body */}
       <div className="card-body d-flex flex-column justify-content-between">

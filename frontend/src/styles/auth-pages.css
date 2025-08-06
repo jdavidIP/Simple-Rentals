@@ -53,68 +53,6 @@
   width: 100%;
 }
 
-.btn, .btn-primary {
-  min-width: 120px;
-  width: 100%;
-  font-weight: 600;
-  border-radius: 8px;
-  padding: 10px 22px;
-  font-size: 1rem;
-  margin-top: 12px;
-  margin-bottom: 6px;
-  transition: background 0.18s, color 0.15s, border-color 0.15s;
-  cursor: pointer;
-  font-family: "Open Sans", Arial, sans-serif;
-  box-shadow: none;
-  border: none !important;
-
-  /* Force your brand navy! */
-  background-color: var(--wood-primary) !important;
-  color: #fff !important;
-}
-
-.btn-primary:hover,
-.btn-primary:focus,
-.btn:hover,
-.btn:focus {
-  background-color: var(--wood-dark) !important;
-  color: #fff !important;
-}
-
-.btn:disabled, .btn-primary:disabled {
-  background: var(--wood-accent) !important;
-  color: #fff !important;
-  cursor: not-allowed;
-  opacity: 0.65;
-}
-
-/* Outlined secondary button */
-.btn-outline-secondary {
-  background: #fff !important;
-  color: var(--wood-subtitle) !important;
-  border: 1.5px solid var(--wood-accent) !important;
-}
-.btn-outline-secondary:hover,
-.btn-outline-secondary:focus {
-  background-color: var(--wood-hover) !important;
-  color: var(--wood-primary) !important;
-  border-color: var(--wood-primary) !important;
-}
-
-/* General link style */
-.link {
-  color: var(--wood-primary); 
-  text-decoration: none;
-  font-weight: 500;
-  margin-top: 22px;
-  transition: color 0.15s;
-  display: inline-block;
-}
-.link:hover {
-  color: var(--wood-dark);
-  text-decoration: underline;
-}
-
 /* Status/alerts */
 .verify-status {
   width: 100%;

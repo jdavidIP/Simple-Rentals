@@ -21,7 +21,7 @@ from .tokens import email_verification_token
 from .utils import send_verification_email
 from .utils import send_password_reset_email
 
-from .models import Listing, ListingPicture, Conversation, Message, MarketplaceUser, Review
+from .models import Listing, ListingPicture, Conversation, Message, MarketplaceUser, Review, Favorites
 
 import os
 
@@ -336,6 +336,48 @@ class ListingListView(generics.ListAPIView):
             )
 
         return queryset
+    
+class FavouritesRetrieveView(generics.RetrieveAPIView):
+    serializer_class = FavoritesSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        favourite = get_object_or_404(Favorites, user=self.request.user)
+
+        return favourite
+
+class FavouriteDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, *args, **kwargs):
+        listing_id = self.kwargs.get('pk')
+        listing = get_object_or_404(Listing, id=listing_id)
+
+        # Get or create the user's Favorites object
+        favourites, _ = Favorites.objects.get_or_create(user=request.user)
+
+        # Remove the listing if it exists
+        if listing in favourites.favorite_listings.all():
+            favourites.favorite_listings.remove(listing)
+            return Response({'detail': 'Removed from favourites.'}, status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({'detail': 'Listing not in favourites.'}, status=status.HTTP_404_NOT_FOUND)
+
+class FavouriteAddView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        listing = get_object_or_404(Listing, id=pk)
+
+        # Get or create the user's Favorites object
+        favourites, _ = Favorites.objects.get_or_create(user=request.user)
+
+        if listing in favourites.favorite_listings.all():
+            return Response({'detail': 'Listing already in favourites.'}, status=status.HTTP_200_OK)
+
+        favourites.favorite_listings.add(listing)
+        return Response({'detail': 'Listing added to favourites.'}, status=status.HTTP_201_CREATED)
+
     
 ### LISTING SECTION - END ###
 
