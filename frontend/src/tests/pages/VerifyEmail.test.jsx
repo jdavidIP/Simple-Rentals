@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, it, vi, beforeEach } from "vitest";
-import VerifyEmail from "../../pages/VerifyEmail";
+import VerifyEmail from "../../pages/auth/VerifyEmail";
 import api from "../../api";
 
 // Mock API
@@ -40,7 +40,7 @@ describe("VerifyEmail Page", () => {
     });
 
     const button = screen.getByRole("link", { name: /back to login/i });
-    expect(button).toHaveClass("verify-btn");
+    expect(button).toHaveClass("btn btn-primary");
   });
 
   it("displays error message when verification fails with server error", async () => {
@@ -55,7 +55,7 @@ describe("VerifyEmail Page", () => {
     });
 
     const button = screen.getByRole("link", { name: /back to login/i });
-    expect(button).toHaveClass("verify-btn-outline");
+    expect(button).toHaveClass("btn btn-outline-secondary");
   });
 
   it("displays fallback error message when API throws generic error", async () => {
@@ -78,6 +78,6 @@ describe("VerifyEmail Page", () => {
     ).toBeInTheDocument();
 
     const button = screen.getByRole("link", { name: /back to login/i });
-    expect(button).toHaveClass("verify-btn-outline");
+    expect(button).toHaveClass("btn btn-outline-secondary");
   });
 });
