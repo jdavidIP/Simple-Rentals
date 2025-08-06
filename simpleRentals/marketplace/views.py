@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import *
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from .serializers import *
@@ -18,7 +19,7 @@ from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from .tokens import email_verification_token
 from .utils import send_verification_email
-
+from .utils import send_password_reset_email
 
 from .models import Listing, ListingPicture, Conversation, Message, MarketplaceUser, Review
 
@@ -163,6 +164,41 @@ class ResendVerificationEmailView(APIView):
             return Response({"detail": "Email already verified."}, status=200)
         send_verification_email(user, request)
         return Response({"detail": "Verification email resent. Check your inbox!"}, status=200)
+    
+
+class RequestPasswordResetView(APIView):
+    permission_classes = [AllowAny] 
+    def post(self, request):
+        serializer = RequestPasswordResetSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+        try:
+            user = User.objects.get(email=email)
+            send_password_reset_email(user, request)
+        except User.DoesNotExist:
+            pass
+        return Response({'detail': 'If that email exists, a reset link has been sent.'}, status=status.HTTP_200_OK)
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = [AllowAny] 
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        uid = serializer.validated_data['uid']
+        token = serializer.validated_data['token']
+        new_password = serializer.validated_data['new_password']
+
+        try:
+            user = User.objects.get(pk=uid)
+        except User.DoesNotExist:
+            return Response({'detail': 'Invalid user.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not PasswordResetTokenGenerator().check_token(user, token):
+            return Response({'detail': 'Invalid or expired token.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save()
+        return Response({'detail': 'Password has been reset successfully.'}, status=status.HTTP_200_OK)
         
 ### USER AUTHENTICATION SECTION - END ###
 
