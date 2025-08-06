@@ -142,7 +142,6 @@ export const ProfileProvider = ({ children }) => {
     if (roommate && !roommateLoading) {
       fetchApplications();
       fetchInvitations();
-      console.log(favourites);
     }
   }, [roommate]);
 
@@ -182,7 +181,8 @@ export const ProfileProvider = ({ children }) => {
     }
   };
   const isFavourite = (listingId) => {
-    return favourites.some((listing) => listing.id === listingId);
+    const numericId = Number(listingId);
+    return favourites.some((listing) => listing.id === numericId);
   };
 
   const value = {

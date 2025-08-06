@@ -108,7 +108,11 @@ function ConversationWindow() {
         <aside className="chat-sidebar">
           <div className="sidebar-panel">
             <h4 className="sidebar-title">Listing Preview</h4>
-            <ListingCard listing={listing} styling={true} />
+            <ListingCard
+              listing={listing}
+              styling={true}
+              showFavourite={true}
+            />
           </div>
         </aside>
       )}
