@@ -12,7 +12,7 @@ vi.mock("react-router-dom", async () => {
 });
 
 // Mock Unauthorized to avoid Router issues
-vi.mock("../../pages/Unauthorized.jsx", () => ({
+vi.mock("../../pages/util/Unauthorized.jsx", () => ({
   default: () => <div data-testid="unauthorized">Not allowed</div>
 }));
 
@@ -30,7 +30,7 @@ vi.mock("../../api", () => ({
   }
 }));
 
-import GroupManage from "../../pages/GroupManage";
+import GroupManage from "../../pages/group/GroupManage";
 import api from "../../api";
 
 describe("GroupManage", () => {
