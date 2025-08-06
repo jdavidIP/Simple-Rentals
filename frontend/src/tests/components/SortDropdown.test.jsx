@@ -13,7 +13,7 @@ describe('SortDropdown Component', () => {
   it('renders label and all options', () => {
     render(<SortDropdown sortOption="newest" setSortOption={setSortOption} />);
 
-    expect(screen.getByLabelText(/Sort By:/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Sort by/i)).toBeInTheDocument();
     expect(screen.getByText(/Newest First/)).toBeInTheDocument();
     expect(screen.getByText(/Oldest First/)).toBeInTheDocument();
     expect(screen.getByText(/Price: Low → High/)).toBeInTheDocument();
@@ -22,13 +22,13 @@ describe('SortDropdown Component', () => {
 
   it('has correct default selected option', () => {
     render(<SortDropdown sortOption="priceLowHigh" setSortOption={setSortOption} />);
-    const select = screen.getByLabelText(/Sort By:/i);
+    const select = screen.getByLabelText(/Sort by/i);
     expect(select.value).toBe('priceLowHigh');
   });
 
   it('calls setSortOption on selection change', () => {
     render(<SortDropdown sortOption="newest" setSortOption={setSortOption} />);
-    const select = screen.getByLabelText(/Sort By:/i);
+    const select = screen.getByLabelText(/Sort by/i);
     fireEvent.change(select, { target: { value: 'priceHighLow' } });
 
     expect(setSortOption).toHaveBeenCalledWith('priceHighLow');
