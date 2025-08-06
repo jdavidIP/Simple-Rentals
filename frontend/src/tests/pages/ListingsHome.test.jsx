@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import ListingsHome from "../../pages/ListingsHome";
+import ListingsHome from "../../pages/listing/ListingsHome";
 import { MemoryRouter } from "react-router-dom";
 import { vi } from "vitest";
 import api from "../../api";
