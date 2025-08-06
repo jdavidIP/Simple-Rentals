@@ -34,6 +34,14 @@ def save_images(listing, images, front_image):
 
 # User management serializers
 
+class RequestPasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    uid = serializers.IntegerField()
+    token = serializers.CharField()
+    new_password = serializers.CharField(min_length=8)
+
 class UserSerializer(serializers.ModelSerializer):
     sex = serializers.CharField(source='get_sex_display')
 

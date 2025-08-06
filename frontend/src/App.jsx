@@ -33,6 +33,8 @@ import ReviewsEdit from "./pages/review/ReviewsEdit";
 import VerifyPending from "./pages/auth/VerifyPending";
 import VerifyEmail from "./pages/auth/VerifyEmail";
 import AuthLayout from "./components/AuthLayout";
+import ResetPassword from "./pages/auth/ResetPassword";
+import RequestPasswordReset from "./pages/auth/RequestPasswordReset";
 import "./styles/global.css";
 
 function App() {
@@ -209,6 +211,8 @@ function App() {
           <Route element={<AuthLayout />}>
             <Route path="/verify-pending" element={<VerifyPending />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/reset-password-request" element={<RequestPasswordReset />} />
           </Route>
         </Routes>
       </ProfileProvider>
