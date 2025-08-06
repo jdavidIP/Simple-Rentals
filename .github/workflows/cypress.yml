@@ -65,7 +65,7 @@ jobs:
       - name: Start Django server
         run: |
           cd simpleRentals
-          python manage.py runserver [::]:8000 &
+          python manage.py runserver &
           echo $! > django_pid.txt
         shell: bash
 
