@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
-import RoommatesView from "../../pages/RoommatesView";
+import RoommatesView from "../../pages/roommate/RoommatesView";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
 // Mock API
@@ -72,7 +72,8 @@ describe("RoommatesView Page", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    // Should find the spinner by role, not by text
+    expect(screen.getByRole("status")).toBeInTheDocument();
     await waitFor(() => expect(api.get).toHaveBeenCalled());
   });
 
@@ -90,9 +91,9 @@ describe("RoommatesView Page", () => {
     await waitFor(() => expect(screen.getByText("Alice Smith")).toBeInTheDocument());
     expect(screen.getByText(/Student/i)).toBeInTheDocument();
     expect(screen.getByText(/Looking for a roommate downtown/i)).toBeInTheDocument();
-    expect(screen.getByText(/Preferred Area:/i)).toBeInTheDocument();
-    expect(screen.getByText(/Budget:/i)).toBeInTheDocument();
-    expect(screen.getByText(/Move-in Date:/i)).toBeInTheDocument();
+    expect(screen.getByText("Preferred Area")).toBeInTheDocument();
+    expect(screen.getByText("Budget")).toBeInTheDocument();
+    expect(screen.getByText("Move-in Date")).toBeInTheDocument();
   });
 
   it("shows error message if fetch fails", async () => {
