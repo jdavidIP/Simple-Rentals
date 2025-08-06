@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import ListingsEdit from "../../pages/ListingsEdit";
+import ListingsEdit from "../../pages/listing/ListingsEdit";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { vi } from "vitest";
 
@@ -18,12 +18,12 @@ vi.mock("../../contexts/ProfileContext", () => ({
 }));
 
 // Mock FormListing
-vi.mock("../../components/FormListing", () => ({
+vi.mock("../../components/forms/FormListing", () => ({
   default: ({ listing }) => <div>FormListing for {listing.title}</div>,
 }));
 
 // Mock Unauthorized
-vi.mock("../../pages/Unauthorized", () => ({
+vi.mock("../../pages/util/Unauthorized", () => ({
   default: () => <div>Unauthorized Access</div>,
 }));
 
