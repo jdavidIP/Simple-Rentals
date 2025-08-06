@@ -3,7 +3,7 @@
 import { describe, it, beforeEach, vi, expect } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import VerifyPending from "../../pages/VerifyPending";
+import VerifyPending from "../../pages/auth/VerifyPending";
 import api from "../../api";
 
 // Mock API
