@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import Listings from "../../pages/Listings";
+import Listings from "../../pages/listing/Listings";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { vi } from "vitest";
 
@@ -10,18 +10,19 @@ vi.mock("../../api", () => ({
   },
 }));
 
-// Mock ProfileContext
+// Mock ProfileContext with isFavourite
 vi.mock("../../contexts/ProfileContext", () => ({
   useProfileContext: () => ({
     profile: {
       yearly_income: 60000,
       roommate_profile: 1,
     },
+    isFavourite: () => false, // Fix for TypeError
   }),
 }));
 
-// Mock child components
-vi.mock("../../components/ListingCard", () => ({
+// Mock child components to simplify rendering
+vi.mock("../../components/cards/ListingCard", () => ({
   default: ({ listing }) => <div>{listing.title}</div>,
 }));
 vi.mock("../../components/SortDropdown", () => ({
@@ -29,6 +30,17 @@ vi.mock("../../components/SortDropdown", () => ({
 }));
 vi.mock("../../components/Pagination", () => ({
   default: () => <div>Pagination</div>,
+}));
+
+// Mock MultiSelectDropdown and Google Maps
+vi.mock("../../components/MultiSelectDropdown", () => ({
+  default: () => <div>MultiSelectDropdown</div>,
+}));
+vi.mock("../../hooks/useGoogleMaps", () => ({
+  __esModule: true,
+  default: () => ({
+    googleMaps: null,
+  }),
 }));
 
 import api from "../../api";
@@ -41,13 +53,11 @@ describe("Listings Page", () => {
 
   it("renders loading state and then listings", async () => {
     const fakeListings = [
-      { id: 1, title: "Listing 1", created_at: "2025-01-01", price: 1200 },
-      { id: 2, title: "Listing 2", created_at: "2025-01-02", price: 1500 },
+      { id: 1, title: "Listing 1", created_at: "2025-01-01", price: 1200, pictures: [{ is_primary: true }] },
+      { id: 2, title: "Listing 2", created_at: "2025-01-02", price: 1500, pictures: [{ is_primary: true }] },
     ];
 
-    api.get.mockResolvedValueOnce({
-      data: fakeListings.map((l) => ({ ...l, pictures: [{ is_primary: true }] })),
-    });
+    api.get.mockResolvedValueOnce({ data: fakeListings });
 
     render(
       <MemoryRouter initialEntries={["/listings"]}>
@@ -57,8 +67,10 @@ describe("Listings Page", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText(/Loading/i)).toBeInTheDocument();
+    // Spinner present for loading state
+    expect(screen.getByRole("status")).toBeInTheDocument();
 
+    // Wait for listings to appear
     await waitFor(() => {
       expect(screen.getByText("Listing 1")).toBeInTheDocument();
       expect(screen.getByText("Listing 2")).toBeInTheDocument();
@@ -82,23 +94,13 @@ describe("Listings Page", () => {
   });
 
   it("disables submit button if no location selected", async () => {
-    const mockListings = [
-      {
-        id: 1,
-        title: "Test Listing",
-        price: 1000,
-        created_at: "2025-01-01",
-        pictures: [],
-      },
-    ];
-
     render(
       <MemoryRouter
         initialEntries={[
           {
             pathname: "/listings",
             state: {
-              listings: mockListings,
+              listings: [],
               locationSelected: false,
               city: "",
             },
