@@ -56,21 +56,25 @@ describe("Group Form E2E", () => {
     cy.url().should("include", "/groups/1");
 
     cy.contains("A cool updated description.");
-    cy.contains(".meta .meta-label", /^Status$/)
-      .closest(".meta")
-      .find(".meta-value .status-badge")
+    cy.contains("span.detail-label", "Status:")
+      .parent() // Gets the .detail-item
+      .find(".status-badge")
       .should(($badge) => {
         const txt = $badge.text().trim();
         const title = $badge.attr("title") || "";
-        expect(txt || title).to.match(/Filled/i);
+        expect(txt || title).to.match(/Filled/);
       });
+
     cy.contains("Updated Group");
   });
 
   it("removes a user from the group and re-adds them", () => {
     cy.visit("/groups/edit/1");
 
-    cy.contains("Remove").click();
+    // Remove the user
+    cy.contains(".roommate-card", "test3@example.com")
+      .find("button.card-remove-btn[title='Remove']")
+      .click();
 
     cy.get("button[type='submit']")
       .contains(/save changes/i)
@@ -79,10 +83,16 @@ describe("Group Form E2E", () => {
     cy.url().should("include", "/groups/1");
     cy.contains("test3@example.com").should("not.exist");
 
+    // Re-add the user
     cy.visit("/groups/edit/1");
 
     cy.get("input[placeholder='Enter name to search']").type("Test User3");
-    cy.get("button").contains("Search").click();
+
+    // 🔍 Fix: Click the search button using aria-label or sibling lookup
+    cy.get("input[placeholder='Enter name to search']")
+      .parent()
+      .find("button[type='button']")
+      .click();
 
     cy.get("select[name='members']")
       .should("contain", "test3@example.com")
