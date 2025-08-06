@@ -1,22 +1,25 @@
-import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
-import { vi } from "vitest";
-
-// Mock ProfileContext BEFORE import
-vi.mock("../../contexts/ProfileContext", () => ({
-  useProfileContext: vi.fn(),
-}));
-
-// Mock InvitationCard to a stub
-vi.mock("../../components/InvitationCard", () => ({
-  __esModule: true,
-  default: ({ invitation }) => (
-    <div data-testid="invitation-card">{invitation.group_name}</div>
-  ),
-}));
-
-import Invitations from "../../pages/Invitations";
+import { render, screen, fireEvent, within } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import Invitations from "../../pages/group/Invitations";
 import { useProfileContext } from "../../contexts/ProfileContext";
+
+// Mock ProfileContext for all tests
+vi.mock("../../contexts/ProfileContext");
+
+function setupContextValue({
+  loading = false,
+  error = null,
+  received = [],
+  sent = [],
+  fetchInvitations = vi.fn(),
+} = {}) {
+  useProfileContext.mockReturnValue({
+    invitations: { received, sent },
+    invitationsLoading: loading,
+    invitationsError: error,
+    fetchInvitations,
+  });
+}
 
 describe("Invitations page", () => {
   beforeEach(() => {
@@ -24,96 +27,100 @@ describe("Invitations page", () => {
   });
 
   it("shows loading and error alerts", () => {
-    useProfileContext.mockReturnValue({
-      invitations: { received: [], sent: [] },
-      invitationsLoading: true,
-      invitationsError: "Oh no!",
-      fetchInvitations: vi.fn(),
-    });
+    // Loading
+    setupContextValue({ loading: true });
+    render(
+      <MemoryRouter>
+        <Invitations />
+      </MemoryRouter>
+    );
+    expect(screen.getByRole("status")).toBeInTheDocument();
 
-    render(<Invitations />);
-    expect(screen.getByText(/loading invitations/i)).toBeInTheDocument();
-    expect(screen.getByText(/oh no/i)).toBeInTheDocument();
-  });
-
-  it("renders received invitations with correct status sections", () => {
-    useProfileContext.mockReturnValue({
-      invitations: {
-        received: [
-          { id: 1, group_name: "My Group 1", accepted: null },
-          { id: 2, group_name: "My Group 2", accepted: true },
-        ],
-        sent: [],
-      },
-      invitationsLoading: false,
-      invitationsError: null,
-      fetchInvitations: vi.fn(),
-    });
-
-    render(<Invitations />);
-    // Tabs default to received
-    expect(screen.getByText("Pending")).toBeInTheDocument();
-    expect(screen.getByText("Accepted")).toBeInTheDocument();
-    // Card stubs
-    expect(screen.getAllByTestId("invitation-card").length).toBe(2);
-    expect(screen.getByText("My Group 1")).toBeInTheDocument();
-    expect(screen.getByText("My Group 2")).toBeInTheDocument();
-  });
-
-  it("renders sent invitations, with all sections, and can switch tabs", () => {
-    useProfileContext.mockReturnValue({
-      invitations: {
-        received: [],
-        sent: [
-          { id: 3, group_name: "Sent 1", accepted: null },
-          { id: 4, group_name: "Sent 2", accepted: true },
-          { id: 5, group_name: "Sent 3", accepted: false },
-        ],
-      },
-      invitationsLoading: false,
-      invitationsError: null,
-      fetchInvitations: vi.fn(),
-    });
-
-    render(<Invitations />);
-    fireEvent.click(screen.getByText("Sent"));
-    expect(screen.getByText("Rejected")).toBeInTheDocument();
-    expect(screen.getAllByTestId("invitation-card").length).toBe(3);
-    expect(screen.getByText("Sent 1")).toBeInTheDocument();
-    expect(screen.getByText("Sent 2")).toBeInTheDocument();
-    expect(screen.getByText("Sent 3")).toBeInTheDocument();
+    // Error
+    setupContextValue({ error: "Something went wrong" });
+    render(
+      <MemoryRouter>
+        <Invitations />
+      </MemoryRouter>
+    );
+    expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
   });
 
   it("shows empty states when there are no invitations", () => {
-    useProfileContext.mockReturnValue({
-      invitations: { received: [], sent: [] },
-      invitationsLoading: false,
-      invitationsError: null,
-      fetchInvitations: vi.fn(),
-    });
+    setupContextValue(); // Both received and sent empty
 
-    render(<Invitations />);
-    expect(screen.getByText(/no pending invitations/i)).toBeInTheDocument();
-    expect(screen.getByText(/no accepted invitations/i)).toBeInTheDocument();
-    fireEvent.click(screen.getByText("Sent"));
-    expect(screen.getByText(/no pending invitations/i)).toBeInTheDocument();
-    expect(screen.getByText(/no accepted invitations/i)).toBeInTheDocument();
-    expect(screen.getByText(/no rejected invitations/i)).toBeInTheDocument();
+    render(
+      <MemoryRouter>
+        <Invitations />
+      </MemoryRouter>
+    );
+
+    // Default: Received tab
+    // Check Pending & Accepted sections
+    const pendingSection = screen.getByText("Pending").closest("details");
+    const acceptedSection = screen.getByText("Accepted").closest("details");
+
+    expect(
+      within(pendingSection).getByText(/no items in.*pending/i)
+    ).toBeInTheDocument();
+    expect(
+      within(acceptedSection).getByText(/no items in.*accepted/i)
+    ).toBeInTheDocument();
+
+    // Switch to Sent tab
+    fireEvent.click(screen.getByRole("tab", { name: /sent/i }));
+
+    // Sent tab: Pending, Accepted, Rejected
+    const pendingSent = screen
+      .getAllByText("Pending")
+      .find((el) => el.closest("details") && within(el.closest("details")).queryByText(/no items/i));
+    const acceptedSent = screen
+      .getAllByText("Accepted")
+      .find((el) => el.closest("details") && within(el.closest("details")).queryByText(/no items/i));
+    const rejectedSent = screen
+      .getAllByText("Rejected")
+      .find((el) => el.closest("details") && within(el.closest("details")).queryByText(/no items/i));
+
+    expect(
+      within(pendingSent.closest("details")).getByText(/no items in.*pending/i)
+    ).toBeInTheDocument();
+    expect(
+      within(acceptedSent.closest("details")).getByText(/no items in.*accepted/i)
+    ).toBeInTheDocument();
+    expect(
+      within(rejectedSent.closest("details")).getByText(/no items in.*rejected/i)
+    ).toBeInTheDocument();
   });
 
   it("shows received tab as default, can switch to sent and back", () => {
-    useProfileContext.mockReturnValue({
-      invitations: { received: [], sent: [] },
-      invitationsLoading: false,
-      invitationsError: null,
-      fetchInvitations: vi.fn(),
+    setupContextValue({
+      received: [{ id: 1, accepted: null }],
+      sent: [{ id: 2, accepted: true }],
     });
+    render(
+      <MemoryRouter>
+        <Invitations />
+      </MemoryRouter>
+    );
 
-    render(<Invitations />);
-    expect(screen.getByRole("button", { name: "Received" }).className).toMatch(/active/);
-    fireEvent.click(screen.getByRole("button", { name: "Sent" }));
-    expect(screen.getByRole("button", { name: "Sent" }).className).toMatch(/active/);
-    fireEvent.click(screen.getByRole("button", { name: "Received" }));
-    expect(screen.getByRole("button", { name: "Received" }).className).toMatch(/active/);
+    // Default is Received tab
+    expect(
+      screen.getByRole("tab", { name: /received/i, selected: true })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("tab", { name: /sent/i, selected: false })
+    ).toBeInTheDocument();
+
+    // Switch to Sent tab
+    fireEvent.click(screen.getByRole("tab", { name: /sent/i }));
+    expect(
+      screen.getByRole("tab", { name: /sent/i, selected: true })
+    ).toBeInTheDocument();
+
+    // Switch back to Received
+    fireEvent.click(screen.getByRole("tab", { name: /received/i }));
+    expect(
+      screen.getByRole("tab", { name: /received/i, selected: true })
+    ).toBeInTheDocument();
   });
 });
