@@ -1,6 +1,6 @@
 import { describe, it, vi, expect, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import GroupCard from "../../components/GroupCard";
+import GroupCard from "../../components/cards/GroupCard";
 import { MemoryRouter } from "react-router-dom";
 
 // Mock useNavigate
@@ -40,15 +40,9 @@ describe("GroupCard Component", () => {
     expect(screen.getByText(/2025-09-01/)).toBeInTheDocument();
     expect(screen.getByText(/open/i)).toBeInTheDocument();
     expect(screen.getByText(/yes/i)).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /view group/i })
-    ).toBeInTheDocument();
-
-    // Fix for Members: 3 assertion
-    const memberItem = screen
-      .getAllByRole("listitem")
-      .find((el) => el.textContent.includes("Members: 3"));
-    expect(memberItem).toBeTruthy();
+    expect(screen.getByText(/members/i)).toBeInTheDocument();
+    expect(screen.getByText("3")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /housemates/i })).toBeInTheDocument();
   });
 
   it("navigates to group details on click", () => {
@@ -57,8 +51,8 @@ describe("GroupCard Component", () => {
         <GroupCard group={mockGroup} />
       </MemoryRouter>
     );
-
-    const card = screen.getByText(/housemates/i).closest(".card");
+    // Find the article by role "button"
+    const card = screen.getByRole("button", { name: /housemates/i });
     fireEvent.click(card);
 
     expect(mockNavigate).toHaveBeenCalledWith("/groups/42");
