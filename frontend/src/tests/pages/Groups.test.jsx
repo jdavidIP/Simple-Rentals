@@ -22,7 +22,7 @@ vi.mock("../../contexts/ProfileContext", () => ({
 }));
 
 // Mock GroupCard to display group name only
-vi.mock("../../components/GroupCard", () => ({
+vi.mock("../../components/group/GroupCard", () => ({
   __esModule: true,
   default: ({ group }) => (
     <div data-testid="group-card">{group.name}</div>
@@ -35,7 +35,7 @@ vi.mock("../../api", () => ({
   }
 }));
 
-import Groups from "../../pages/Groups";
+import Groups from "../../pages/group/Groups";
 import api from "../../api";
 
 describe("Groups page", () => {
@@ -59,10 +59,13 @@ describe("Groups page", () => {
     isProfileSelfMock.mockReturnValue(false);
 
     render(<Groups />);
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
 
+    // Matches "Loading listing…" (with Unicode ellipsis)
+    expect(screen.getByText(/loading listing/i)).toBeInTheDocument();
+
+    // Wait for "Available Groups" to appear
     await waitFor(() =>
-      expect(screen.getByText("Groups for this Listing")).toBeInTheDocument()
+      expect(screen.getByText(/available groups/i)).toBeInTheDocument()
     );
 
     // Not owner: show "Open a Group" button
@@ -83,7 +86,7 @@ describe("Groups page", () => {
 
     render(<Groups />);
     await waitFor(() =>
-      expect(screen.getByText("Groups for this Listing")).toBeInTheDocument()
+      expect(screen.getByText(/available groups/i)).toBeInTheDocument()
     );
     // No Open button for owners
     expect(screen.queryByRole("button", { name: /Open a Group/i })).toBeNull();
