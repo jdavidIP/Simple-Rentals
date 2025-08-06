@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import ReviewsEdit from "../../pages/ReviewsEdit";
+import ReviewsEdit from "../../pages/review/ReviewsEdit";
 import api from "../../api";
 import { useProfileContext } from "../../contexts/ProfileContext";
 import { vi } from "vitest";
@@ -17,10 +17,10 @@ vi.mock("react-router-dom", async () => {
     useParams: () => ({ id: "5" }),
   };
 });
-vi.mock("../../components/FormReview", () => ({
+vi.mock("../../components/forms/FormReview", () => ({
   default: () => <div>Mocked FormReview</div>,
 }));
-vi.mock("../../pages/Unauthorized.jsx", () => ({
+vi.mock("../../pages/util/Unauthorized", () => ({
   default: () => <div>Mocked Unauthorized</div>,
 }));
 
@@ -43,7 +43,8 @@ describe("ReviewsEdit Page", () => {
     });
 
     render(<ReviewsEdit />, { wrapper: MemoryRouter });
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    // Look for the loading spinner by role
+    expect(screen.getByRole("status")).toBeInTheDocument();
   });
 
   it("renders FormReview when review is loaded and authorized", async () => {
