@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import Unauthorized from "../../pages/Unauthorized";
+import Unauthorized from "../../pages/util/Unauthorized";
 import { MemoryRouter } from "react-router-dom";
 
 describe("Unauthorized Page", () => {
