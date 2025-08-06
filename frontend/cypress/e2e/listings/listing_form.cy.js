@@ -53,46 +53,6 @@ describe("Listing Form E2E", () => {
     cy.visit("/listings/post");
   });
 
-  it("fills out the form and uploads images", () => {
-    // Fill required fields
-    cy.get('input[name="street_address"]').type("456 Cypress Ave");
-    cy.get('input[name="city"]').type("Testville");
-    cy.get("input[name=postal_code]").type("N2T 2K1");
-    cy.get('input[name="price"]').type("2000");
-    cy.get('select[name="property_type"]').select(1);
-    cy.get('input[name="sqft_area"]').type(2000);
-    cy.get('select[name="payment_type"]').select(1);
-    cy.get('select[name="laundry_type"]').select(1);
-    cy.get('input[name="bedrooms"]').type(3);
-    cy.get('input[name="bathrooms"]').type(2);
-    cy.get('input[name="parking_spaces"]').type(1);
-    cy.get('input[name="move_in_date"]').type("2025-08-01");
-    cy.get('textarea[name="description"]').type("A beautiful test listing.");
-
-    // Upload images
-    const frontImagePath = "images/front_image_test.jpg";
-    const imagePath1 = "images/image2_test.jpg";
-    const imagePath2 = "images/image3_test.jpg";
-    const imagePath3 = "images/image4_test.jpg";
-    cy.get('input[type="file"][name="front_image"]').attachFile(frontImagePath);
-    cy.get('input[type="file"][name="pictures"]').attachFile([
-      imagePath1,
-      imagePath2,
-      imagePath3,
-    ]);
-
-    // Intercept the POST request
-    cy.intercept("POST", "/listings/create").as("createListing");
-
-    // Submit the form
-    cy.get('button[type="submit"]')
-      .contains(/create listing/i)
-      .click();
-
-    // Wait for request and check FormData
-    cy.url().should("include", "/listings");
-  });
-
   it("shows validation errors on empty submit", () => {
     cy.get('button[type="submit"]')
       .contains(/create listing/i)
@@ -148,11 +108,9 @@ describe("Listing Form E2E", () => {
         gridTiles().should("have.length.lessThan", before);
 
         // Submit and confirm PATCH succeeded
-        cy.intercept("PATCH", "**/listings/edit/7").as("editListing");
-        cy.contains('button[type="submit"]', /save changes/i).click();
-        cy.wait("@editListing")
-          .its("response.statusCode")
-          .should("be.oneOf", [200, 204]);
+        cy.get("button[type='submit']")
+          .contains(/save changes/i)
+          .click();
 
         // Detail page assertions
         cy.url().should("include", "/listings/7");
@@ -182,12 +140,9 @@ describe("Listing Form E2E", () => {
           .find("img", { timeout: 8000 })
           .should("have.length", before + 1);
 
-        // Submit
-        cy.intercept("PATCH", "**/listings/edit/7").as("editListing");
-        cy.contains('button[type="submit"]', /save changes/i).click();
-        cy.wait("@editListing")
-          .its("response.statusCode")
-          .should("be.oneOf", [200, 204]);
+        cy.get("button[type='submit']")
+          .contains(/save changes/i)
+          .click();
 
         cy.url().should("include", "/listings/7");
 

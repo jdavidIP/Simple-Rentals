@@ -342,8 +342,7 @@ class FavouritesRetrieveView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        favourite = get_object_or_404(Favorites, user=self.request.user)
-
+        favourite, _ = Favorites.objects.get_or_create(user=self.request.user)
         return favourite
 
 class FavouriteDeleteView(APIView):
