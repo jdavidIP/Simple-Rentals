@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import NotFound from "../../pages/NotFound";
+import NotFound from "../../pages/util/NotFound";
 
 // Setup navigate spy
 const navigateSpy = vi.fn();

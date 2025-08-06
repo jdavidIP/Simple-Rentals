@@ -1,7 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 import React from 'react';
-import InvitationCard from '../../components/InvitationCard';
+import { MemoryRouter } from "react-router-dom"; 
+import InvitationCard from '../../components/cards/InvitationCard';
 
 // Mock API
 vi.mock('../../api', () => ({
@@ -21,6 +22,10 @@ vi.mock('../../contexts/ProfileContext', () => ({
 }));
 
 import api from '../../api';
+
+function renderWithRouter(ui) {
+  return render(<MemoryRouter>{ui}</MemoryRouter>);
+}
 
 describe('InvitationCard Component', () => {
   const baseInvitation = {
@@ -42,21 +47,21 @@ describe('InvitationCard Component', () => {
   });
 
   test('renders invitation details', () => {
-    render(<InvitationCard invitation={baseInvitation} onChange={onChangeMock} />);
+    renderWithRouter(<InvitationCard invitation={baseInvitation} onChange={onChangeMock} />);
     expect(screen.getByText('Test Group')).toBeInTheDocument();
     expect(screen.getByText(/sender@example.com/)).toBeInTheDocument();
     expect(screen.getByText(/receiver@example.com/)).toBeInTheDocument();
   });
 
   test('shows Accept/Reject buttons if invitation is received and pending', () => {
-    render(<InvitationCard invitation={baseInvitation} onChange={onChangeMock} />);
+    renderWithRouter(<InvitationCard invitation={baseInvitation} onChange={onChangeMock} />);
     expect(screen.getByText('Accept')).toBeInTheDocument();
     expect(screen.getByText('Reject')).toBeInTheDocument();
   });
 
   test('calls API and updates status when accepted', async () => {
     api.patch.mockResolvedValue({});
-    render(<InvitationCard invitation={baseInvitation} onChange={onChangeMock} />);
+    renderWithRouter(<InvitationCard invitation={baseInvitation} onChange={onChangeMock} />);
     fireEvent.click(screen.getByText('Accept'));
 
     await waitFor(() => {
@@ -69,12 +74,12 @@ describe('InvitationCard Component', () => {
 
   test('calls API and updates status when rejected', async () => {
     api.patch.mockResolvedValue({});
-    render(<InvitationCard invitation={baseInvitation} onChange={onChangeMock} />);
+    renderWithRouter(<InvitationCard invitation={baseInvitation} onChange={onChangeMock} />);
     fireEvent.click(screen.getByText('Reject'));
 
     await waitFor(() => {
       expect(api.patch).toHaveBeenCalledWith('/groups/invitations/1/update', { accepted: false });
-      expect(api.patch).toHaveBeenCalledWith('/groups/101/join');
+      expect(api.patch).not.toHaveBeenCalledWith('/groups/101/join');
       expect(onChangeMock).toHaveBeenCalled();
       expect(screen.getByText('Rejected')).toBeInTheDocument();
     });
@@ -83,7 +88,7 @@ describe('InvitationCard Component', () => {
   test('shows delete button and deletes if not received', async () => {
     const notReceived = { ...baseInvitation, invited_user: 999, accepted: true };
     api.delete.mockResolvedValue({});
-    render(<InvitationCard invitation={notReceived} onChange={onChangeMock} />);
+    renderWithRouter(<InvitationCard invitation={notReceived} onChange={onChangeMock} />);
     fireEvent.click(screen.getByText('Delete'));
 
     await waitFor(() => {
@@ -95,7 +100,7 @@ describe('InvitationCard Component', () => {
   test('shows error if delete fails', async () => {
     const notReceived = { ...baseInvitation, invited_user: 999, accepted: true };
     api.delete.mockRejectedValue(new Error('fail'));
-    render(<InvitationCard invitation={notReceived} onChange={onChangeMock} />);
+    renderWithRouter(<InvitationCard invitation={notReceived} onChange={onChangeMock} />);
     fireEvent.click(screen.getByText('Delete'));
 
     await waitFor(() => {

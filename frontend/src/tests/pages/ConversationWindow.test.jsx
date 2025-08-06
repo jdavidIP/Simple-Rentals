@@ -1,16 +1,20 @@
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { vi } from "vitest";
-import ConversationWindow from "../../pages/ConversationWindow";
+import ConversationWindow from "../../pages/conversation/ConversationWindow";
 import api from "../../api";
-import * as router from "react-router-dom";
-import * as profileContext from "../../contexts/ProfileContext";
 
-// Mock router
+// Mock ListingCard to avoid prop errors
+vi.mock("../../components/cards/ListingCard", () => ({
+  default: () => <div data-testid="listing-card" />
+}));
+
+// Mock router (useParams, useNavigate)
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual("react-router-dom");
   return {
     ...actual,
-    useParams: () => ({ conversationId: "123" })
+    useParams: () => ({ conversationId: "123" }),
+    useNavigate: () => vi.fn(),
   };
 });
 
@@ -32,21 +36,37 @@ vi.mock("../../api", () => ({
 describe("ConversationWindow", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Patch scrollIntoView to avoid jsdom error
+    window.HTMLElement.prototype.scrollIntoView = vi.fn();
   });
 
+  // Updated listing mock with all required fields
   const mockConversation = {
     id: 123,
-    listing: { street_address: "123 Test St" },
+    listing: {
+      id: 77,
+      street_address: "123 Test St",
+      price: 1200,
+      bedrooms: 2,
+      bathrooms: 1,
+      pictures: [
+        { id: 1, is_primary: true, url: "/pic.jpg" }
+      ],
+    },
+    participants: [
+      { id: 1, full_name: "You" },
+      { id: 2, full_name: "Them" }
+    ],
     messages: [
       {
         id: 1,
-        sender: { id: 1, first_name: "You" },
+        sender: { id: 1, first_name: "You", last_name: "Self" },
         content: "Hello!",
         timestamp: new Date().toISOString()
       },
       {
         id: 2,
-        sender: { id: 2, first_name: "Them" },
+        sender: { id: 2, first_name: "Them", last_name: "Else" },
         content: "Hi!",
         timestamp: new Date().toISOString()
       }
@@ -58,16 +78,18 @@ describe("ConversationWindow", () => {
 
     render(<ConversationWindow />);
 
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    // Check for spinner
+    expect(screen.getByRole("status")).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.queryByText("Loading...")).not.toBeInTheDocument();
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
     });
 
-    expect(screen.getByText("Conversation")).toBeInTheDocument();
+    expect(screen.getByText("Them")).toBeInTheDocument();
     expect(screen.getByText("123 Test St")).toBeInTheDocument();
     expect(screen.getByText("Hello!")).toBeInTheDocument();
     expect(screen.getByText("Hi!")).toBeInTheDocument();
+    expect(screen.getByTestId("listing-card")).toBeInTheDocument();
   });
 
   test("shows error if fetch fails", async () => {
@@ -87,7 +109,7 @@ describe("ConversationWindow", () => {
     api.post.mockResolvedValue({
       data: {
         id: 3,
-        sender: { id: 1, first_name: "You" },
+        sender: { id: 1, first_name: "You", last_name: "Self" },
         content: "Test message",
         timestamp: new Date().toISOString()
       }
@@ -96,14 +118,14 @@ describe("ConversationWindow", () => {
     render(<ConversationWindow />);
 
     await waitFor(() =>
-      expect(screen.queryByText("Loading...")).not.toBeInTheDocument()
+      expect(screen.queryByRole("status")).not.toBeInTheDocument()
     );
 
     fireEvent.change(screen.getByPlaceholderText("Type your message..."), {
       target: { value: "Test message" }
     });
 
-    fireEvent.click(screen.getByText("Send"));
+    fireEvent.click(screen.getByRole("button"));
 
     await waitFor(() =>
       expect(screen.getByText("Test message")).toBeInTheDocument()

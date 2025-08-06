@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import ProfileEdit from "../../pages/ProfileEdit";
+import ProfileEdit from "../../pages/profile/ProfileEdit";
 import api from "../../api";
 import { useProfileContext } from "../../contexts/ProfileContext";
 import { vi } from "vitest";
@@ -17,10 +17,10 @@ vi.mock("react-router-dom", async () => {
     useParams: () => ({ id: "3" }),
   };
 });
-vi.mock("../../components/FormEdit.jsx", () => ({
+vi.mock("../../components/forms/FormEdit.jsx", () => ({
   default: () => <div>Mocked FormEdit</div>,
 }));
-vi.mock("../../pages/Unauthorized.jsx", () => ({
+vi.mock("../../pages/util/Unauthorized.jsx", () => ({
   default: () => <div>Mocked Unauthorized</div>,
 }));
 

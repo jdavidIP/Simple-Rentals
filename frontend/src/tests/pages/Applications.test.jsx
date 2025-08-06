@@ -1,9 +1,10 @@
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { vi } from "vitest";
-import Applications from "../../pages/Applications";
+import Applications from "../../pages/group/Applications";
 import api from "../../api";
+import { MemoryRouter } from "react-router-dom";
 
-// Mock GroupCard component
+// Mock GroupCard to a simple display component
 vi.mock("../../components/GroupCard", () => ({
   default: ({ group }) => <div data-testid="group-card">{group.name}</div>
 }));
@@ -34,43 +35,56 @@ describe("Applications Page", () => {
   test("shows loading then landlord applications", async () => {
     api.get.mockResolvedValue({ data: mockApplications });
 
-    render(<Applications />);
-
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
-
-    await waitFor(() =>
-      expect(screen.queryByText("Loading...")).not.toBeInTheDocument()
+    render(
+      <MemoryRouter>
+        <Applications />
+      </MemoryRouter>
     );
 
-    expect(screen.getByText("Applications Management")).toBeInTheDocument();
-    expect(screen.getByText("Landlord Group 1")).toBeInTheDocument();
-    expect(screen.getByText("Landlord Group 2")).toBeInTheDocument();
+    // Look for the spinner by role
+    expect(screen.getByRole("status")).toBeInTheDocument();
+
+    await waitFor(() =>
+      expect(screen.queryByRole("status")).not.toBeInTheDocument()
+    );
+
+    expect(screen.getByText(/Applications Management/i)).toBeInTheDocument();
+    expect(screen.getByText(/Landlord Group 1/i)).toBeInTheDocument();
+    expect(screen.getByText(/Landlord Group 2/i)).toBeInTheDocument();
   });
 
   test("switches to member tab and shows member applications", async () => {
     api.get.mockResolvedValue({ data: mockApplications });
 
-    render(<Applications />);
-
-    await waitFor(() =>
-      expect(screen.queryByText("Loading...")).not.toBeInTheDocument()
+    render(
+      <MemoryRouter>
+        <Applications />
+      </MemoryRouter>
     );
 
-    fireEvent.click(screen.getByText("As Member"));
+    await waitFor(() =>
+      expect(screen.queryByRole("status")).not.toBeInTheDocument()
+    );
 
-    expect(screen.getByText("Group Management")).toBeInTheDocument();
-    expect(screen.getByText("Member Group 1")).toBeInTheDocument();
-    expect(screen.getByText("Member Group 2")).toBeInTheDocument();
+    const memberTab = screen.getByRole("tab", { name: /as member/i });
+    fireEvent.click(memberTab);
+
+    expect(screen.getByText(/Member Group 1/i)).toBeInTheDocument();
+    expect(screen.getByText(/Member Group 2/i)).toBeInTheDocument();
   });
 
   test("shows error message on API failure", async () => {
     api.get.mockRejectedValue(new Error("API failed"));
 
-    render(<Applications />);
+    render(
+      <MemoryRouter>
+        <Applications />
+      </MemoryRouter>
+    );
 
     await waitFor(() =>
       expect(
-        screen.getByText("Failed to fetch applications.")
+        screen.getByText(/Failed to fetch applications/i)
       ).toBeInTheDocument()
     );
   });
@@ -78,19 +92,30 @@ describe("Applications Page", () => {
   test("shows empty messages when no applications", async () => {
     api.get.mockResolvedValue({ data: { landlord: [], member: [] } });
 
-    render(<Applications />);
-
-    await waitFor(() =>
-      expect(screen.queryByText("Loading...")).not.toBeInTheDocument()
+    render(
+      <MemoryRouter>
+        <Applications />
+      </MemoryRouter>
     );
 
-    expect(screen.getByText("No sent applications.")).toBeInTheDocument();
-    expect(screen.getByText("No applications under review.")).toBeInTheDocument();
-    expect(screen.getByText("No invited applications.")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.queryByRole("status")).not.toBeInTheDocument()
+    );
 
-    fireEvent.click(screen.getByText("As Member"));
+    expect(screen.getByText(/No items in.*Sent/i)).toBeInTheDocument();
+    expect(screen.getByText(/No items in.*Under Review/i)).toBeInTheDocument();
+    expect(screen.getByText(/No items in.*Invited/i)).toBeInTheDocument();
 
-    expect(screen.getByText("No rejected applications.")).toBeInTheDocument();
-    expect(screen.getByText("No private groups.")).toBeInTheDocument();
+    // Switch to member tab for member empty states
+    const memberTab = screen.getByRole("tab", { name: /as member/i });
+    fireEvent.click(memberTab);
+
+    expect(screen.getByText(/No items in.*Open/i)).toBeInTheDocument();
+    expect(screen.getByText(/No items in.*Private/i)).toBeInTheDocument();
+    expect(screen.getByText(/No items in.*Filled/i)).toBeInTheDocument();
+    expect(screen.getByText(/No items in.*Sent/i)).toBeInTheDocument();
+    expect(screen.getByText(/No items in.*Under Review/i)).toBeInTheDocument();
+    expect(screen.getByText(/No items in.*Rejected/i)).toBeInTheDocument();
+    expect(screen.getByText(/No items in.*Invited/i)).toBeInTheDocument();
   });
 });

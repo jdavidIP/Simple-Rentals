@@ -1,16 +1,16 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { vi } from "vitest";
-import RoommatesEdit from "../../pages/RoommatesEdit";
+import RoommatesEdit from "../../pages/roommate/RoommatesEdit";
 import api from "../../api";
 import { useProfileContext } from "../../contexts/ProfileContext";
 
 // Mocks
 vi.mock("../../api");
-vi.mock("../../components/FormRoommate", () => ({
+vi.mock("../../components/forms/FormRoommate", () => ({
   default: () => <div>Mocked FormRoommate</div>,
 }));
-vi.mock("../../pages/Unauthorized.jsx", () => ({
+vi.mock("../../pages/util/Unauthorized", () => ({
   default: () => <div>Mocked Unauthorized</div>,
 }));
 vi.mock("react-router-dom", async () => {

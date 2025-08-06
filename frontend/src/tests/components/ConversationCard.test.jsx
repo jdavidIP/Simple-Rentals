@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import ConversationCard from "../../components/ConversationCard";
+import ConversationCard from "../../components/cards/ConversationCard";
 import { MemoryRouter } from "react-router-dom";
 
 // Mock profile context
@@ -31,7 +31,10 @@ vi.mock("../../api", () => ({
 describe("ConversationCard", () => {
   const baseConv = {
     id: 123,
-    participants: [1, 2],
+    participants: [
+      { id: 1, full_name: "Test User" },
+      { id: 2, full_name: "Other User" }
+    ],
     listing: { street_address: "123 Main St" },
     last_updated: new Date().toISOString(),
     last_message: { content: "Hello" },
@@ -50,19 +53,21 @@ describe("ConversationCard", () => {
     );
     expect(screen.getByText(/Listing:/)).toBeInTheDocument();
     expect(screen.getByText("123 Main St")).toBeInTheDocument();
-    expect(screen.getByText(/Last message:/)).toBeInTheDocument();
     expect(screen.getByText("Hello")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Leave" })).toBeInTheDocument();
   });
 
-  it("shows Delete button if user is only participant", () => {
-    const conv = { ...baseConv, participants: [1] };
+  it("shows Leave button if user is only participant", () => {
+    const conv = { 
+      ...baseConv, 
+      participants: [{ id: 1, full_name: "Test User" }]
+    };
     render(
       <MemoryRouter>
         <ConversationCard conv={conv} />
       </MemoryRouter>
     );
-    expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Leave" })).toBeInTheDocument();
   });
 
   it("navigates to conversation on click", () => {

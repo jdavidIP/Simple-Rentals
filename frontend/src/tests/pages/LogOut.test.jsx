@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import LogOut from "../../pages/Logout";
+import LogOut from "../../pages/auth/Logout";
 import api from "../../api";
 import { REFRESH_TOKEN } from "../../constants";
 
