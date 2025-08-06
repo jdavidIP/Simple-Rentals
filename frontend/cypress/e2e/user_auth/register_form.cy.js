@@ -35,6 +35,8 @@ describe("User Registration", () => {
 
     cy.contains("button", "Register").click();
 
+    cy.wait(6000);
+
     // --- Assert we're redirected to login or wherever ---
     cy.url().should("include", "/login");
   });

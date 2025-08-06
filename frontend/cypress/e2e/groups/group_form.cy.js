@@ -56,33 +56,37 @@ describe("Group Form E2E", () => {
     cy.url().should("include", "/groups/1");
 
     cy.contains("A cool updated description.");
-    cy.contains(".meta .meta-label", /^Status$/)
-      .closest(".meta")
-      .find(".meta-value .status-badge")
+    cy.contains("span.detail-label", "Status:")
+      .parent() // Gets the .detail-item
+      .find(".status-badge")
       .should(($badge) => {
         const txt = $badge.text().trim();
         const title = $badge.attr("title") || "";
-        expect(txt || title).to.match(/Filled/i);
+        expect(txt || title).to.match(/Filled/);
       });
+
     cy.contains("Updated Group");
   });
 
   it("removes a user from the group and re-adds them", () => {
     cy.visit("/groups/edit/1");
 
-    cy.contains("Remove").click();
+    cy.get("button.card-remove-btn")
+      .first()
+      .should("have.attr", "title", "Remove")
+      .click();
 
     cy.get("button[type='submit']")
       .contains(/save changes/i)
       .click();
 
     cy.url().should("include", "/groups/1");
-    cy.contains("test3@example.com").should("not.exist");
+    cy.contains("Test User3").should("not.exist");
 
     cy.visit("/groups/edit/1");
 
     cy.get("input[placeholder='Enter name to search']").type("Test User3");
-    cy.get("button").contains("Search").click();
+    cy.get("button[aria-label='Search']").click();
 
     cy.get("select[name='members']")
       .should("contain", "test3@example.com")
