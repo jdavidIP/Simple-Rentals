@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { vi } from 'vitest';
 import React from 'react';
-import ReviewCard from '../../components/ReviewCard';
+import ReviewCard from '../../components/cards/ReviewCard';
 import { MemoryRouter } from 'react-router-dom';
 
 // Mock useNavigate
@@ -43,7 +43,7 @@ describe('ReviewCard Component', () => {
 
     expect(screen.getByText('Jane Doe')).toBeInTheDocument();
     expect(screen.getByText('JD')).toBeInTheDocument();
-    expect(screen.getByText(/Rating: 4\/5/)).toBeInTheDocument();
+    expect(screen.getByText('4/5')).toBeInTheDocument();
     expect(screen.getByText(review.comment)).toBeInTheDocument();
     expect(screen.getByText(/Reviewed as: Roommate/)).toBeInTheDocument();
   });
