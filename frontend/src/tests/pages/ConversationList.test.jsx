@@ -1,10 +1,10 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
-import ConversationList from "../../pages/ConversationList";
+import ConversationList from "../../pages/conversation/ConversationList";
 import api from "../../api";
 
 // Mock ConversationCard
-vi.mock("../../components/ConversationCard", () => ({
+vi.mock("../../components/cards/ConversationCard", () => ({
   default: ({ conv }) => <li data-testid="conversation-card">{conv.title}</li>
 }));
 
@@ -30,10 +30,10 @@ describe("ConversationList Page", () => {
 
     render(<ConversationList />);
 
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toBeInTheDocument();
 
     await waitFor(() =>
-      expect(screen.queryByText("Loading...")).not.toBeInTheDocument()
+      expect(screen.queryByRole("status")).not.toBeInTheDocument()
     );
 
     expect(screen.getByText("Your Conversations")).toBeInTheDocument();
