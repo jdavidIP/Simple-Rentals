@@ -150,13 +150,13 @@ function FormLogIn() {
           {isSubmitting ? "Logging in..." : "Login"}
         </button>
 
+        <Link to="/register">Not registered yet? Create an account</Link>
+
         <div style={{ textAlign: "right", marginTop: 2, marginBottom: 18 }}>
           <Link to="/reset-password-request" className="link" style={{ fontSize: "0.97em" }}>
             Forgot your password?
           </Link>
         </div>
-
-        <Link to="/register">Not registered yet? Create an account</Link>
       </form>
     </div>
   );
