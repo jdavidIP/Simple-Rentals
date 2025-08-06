@@ -15,13 +15,15 @@ export const ProfileProvider = ({ children }) => {
   const [applications, setApplications] = useState([]);
   const [invitations, setInvitations] = useState([]);
   const [roommate, setRoommate] = useState(null);
+  const [favourites, setFavourites] = useState([]);
 
   // Loading states
-  const [profileLoading, setProfileLoading] = useState(false);
-  const [messagesLoading, setMessagesLoading] = useState(false);
-  const [applicationsLoading, setApplicationsLoading] = useState(false);
-  const [invitationsLoading, setInvitationsLoading] = useState(false);
-  const [roommateLoading, setRoommateLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [messagesLoading, setMessagesLoading] = useState(true);
+  const [applicationsLoading, setApplicationsLoading] = useState(true);
+  const [invitationsLoading, setInvitationsLoading] = useState(true);
+  const [roommateLoading, setRoommateLoading] = useState(true);
+  const [favouritesLoading, setFavouritesLoading] = useState(true);
 
   // Error states
   const [profileError, setProfileError] = useState(null);
@@ -29,6 +31,7 @@ export const ProfileProvider = ({ children }) => {
   const [applicationsError, setApplicationsError] = useState(null);
   const [invitationsError, setInvitationsError] = useState(null);
   const [roommateError, setRoommateError] = useState(null);
+  const [favouritesError, setFavouritesError] = useState(null);
 
   const fetchUser = async () => {
     setProfileLoading(true);
@@ -105,6 +108,21 @@ export const ProfileProvider = ({ children }) => {
     }
   };
 
+  const fetchFavourites = async () => {
+    setFavouritesLoading(true);
+    setFavouritesError(null);
+    try {
+      const response = await api.get("/favourites");
+      setFavourites(response.data.favorite_listings);
+    } catch (err) {
+      setFavourites(null);
+      setFavouritesError("Failed to fetch favourites.");
+      console.error("Failed to fetch favourites.", err);
+    } finally {
+      setFavouritesLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchUser();
     const handler = () => fetchUser();
@@ -116,6 +134,7 @@ export const ProfileProvider = ({ children }) => {
     if (profile && !profileLoading) {
       fetchMessages();
       fetchRoommate();
+      fetchFavourites();
     }
   }, [profile]);
 
@@ -133,6 +152,39 @@ export const ProfileProvider = ({ children }) => {
   const isProfileSelf = (id) => profile && id === profile.id;
   const isRoommateSelf = (id) => profile && profile.roommate_profile == id;
 
+  const addToFavourites = async (listing) => {
+    setFavouritesLoading(true);
+    setFavouritesError(null);
+    try {
+      api.post(`/favourites/add/${listing.id}`);
+      setFavourites((prev) => [...prev, listing]);
+    } catch (err) {
+      setFavouritesError("Failed to add to favourites.");
+      console.error("Failed to add to favourites.", err);
+    } finally {
+      setFavouritesLoading(false);
+    }
+  };
+  const removeFromFavourites = async (listingId) => {
+    setFavouritesLoading(true);
+    setFavouritesError(false);
+    try {
+      api.delete(`/favourites/remove/${listingId}`);
+      setFavourites((prev) =>
+        prev.filter((listing) => listing.id !== listingId)
+      );
+    } catch (err) {
+      setFavouritesError("Failed to remove from favourites.");
+      console.error("Failed to remove from favourites.", err);
+    } finally {
+      setFavouritesLoading(false);
+    }
+  };
+  const isFavourite = (listingId) => {
+    const numericId = Number(listingId);
+    return favourites.some((listing) => listing.id === numericId);
+  };
+
   const value = {
     profile,
     profileLoading,
@@ -149,12 +201,20 @@ export const ProfileProvider = ({ children }) => {
     roommate,
     roommateLoading,
     roommateError,
+    favourites,
+    favouritesLoading,
+    favouritesError,
     isProfileSelf,
     isRoommateSelf,
+    isFavourite,
+    addToFavourites,
+    removeFromFavourites,
     fetchUser,
     fetchMessages,
     fetchApplications,
     fetchInvitations,
+    fetchRoommate,
+    fetchFavourites,
   };
 
   return (

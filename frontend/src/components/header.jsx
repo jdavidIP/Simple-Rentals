@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { NavLink, Link } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import { useProfileContext } from "../contexts/ProfileContext";
 import NotificationSidebar from "./NotificationSidebar";
 import "../styles/navbar.css";
@@ -14,6 +14,7 @@ function Header() {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const sidebarRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!sidebarOpen) return;
@@ -95,6 +96,18 @@ function Header() {
             <ul className="navbar-nav align-items-center right-actions">
               {profile ? (
                 <>
+                  <li className="nav-item">
+                    <button
+                      className="icon-btn"
+                      onClick={() => navigate("listings/favourites")}
+                      aria-label="See Favourites"
+                    >
+                      <i
+                        className="bi bi-heart"
+                        style={{ transform: "translateY(0.1rem)" }}
+                      ></i>
+                    </button>
+                  </li>
                   {/* Notifications */}
                   <li className="nav-item">
                     <button

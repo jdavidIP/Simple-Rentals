@@ -14,7 +14,13 @@ function ListingsView() {
   const [loading, setLoading] = useState(true);
   const [reviews, setReviews] = useState([]);
   const [averageRating, setAverageRating] = useState(null);
-  const { profile, isProfileSelf } = useProfileContext();
+  const {
+    profile,
+    isProfileSelf,
+    isFavourite,
+    addToFavourites,
+    removeFromFavourites,
+  } = useProfileContext();
   const mapRef = useRef(null);
   const googleLoaded = useGoogleMaps();
 
@@ -54,7 +60,11 @@ function ListingsView() {
       setReviews(response.data);
       const total = response.data.reduce((acc, r) => acc + r.rating, 0);
       setAverageRating((total / response.data.length).toFixed(1));
-    } catch {}
+    } catch (err) {
+      setReviews(null);
+      setError("Failed to fetch reviews.");
+      console.error("Failed to fetch reviews.", err);
+    }
   };
 
   useEffect(() => {
@@ -90,7 +100,7 @@ function ListingsView() {
     }
   }, [googleLoaded, listing]);
 
-  if (!listing) {
+  if (!listing || !profile) {
     return (
       <div className="d-flex justify-content-center py-5">
         <div className="spinner-border text-primary" role="status" />
@@ -131,6 +141,18 @@ function ListingsView() {
       );
     }
   };
+
+  const handleFavourite = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    let favourite = isFavourite(id);
+    if (favourite) {
+      removeFromFavourites(Number(id));
+    } else {
+      addToFavourites(listing);
+    }
+  };
+
   const owner = listing.owner;
 
   const getAffordabilityTag = (price) => {
@@ -213,31 +235,39 @@ function ListingsView() {
                 {listing.unit_number && `${listing.unit_number}, `}
                 {listing.street_address}, {listing.city}, {listing.postal_code}
               </p>
-              <h5 className="text-price fw-bold mb-2">
-                ${listing.price} / month
-              </h5>
-              {income &&
-                (() => {
-                  const tag = getAffordabilityTag(listing.price);
-                  return tag ? (
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "20px",
-                        right: "10px",
-                        backgroundColor: tag.color,
-                        color: "white",
-                        padding: "5px 10px",
-                        borderRadius: "12px",
-                        fontWeight: "bold",
-                        fontSize: "0.75rem",
-                        zIndex: 10,
-                      }}
-                    >
-                      {tag.label}
-                    </div>
-                  ) : null;
-                })()}
+              <div className="d-flex align-items-center gap-2 mb-2">
+                <h5 className="text-price fw-bold mb-0">
+                  ${listing.price} / month
+                </h5>
+                {income &&
+                  (() => {
+                    const tag = getAffordabilityTag(listing.price);
+                    return tag ? (
+                      <span
+                        style={{
+                          backgroundColor: tag.color,
+                          color: "white",
+                          padding: "5px 10px",
+                          borderRadius: "12px",
+                          fontWeight: "bold",
+                          fontSize: "0.75rem",
+                        }}
+                      >
+                        {tag.label}
+                      </span>
+                    ) : null;
+                  })()}
+              </div>
+
+              <button
+                className={`favourite-btn ${isFavourite(id) ? "active" : ""}`}
+                onClick={handleFavourite}
+                style={{
+                  top: "1rem",
+                }}
+              >
+                ♥
+              </button>
             </div>
           </div>
 

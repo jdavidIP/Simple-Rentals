@@ -455,6 +455,8 @@ class ReviewSerializer(serializers.ModelSerializer):
         return data
 
 class FavoritesSerializer(serializers.ModelSerializer):
+    favorite_listings = ListingBasicSerializer(many=True, read_only=True)
+
     class Meta:
         model = Favorites
         fields = ['id', 'user', 'favorite_listings']
