@@ -112,16 +112,11 @@ class Command(BaseCommand):
             'postal_code': 'M5H 2N2',
             'latitude': 43.6532,
             'longitude': -79.3832,
-            'utilities_cost': 100.00,
-            'utilities_payable_by_tenant': True,
-            'property_taxes': 0.00,
-            'property_taxes_payable_by_tenant': False,
-            'condo_fee': 50.00,
-            'condo_fee_payable_by_tenant': True,
-            'hoa_fee': 0.00,
-            'hoa_fee_payable_by_tenant': False,
-            'security_deposit': 500.00,
-            'security_deposit_payable_by_tenant': True,
+            'hydro': True,
+            'heat': True,
+            'water': False,
+            'internet': True,
+            'furnished': True,
             'shareable': True
         }
 
