@@ -1,7 +1,6 @@
 import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
 import { vi } from "vitest";
-
-import GroupView from "../../pages/GroupView";
+import GroupView from "../../pages/group/GroupView";
 import api from "../../api";
 import * as router from "react-router-dom";
 import * as profileContext from "../../contexts/ProfileContext";
@@ -38,7 +37,7 @@ vi.mock("../../styles/groups.css", () => ({}));
 describe("GroupView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Default profile context mock
     vi.mocked(profileContext.useProfileContext).mockReturnValue({
       profile: { id: 1, first_name: "John", last_name: "Doe" },
@@ -112,10 +111,11 @@ describe("GroupView", () => {
 
     render(<GroupView />);
 
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    // Spinner
+    expect(screen.getByRole("status")).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.queryByText("Loading...")).not.toBeInTheDocument();
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
     });
 
     expect(screen.getByText("Test Group")).toBeInTheDocument();
@@ -146,8 +146,8 @@ describe("GroupView", () => {
     render(<GroupView />);
 
     await waitFor(() => {
-      expect(screen.getByText("Budget: $1,500")).toBeInTheDocument();
-      expect(screen.getByText("Budget: $2,000")).toBeInTheDocument();
+      expect(screen.getByText("💰 $1,500")).toBeInTheDocument();
+      expect(screen.getByText("💰 $2,000")).toBeInTheDocument();
       expect(screen.getByText("Toronto")).toBeInTheDocument();
       expect(screen.getByText("Vancouver")).toBeInTheDocument();
       expect(screen.getByText("Looking for a clean roommate")).toBeInTheDocument();
@@ -354,9 +354,11 @@ describe("GroupView", () => {
 
     render(<GroupView />);
 
-    await waitFor(() => {
-      // John's income: 60000, monthly: 5000, rent: 1200, ratio: 24% - Good Fit
-      expect(screen.getByText("✅ Good Fit — 24.0% income")).toBeInTheDocument();
+   await waitFor(() => {
+      expect(screen.getByText(/Good Fit\s*—\s*24\.0%/)).toBeInTheDocument();
+      expect(screen.getByText(/Good Fit\s*—\s*18\.0%/)).toBeInTheDocument();
+      expect(screen.getByTitle("Good Fit — 24.0%")).toBeInTheDocument();
+      expect(screen.getByTitle("Good Fit — 18.0%")).toBeInTheDocument();
     });
   });
 });
