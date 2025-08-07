@@ -189,7 +189,7 @@ function Header() {
                   </li>
                   <li className="nav-item">
                     <NavLink to="/register" className="btn cta-post ms-2">
-                      Create Account
+                      Sign Up
                     </NavLink>
                   </li>
                 </>

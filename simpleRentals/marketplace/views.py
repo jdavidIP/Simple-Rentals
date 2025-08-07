@@ -348,10 +348,20 @@ class ListingRecommendationList(generics.ListAPIView):
         user = self.request.user
         model = joblib.load('ml_model/recommender.pkl')
 
+        try:
+            favorites = Favorites.objects.get(user=user)
+            favourited_ids = favorites.favorite_listings.values_list('id', flat=True)
+        except Favorites.DoesNotExist:
+            favourited_ids = []
+
+        # Filter listings in budget and not already favourited
         budget_min = user.budget_min or 0
         budget_max = user.budget_max or 1_000_000
 
-        listings = Listing.objects.filter(price__gte=budget_min, price__lte=budget_max)
+        listings = Listing.objects.filter(
+            price__gte=budget_min,
+            price__lte=budget_max
+        ).exclude(id__in=favourited_ids)
 
         feature_rows = []
         listing_ids = []
