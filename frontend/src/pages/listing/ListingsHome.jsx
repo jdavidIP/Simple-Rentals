@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import api from "../../api.js";
 import { useNavigate } from "react-router-dom";
 import "../../styles/listings.css";
+import useGoogleMaps from "../../hooks/useGoogleMaps";
 
 function ListingsHome() {
   const [city, setCity] = useState("");
@@ -11,14 +12,15 @@ function ListingsHome() {
   const [citySelected, setCitySelected] = useState(false);
   const navigate = useNavigate();
   const locationInputRef = useRef(null);
+  const { loading, error: mapsError } = useGoogleMaps();
 
   //// Initialize Google Places Autocomplete
   useEffect(() => {
+    if (loading) return;
     if (window.google && locationInputRef.current) {
       const autocomplete = new window.google.maps.places.Autocomplete(
         locationInputRef.current
       );
-
       autocomplete.addListener("place_changed", () => {
         const place = autocomplete.getPlace();
         if (place.geometry) {
@@ -29,7 +31,7 @@ function ListingsHome() {
         }
       });
     }
-  }, []);
+  }, [loading]);
 
   // If user types manually, reset "selected" flag
   const handleCityChange = (e) => {
