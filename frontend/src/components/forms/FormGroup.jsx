@@ -273,6 +273,7 @@ function FormGroup({ method, group }) {
             <button
               type="button"
               onClick={handleSearch}
+              aria-label="Search"
               style={{
                 backgroundColor: "#d7bba8",
                 borderColor: "#d7bba8",

@@ -74,6 +74,12 @@ jobs:
           cd frontend
           npm ci
 
+      - name: Create frontend .env file
+        run: |
+          cat <<EOF > frontend/.env
+          VITE_API_URL=http://localhost:8000
+          EOF
+
       - name: Start React frontend
         run: |
           cd frontend
