@@ -21,6 +21,7 @@ jobs:
           POSTGRES_DB: marketplace
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
+          DB_LIVE= False
         ports:
           - 5432:5432
         options: >-
