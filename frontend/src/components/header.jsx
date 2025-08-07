@@ -57,7 +57,7 @@ function Header() {
           {/* Brand */}
           <NavLink className="navbar-brand d-flex align-items-center" to="/">
             <img
-              src="../../transp_full_icon.png"
+              src="/static/images/transp_full_icon.png"
               alt="Logo"
               className="brand-logo"
             />
@@ -133,7 +133,7 @@ function Header() {
                       aria-expanded="false"
                     >
                       <img
-                        src={profile.profile_picture || "/default_profile.png"}
+                        src={profile.profile_picture || "/static/images/default_profile.png"}
                         alt="Profile"
                         className="avatar"
                       />

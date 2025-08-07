@@ -39,7 +39,7 @@ const RoommateCard = ({
     >
       {/* Profile Picture */}
       <img
-        src={roommate.user.profile_picture || "/default_profile.png"}
+        src={roommate.user.profile_picture ||  "/static/images/default_profile.png"}
         alt="Roommate Profile"
         className="rounded-circle mx-auto mt-3"
         style={{

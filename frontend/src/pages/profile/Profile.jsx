@@ -103,7 +103,7 @@ function Profile() {
             >
               <div className="card shadow-sm text-center p-3">
                 <img
-                  src={profile.profile_picture || "/default_profile.png"}
+                  src={profile.profile_picture || "/static/images/default_profile.png"}
                   alt={`${profile.first_name} ${profile.last_name}`}
                   className="rounded-circle mx-auto"
                   style={{
