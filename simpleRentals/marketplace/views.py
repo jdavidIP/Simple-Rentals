@@ -20,6 +20,9 @@ from django.contrib.auth import get_user_model
 from .tokens import email_verification_token
 from .utils import send_verification_email
 from .utils import send_password_reset_email
+from sklearn.ensemble import RandomForestRegressor
+import joblib
+import numpy as np
 
 from .models import Listing, ListingPicture, Conversation, Message, MarketplaceUser, Review, Favorites
 
@@ -336,6 +339,87 @@ class ListingListView(generics.ListAPIView):
             )
 
         return queryset
+    
+class ListingRecommendationList(generics.ListAPIView):
+    serializer_class = ListingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        model = joblib.load('ml_model/recommender.pkl')
+
+        budget_min = user.budget_min or 0
+        budget_max = user.budget_max or 1_000_000
+
+        listings = Listing.objects.filter(price__gte=budget_min, price__lte=budget_max)
+
+        feature_rows = []
+        listing_ids = []
+
+        for listing in listings:
+            feature_rows.append([
+                user.id,
+                hash(user.preferred_location or ""),
+                float(user.budget_min or 0),
+                float(user.budget_max or 0),
+                float(listing.price),
+                listing.latitude or 0,
+                listing.longitude or 0,
+                int(listing.pet_friendly),
+                 # Amenities and Utilities
+                int(listing.heating),
+                int(listing.ac),
+                int(listing.fridge),
+                {'I': 2, 'S': 1, 'N': 0}.get(listing.laundry_type, -1),
+                int(listing.heat),
+                int(listing.hydro),
+                int(listing.water),
+                int(listing.internet),
+                int(listing.furnished),
+                int(listing.shareable)
+            ])
+            listing_ids.append(listing.id)
+
+        if not feature_rows:
+            self.recommended_ids = []
+            return Listing.objects.none()
+
+        scores = model.predict(np.array(feature_rows))
+        top_indices = np.argsort(scores)[::-1][:10]
+        self.recommended_ids = [listing_ids[i] for i in top_indices]
+
+        return Listing.objects.filter(id__in=self.recommended_ids)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        # Ensure order matches score ranking
+        id_order = {id_: index for index, id_ in enumerate(self.recommended_ids)}
+        sorted_queryset = sorted(queryset, key=lambda l: id_order[l.id])
+
+        serializer = self.get_serializer(sorted_queryset, many=True)
+        return Response(serializer.data)
+    
+class ListingInteractionCreateView(generics.CreateAPIView):
+    serializer_class = ListingInteractionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        listing = get_object_or_404(Listing, id=self.kwargs['pk'])
+        
+        # Correct source of 'interaction'
+        interaction = self.request.data.get('interaction')
+
+        if interaction == "favourite":
+            if ListingInteraction.objects.filter(user=user, listing=listing, interaction_type="favourite").exists():
+                return 
+            
+        if listing.owner.id == user.id:
+            return
+
+        serializer.save(user=user, listing=listing, interaction_type=interaction)
+
     
 class FavouritesRetrieveView(generics.RetrieveAPIView):
     serializer_class = FavoritesSerializer

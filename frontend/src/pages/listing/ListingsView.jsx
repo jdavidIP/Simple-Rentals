@@ -24,6 +24,14 @@ function ListingsView() {
   const mapRef = useRef(null);
   const googleLoaded = useGoogleMaps();
 
+  const sendInteraction = async (type) => {
+    try {
+      await api.post(`/interaction/send/${id}`, { interaction: type });
+    } catch (err) {
+      console.error("Interaction was not send.", err);
+    }
+  };
+
   const fetchListing = async () => {
     setLoading(true);
     try {
@@ -70,6 +78,7 @@ function ListingsView() {
   useEffect(() => {
     fetchListing();
     fetchReviews();
+    sendInteraction("click");
   }, [id]);
 
   useEffect(() => {
@@ -150,6 +159,7 @@ function ListingsView() {
       removeFromFavourites(Number(id));
     } else {
       addToFavourites(listing);
+      sendInteraction("favourite");
     }
   };
 

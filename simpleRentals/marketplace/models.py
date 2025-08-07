@@ -93,6 +93,14 @@ class Listing(models.Model):
     # Foreign Keys
     owner = models.ForeignKey(MarketplaceUser, related_name="listings", on_delete=models.CASCADE)
 
+class ListingInteraction(models.Model):
+    INTERACTION_TYPES = [('click', 'Click'), ('favourite', 'Favourite')]
+
+    user = models.ForeignKey(MarketplaceUser, on_delete=models.CASCADE)
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
+    interaction_type = models.CharField(max_length=10, choices=INTERACTION_TYPES)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
 class Location(models.TextChoices):
     AERIAL = 'A', 'Aerial View'
     FRONT = 'F', 'Front Yard / Property Front'

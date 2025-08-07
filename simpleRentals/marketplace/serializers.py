@@ -1,7 +1,7 @@
 from django.utils.timezone import now
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from .models import MarketplaceUser, Listing, ListingPicture, Group, Review, Favorites, Conversation, Message, RoommateUser, GroupInvitation
+from .models import MarketplaceUser, Listing, ListingPicture, Group, Review, Favorites, Conversation, Message, RoommateUser, GroupInvitation, ListingInteraction
 from .utils import send_verification_email
 import os
 
@@ -368,6 +368,17 @@ class ListingPostingSerializer(serializers.ModelSerializer):
         save_images(instance, images, front_image)
 
         return instance
+    
+class ListingInteractionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ListingInteraction
+        fields = ['user', 'listing', 'interaction_type']  # or include 'user' if needed
+
+        extra_kwargs = {
+            'listing': {'required': False},
+            'interaction_type': {'required': False},
+            'user': {'required': False}
+        }
 
 
 class GroupSerializer(serializers.ModelSerializer):

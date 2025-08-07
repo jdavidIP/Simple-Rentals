@@ -68,6 +68,14 @@ function ListingCard({ listing, income, styling = null, showFavourite }) {
     }
   };
 
+  const sendInteraction = async (type) => {
+    try {
+      await api.post(`/interaction/send/${listing.id}`, { interaction: type });
+    } catch (err) {
+      console.error("Interaction was not send.", err);
+    }
+  };
+
   const handleFavourite = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -75,6 +83,7 @@ function ListingCard({ listing, income, styling = null, showFavourite }) {
       removeFromFavourites(listing.id);
     } else {
       addToFavourites(listing);
+      sendInteraction("favourite");
     }
   };
 

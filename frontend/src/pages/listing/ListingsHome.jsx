@@ -8,9 +8,28 @@ function ListingsHome() {
   const [error, setError] = useState(null);
   const [radius, setRadius] = useState("5");
   const [latLng, setLatLng] = useState({ lat: null, lng: null });
+  const [recommendations, setRecommenations] = useState(null);
   const [citySelected, setCitySelected] = useState(false);
+
+  const [recommendationsLoading, setRecommenationsLoading] = useState(true);
+
   const navigate = useNavigate();
   const locationInputRef = useRef(null);
+
+  const fetchRecommendations = async () => {
+    setRecommenationsLoading(true);
+    setError(null);
+    try {
+      const response = await api.get("/recommendations");
+      setRecommenations(response.data);
+    } catch (err) {
+      console.error("Failed to fetch recommendations.", err);
+      setError("Failed to fetch recommendations.");
+      setRecommenations(null);
+    } finally {
+      setRecommenationsLoading(false);
+    }
+  };
 
   //// Initialize Google Places Autocomplete
   useEffect(() => {
@@ -29,6 +48,8 @@ function ListingsHome() {
         }
       });
     }
+
+    fetchRecommendations();
   }, []);
 
   // If user types manually, reset "selected" flag
