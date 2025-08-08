@@ -6,7 +6,6 @@ from ...models import MarketplaceUser, RoommateUser, Listing, ListingInteraction
 class Command(BaseCommand):
     help = "Generate listing interactions and favourites for users with roommate profiles"
 
-    # Region mapping: city -> [related cities]
     REGION_GROUPS = {
         "Waterloo": ["Waterloo", "Kitchener"],
         "Kitchener": ["Waterloo", "Kitchener"],
@@ -21,20 +20,35 @@ class Command(BaseCommand):
 
         for roommate in roommate_users:
             user = roommate.user
-            user_city = user.city
 
-            if not user_city or user_city not in self.REGION_GROUPS:
-                continue
+            # Step 1 — Determine user's preferred region based on past interactions
+            past_interactions = ListingInteraction.objects.filter(user=user).select_related("listing")
 
-            # Get listings in region
-            region_cities = self.REGION_GROUPS[user_city]
+            if past_interactions.exists():
+                # Get most common city in past interactions
+                cities = [interaction.listing.city for interaction in past_interactions]
+                most_common_city = max(set(cities), key=cities.count)
+
+                if most_common_city in self.REGION_GROUPS:
+                    region_cities = self.REGION_GROUPS[most_common_city]
+                else:
+                    continue  # Skip if city is outside defined regions
+            else:
+                # Step 2 — Fall back to their profile city
+                if not user.city or user.city not in self.REGION_GROUPS:
+                    continue
+                region_cities = self.REGION_GROUPS[user.city]
+
+            # Step 3 — Get listings in that region
             listings_in_region = Listing.objects.filter(city__in=region_cities)
-
             if not listings_in_region.exists():
                 continue
 
-            # Pick random subset for clicks
-            clicked_listings = random.sample(list(listings_in_region), min(5, listings_in_region.count()))
+            # Step 4 — Generate more clicks to expand training data
+            clicked_listings = random.sample(
+                list(listings_in_region),
+                min(5, listings_in_region.count())
+            )
             for listing in clicked_listings:
                 ListingInteraction.objects.create(
                     user=user,
@@ -42,13 +56,11 @@ class Command(BaseCommand):
                     interaction_type="click"
                 )
 
-            # Pick random subset for favourites (subset of clicked listings for realism)
+            # Step 5 — Generate favourites (subset of clicks)
             favourite_listings = random.sample(clicked_listings, min(2, len(clicked_listings)))
-
             fav_obj, _ = Favorites.objects.get_or_create(user=user)
             fav_obj.favorite_listings.add(*favourite_listings)
 
-            # Also log as favourite interactions
             for listing in favourite_listings:
                 ListingInteraction.objects.create(
                     user=user,
@@ -56,4 +68,4 @@ class Command(BaseCommand):
                     interaction_type="favourite"
                 )
 
-        self.stdout.write(self.style.SUCCESS("✅ Listing interactions and favourites generated successfully!"))
+        self.stdout.write(self.style.SUCCESS("✅ Listing interactions and favourites generated/expanded successfully!"))
