@@ -37,6 +37,8 @@ urlpatterns = [
     path("listings/delete/<int:pk>", views.ListingDeleteView.as_view(), name="delete_listing"), # pk = listing id
     path("listings/<int:pk>/groups", views.GroupListView.as_view(), name="viewAllGroups"), # pk - listing id
     path("listings/<int:pk>/groups/post", views.GroupPostingView.as_view(), name="post_groups"), # pk - listing id
+    path("interaction/send/<int:pk>", views.ListingInteractionCreateView.as_view(), name='interaction_send'), # pk - listing id
+    path("recommendations", views.ListingRecommendationList.as_view(), name="listing_recommendations"),
     path("groups/<int:pk>", views.GroupDetailView.as_view(), name="view_group"), # pk - group id
     path("groups/edit/<int:pk>", views.GroupEditView.as_view(), name="edit_group"), # pk - group id
     path("groups/delete/<int:pk>", views.GroupDeleteView.as_view(), name="delete_group"), # pk - group id

@@ -15,7 +15,7 @@ function GroupCard({ group }) {
       case "S":
         return { label: "Sent", cls: "status-sent" };
       case "U":
-        return { label: "Under Review", cls: "status-review" };
+        return { label: "Reviewing", cls: "status-review" };
       case "R":
         return { label: "Rejected", cls: "status-rejected" };
       case "I":

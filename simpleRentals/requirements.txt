@@ -16,4 +16,16 @@ sqlparse==0.5.3
 typing_extensions==4.12.2
 tzdata==2025.1
 wheel==0.45.1
+django-cors-headers
+djangorestframework
+djangorestframework-simplejwt
+PyJWT
+pytz
+psycopg2-binary
+python-dotenv
+pytest
+scikit-learn==1.3.0
+numpy==1.26.4
+joblib==1.3.1
+pandas
 whitenoise==6.9.0

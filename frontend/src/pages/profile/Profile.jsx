@@ -75,6 +75,27 @@ function Profile() {
     }
   };
 
+  function formatPhoneDisplay(input) {
+    if (!input) return "";
+
+    let digits = input.replace(/\D/g, "");
+
+    if (digits.length === 11 && digits.startsWith("1")) {
+      digits = digits.substring(1);
+    }
+
+    digits = digits.substring(0, 10);
+
+    const area = digits.substring(0, 3);
+    const prefix = digits.substring(3, 6);
+    const line = digits.substring(6, 10);
+
+    if (digits.length > 6) return `(${area}) ${prefix}-${line}`;
+    if (digits.length > 3) return `(${area}) ${prefix}`;
+    if (digits.length > 0) return `(${area}`;
+    return "";
+  }
+
   useEffect(() => {
     fetchData();
   }, [id]);
@@ -114,7 +135,9 @@ function Profile() {
                 />
                 <h5 className="mt-2">{`${profile.first_name} ${profile.last_name}`}</h5>
                 <p className="text-muted small mb-1">{profile.email}</p>
-                <p className="text-muted small">{profile.phone_number}</p>
+                <p className="text-muted small">
+                  +1 -{" " + formatPhoneDisplay(profile.phone_number)}
+                </p>
 
                 {averageRating && (
                   <div className="rating mt-2">
@@ -218,24 +241,35 @@ function Profile() {
                               listing.pictures?.[0]?.image ||
                               "/default-listing.png"
                             }
-                            alt={listing.title}
+                            alt="Listing"
                             className="card-img-top"
                             style={{ height: "180px", objectFit: "cover" }}
                           />
                           <div className="card-body d-flex flex-column">
-                            <h6 className="card-title">{listing.title}</h6>
-                            <p className="text-muted small flex-grow-1">
-                              {listing.description.length > 100
-                                ? listing.description.slice(0, 100) + "..."
-                                : listing.description}
-                            </p>
-                            <p className="mb-1">
-                              <strong>Price:</strong> ${listing.price}
-                            </p>
-                            <p className="mb-2">
-                              <strong>Location:</strong>{" "}
-                              {listing.street_address}, {listing.city}
-                            </p>
+                            <div>
+                              <h5 className="card-title mb-1 text-capitalize">
+                                {listing.bedrooms} bedroom{" "}
+                                {listing.property_type}
+                              </h5>
+                              <p className="text-muted mb-2">
+                                {" "}
+                                {listing.street_address}, {listing.city},{" "}
+                                {listing.postal_code}
+                              </p>
+
+                              <h6
+                                className="text-price fw-bold"
+                                style={{
+                                  fontSize: "1.75rem",
+                                }}
+                              >
+                                ${listing.price.toLocaleString()}
+                              </h6>
+
+                              <p className="mb-3">
+                                <strong>Move-in:</strong> {listing.move_in_date}
+                              </p>
+                            </div>
                             <div className="d-flex gap-2 mt-auto">
                               <button
                                 className="btn btn-sm btn-outline-primary w-100"

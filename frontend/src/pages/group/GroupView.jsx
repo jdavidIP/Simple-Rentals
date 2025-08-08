@@ -208,7 +208,7 @@ function GroupView() {
     if (!listingPrice || !income || !listing) return <p>Loading...</p>;
 
     const monthlyIncome = income / 12;
-    const rentRatio = listingPrice / monthlyIncome;
+    const rentRatio = listingPrice / members.length / monthlyIncome;
     const percent = (rentRatio * 100).toFixed(1);
 
     if (rentRatio > 0.5) {
@@ -370,11 +370,7 @@ function GroupView() {
           <footer className="action-bar">
             <button
               className={`btn ${
-                isOwner
-                  ? "btn-danger"
-                  : isMember
-                  ? "btn-outline-danger"
-                  : "btn-primary"
+                isOwner || isMember ? "btn-danger" : "btn-primary"
               }`}
               onClick={
                 !roommate
