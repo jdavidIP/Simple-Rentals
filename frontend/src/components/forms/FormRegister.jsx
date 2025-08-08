@@ -254,8 +254,6 @@ function FormRegister({ method = "register", profile }) {
         "last_name",
         "age",
         "sex",
-        "city",
-        "preferred_location",
         "phone_number",
         "budget_max",
       ].every((field) => !!formData[field]);
