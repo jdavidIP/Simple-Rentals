@@ -21,10 +21,6 @@ describe("User Registration", () => {
 
     // --- Step 3: Extras ---
     // Optionally skip file upload in CI
-    cy.get('input[name="instagram_link"]').type(
-      "https://instagram.com/testuser"
-    );
-    cy.get('input[name="facebook_link"]').type("https://facebook.com/testuser");
     cy.get('input[name="receive_email_notifications"]').check({ force: true });
     cy.get('input[name="receive_sms_notifications"]').check({ force: true });
     cy.get('input[name="terms_accepted"]').check({ force: true });
