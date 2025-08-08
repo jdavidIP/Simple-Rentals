@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "../../styles/listings.css";
 import { useProfileContext } from "../../contexts/ProfileContext.jsx";
 import ListingCard from "../../components/cards/ListingCard.jsx";
+import useGoogleMaps from "../../hooks/useGoogleMaps";
 
 function ListingsHome() {
   const [city, setCity] = useState("");
@@ -16,6 +17,7 @@ function ListingsHome() {
   const [recommendationsLoading, setRecommenationsLoading] = useState(true);
 
   const navigate = useNavigate();
+  const { loading, error: mapsError } = useGoogleMaps();
   const locationInputRef = useRef(null);
   const { profile } = useProfileContext();
 
@@ -38,14 +40,15 @@ function ListingsHome() {
       setRecommenationsLoading(false);
     }
   };
+ 
 
   //// Initialize Google Places Autocomplete
   useEffect(() => {
+    if (loading) return;
     if (window.google && locationInputRef.current) {
       const autocomplete = new window.google.maps.places.Autocomplete(
         locationInputRef.current
       );
-
       autocomplete.addListener("place_changed", () => {
         const place = autocomplete.getPlace();
         if (place.geometry) {
@@ -56,9 +59,8 @@ function ListingsHome() {
         }
       });
     }
-
     fetchRecommendations();
-  }, []);
+  }, [loading]);
 
   // If user types manually, reset "selected" flag
   const handleCityChange = (e) => {
