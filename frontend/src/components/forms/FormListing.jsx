@@ -424,6 +424,7 @@ function FormListing({ method, listing }) {
             value={formData.price}
             onChange={handleChange}
             onBlur={handleBlur}
+            min="0"
             required
           />
           {errMsg("price")}
