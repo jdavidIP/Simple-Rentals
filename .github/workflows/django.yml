@@ -21,7 +21,6 @@ jobs:
           POSTGRES_DB: marketplace
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
-          DB_LIVE: False
         ports:
           - 5432:5432
         options: >-
@@ -29,6 +28,10 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
+    env:
+        DB_LIVE: "False"  
+
 
     steps:
       - name: Checkout code
