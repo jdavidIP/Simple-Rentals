@@ -31,7 +31,8 @@ function passwordImprovementHints(password) {
   if (!/[A-Z]/.test(password)) hints.push("Add an uppercase letter");
   if (!/[a-z]/.test(password)) hints.push("Add a lowercase letter");
   if (!/[0-9]/.test(password)) hints.push("Add a number");
-  if (!/[^A-Za-z0-9]/.test(password)) hints.push("Add a special symbol (e.g. !@#$%)");
+  if (!/[^A-Za-z0-9]/.test(password))
+    hints.push("Add a special symbol (e.g. !@#$%)");
   return hints;
 }
 
@@ -138,8 +139,7 @@ function FormRegister({ method = "register", profile }) {
       if (!data.email) errors.email = "Email is required.";
       else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email))
         errors.email = "Invalid email format.";
-      else if (data.email.length > 255)
-        errors.email = "Email is too long.";
+      else if (data.email.length > 255) errors.email = "Email is too long.";
 
       // Password
       if (!data.password) errors.password = "Password is required.";
@@ -163,14 +163,18 @@ function FormRegister({ method = "register", profile }) {
       if (!data.age && data.age !== 0) errors.age = "Age is required.";
       else if (Number(data.age) < 18)
         errors.age = "You must be at least 18 years old.";
-      else if (Number(data.age) > 120)
-        errors.age = "Enter a realistic age.";
-      if (!["M", "F", "O"].includes(data.sex)) errors.sex = "Please select a gender.";
+      else if (Number(data.age) > 120) errors.age = "Enter a realistic age.";
+      if (!["M", "F", "O"].includes(data.sex))
+        errors.sex = "Please select a gender.";
       if (!data.city) errors.city = "Current city is required.";
       else if (data.city.length < 2 || data.city.length > 80)
         errors.city = "Enter a valid city name.";
-      if (!data.preferred_location) errors.preferred_location = "Preferred location is required.";
-      else if (data.preferred_location.length < 2 || data.preferred_location.length > 80)
+      if (!data.preferred_location)
+        errors.preferred_location = "Preferred location is required.";
+      else if (
+        data.preferred_location.length < 2 ||
+        data.preferred_location.length > 80
+      )
         errors.preferred_location = "Enter a valid location name.";
       if (!data.phone_number) errors.phone_number = "Phone number required.";
       else if (!/^\+1-\d{3}-\d{3}-\d{4}$/.test(data.phone_number))
@@ -178,7 +182,10 @@ function FormRegister({ method = "register", profile }) {
       if (!data.budget_max) errors.budget_max = "Maximum budget required.";
       else if (isNaN(data.budget_max) || Number(data.budget_max) < 100)
         errors.budget_max = "Enter a valid max budget (at least $100).";
-      if (data.budget_min && (isNaN(data.budget_min) || Number(data.budget_min) < 0))
+      if (
+        data.budget_min &&
+        (isNaN(data.budget_min) || Number(data.budget_min) < 0)
+      )
         errors.budget_min = "Enter a valid minimum budget.";
       if (
         data.budget_min &&
@@ -197,17 +204,33 @@ function FormRegister({ method = "register", profile }) {
 
     if (step === 3) {
       if (data.profile_picture && data.profile_picture instanceof File) {
-        const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+        const allowedTypes = [
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+          "image/gif",
+        ];
         if (!allowedTypes.includes(data.profile_picture.type))
           errors.profile_picture = "Allowed formats: JPG, PNG, WEBP, GIF.";
         else if (data.profile_picture.size > 3 * 1024 * 1024)
           errors.profile_picture = "File too large (max 3MB).";
       }
-      if (data.instagram_link && !/^https:\/\/(www\.)?instagram\.com\/[A-Za-z0-9_.-]+\/?$/.test(data.instagram_link))
+      if (
+        data.instagram_link &&
+        !/^https:\/\/(www\.)?instagram\.com\/[A-Za-z0-9_.-]+\/?$/.test(
+          data.instagram_link
+        )
+      )
         errors.instagram_link = "Enter a valid Instagram URL.";
-      if (data.facebook_link && !/^https:\/\/(www\.)?facebook\.com\/[A-Za-z0-9.]+\/?$/.test(data.facebook_link))
+      if (
+        data.facebook_link &&
+        !/^https:\/\/(www\.)?facebook\.com\/[A-Za-z0-9.]+\/?$/.test(
+          data.facebook_link
+        )
+      )
         errors.facebook_link = "Enter a valid Facebook URL.";
-      if (!data.terms_accepted) errors.terms_accepted = "Please accept the terms.";
+      if (!data.terms_accepted)
+        errors.terms_accepted = "Please accept the terms.";
     }
 
     setFieldErrors(errors);
@@ -294,7 +317,7 @@ function FormRegister({ method = "register", profile }) {
         let allErrors = [];
         for (const [field, value] of Object.entries(apiErrors)) {
           let msgs = Array.isArray(value) ? value : [value];
-          msgs = msgs.map(msg => {
+          msgs = msgs.map((msg) => {
             if (
               field === "email" &&
               msg.trim().toLowerCase().includes("already taken")
@@ -311,9 +334,11 @@ function FormRegister({ method = "register", profile }) {
         }
         setFieldErrors(newFieldErrors);
 
-        alert(allErrors.join('\n'));
+        alert(allErrors.join("\n"));
       } else {
-        setFieldErrors({ non_field_error: "Submission failed. Please try again." });
+        setFieldErrors({
+          non_field_error: "Submission failed. Please try again.",
+        });
         alert("Submission failed. Please try again.");
       }
     }
@@ -424,7 +449,7 @@ function FormRegister({ method = "register", profile }) {
                 value={formData.password}
                 onChange={handleChange}
                 onFocus={() => setPasswordFocused(true)}
-                onBlur={e => {
+                onBlur={(e) => {
                   setPasswordFocused(false);
                   handleBlur(e);
                 }}
@@ -438,31 +463,43 @@ function FormRegister({ method = "register", profile }) {
                 tabIndex={-1}
                 style={{
                   position: "absolute",
-                  top: "38px",
+                  top: "40px",
                   right: "12px",
                   border: "none",
                   background: "none",
                   padding: 0,
                   margin: 0,
                   cursor: "pointer",
-                  outline: "none"
+                  outline: "none",
                 }}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                <i className={`bi ${showPassword ? "bi-eye-slash" : "bi-eye"}`} style={{ fontSize: 20 }}></i>
+                <i
+                  className={`bi ${showPassword ? "bi-eye-slash" : "bi-eye"}`}
+                  style={{ fontSize: 20 }}
+                ></i>
               </button>
               {formData.password && passwordFocused && (
-                <div className={`small ${passwordStrengthColor(passwordStrength(formData.password))}`}>
+                <div
+                  className={`small ${passwordStrengthColor(
+                    passwordStrength(formData.password)
+                  )}`}
+                >
                   Password strength: {passwordStrength(formData.password)}
                 </div>
               )}
-              {formData.password && passwordFocused && passwordStrength(formData.password) !== "Strong" && (
-                <ul className="small text-muted mb-1" style={{ paddingLeft: 18 }}>
-                  {passwordImprovementHints(formData.password).map((hint) => (
-                    <li key={hint}>{hint}</li>
-                  ))}
-                </ul>
-              )}
+              {formData.password &&
+                passwordFocused &&
+                passwordStrength(formData.password) !== "Strong" && (
+                  <ul
+                    className="small text-muted mb-1"
+                    style={{ paddingLeft: 18 }}
+                  >
+                    {passwordImprovementHints(formData.password).map((hint) => (
+                      <li key={hint}>{hint}</li>
+                    ))}
+                  </ul>
+                )}
               {errMsg("password")}
             </div>
             <div className="mb-3">

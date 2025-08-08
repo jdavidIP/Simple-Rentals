@@ -52,13 +52,12 @@ const RoommateCard = ({
 
       {/* Card Body */}
       <div className="card-body d-flex flex-column">
-        {/* Name */}
         <h5 className="card-title text-center text-capitalize mb-1">
           {roommate.user.first_name} {roommate.user.last_name}
         </h5>
 
         {/* Subtitle: Gender + Age */}
-        <h6 className="card-subtitle text-center text-muted mb-3">
+        <h6 className="card-subtitle text-center text-muted mt-0 mb-3">
           {roommate.user.sex || "Unspecified"}
           {roommate.user.age ? ` • ${roommate.user.age} years old` : ""}
         </h6>

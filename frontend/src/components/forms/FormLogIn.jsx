@@ -122,15 +122,14 @@ function FormLogIn() {
             tabIndex={-1}
             style={{
               position: "absolute",
-              top: "50%",
+              top: "15%",
               right: 12,
-              transform: "translateY(-50%)",
               border: "none",
               background: "none",
               padding: 0,
               margin: 0,
               cursor: "pointer",
-              outline: "none"
+              outline: "none",
             }}
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
@@ -153,7 +152,11 @@ function FormLogIn() {
         <Link to="/register">Not registered yet? Create an account</Link>
 
         <div style={{ textAlign: "right", marginTop: 2, marginBottom: 18 }}>
-          <Link to="/reset-password-request" className="link" style={{ fontSize: "0.97em" }}>
+          <Link
+            to="/reset-password-request"
+            className="link"
+            style={{ fontSize: "0.97em" }}
+          >
             Forgot your password?
           </Link>
         </div>
