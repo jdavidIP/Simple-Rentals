@@ -33,7 +33,6 @@ function ListingsHome() {
       setRecommenations(processedListings);
     } catch (err) {
       console.error("Failed to fetch recommendations.", err);
-      setError("Failed to fetch recommendations.");
       setRecommenations(null);
     } finally {
       setRecommenationsLoading(false);
