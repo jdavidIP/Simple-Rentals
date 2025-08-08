@@ -16,13 +16,8 @@ describe("User Registration", () => {
     // Fallback for city/autocomplete: force input
     cy.get('input[name="city"]').clear().type("New York");
     cy.get('input[name="preferred_location"]')
-      .then(($input) => {
-        if ($input.prop("disabled")) {
-          $input.prop("disabled", false);
-        }
-      })
-      .clear()
-      .type("Brooklyn");
+      .invoke("val", "Brooklyn")
+      .trigger("change");
 
     cy.get('input[name="phone_number"]').type("+1-226-339-4921");
     cy.get('input[name="budget_max"]').type("2000");
