@@ -111,7 +111,7 @@ function ConversationWindow() {
             <ListingCard
               listing={listing}
               styling={true}
-              showFavourite={true}
+              showFavourite={false}
             />
           </div>
         </aside>
@@ -120,11 +120,6 @@ function ConversationWindow() {
       <div className="chat-main">
         <header className="chat-header">
           <h2 className="chat-title">{chatTitle}</h2>
-          {conversation && (
-            <p className="chat-listing">
-              <strong>Listing:</strong> {conversation.listing.street_address}
-            </p>
-          )}
         </header>
 
         {error && <div className="alert alert-danger">{error}</div>}

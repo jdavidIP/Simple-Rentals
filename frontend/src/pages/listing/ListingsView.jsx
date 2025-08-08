@@ -182,6 +182,27 @@ function ListingsView() {
     }
   };
 
+  function formatPhoneDisplay(input) {
+    if (!input) return "";
+
+    let digits = input.replace(/\D/g, "");
+
+    if (digits.length === 11 && digits.startsWith("1")) {
+      digits = digits.substring(1);
+    }
+
+    digits = digits.substring(0, 10);
+
+    const area = digits.substring(0, 3);
+    const prefix = digits.substring(3, 6);
+    const line = digits.substring(6, 10);
+
+    if (digits.length > 6) return `(${area}) ${prefix}-${line}`;
+    if (digits.length > 3) return `(${area}) ${prefix}`;
+    if (digits.length > 0) return `(${area}`;
+    return "";
+  }
+
   return error ? (
     <div className="alert alert-danger">{error}</div>
   ) : loading ? (
@@ -475,8 +496,10 @@ function ListingsView() {
                   {owner.first_name} {owner.last_name}
                 </Link>
               </h5>
-              <p className="text-muted small mb-1">{profile.email}</p>
-              <p className="text-muted small">{profile.phone_number}</p>
+              <p className="text-muted small mb-1">{owner.email}</p>
+              <p className="text-muted small">
+                +1 -{" " + formatPhoneDisplay(owner.phone_number)}
+              </p>
               {averageRating && (
                 <div className="rating mt-2">
                   {[...Array(5)].map((_, i) => (
