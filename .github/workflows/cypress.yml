@@ -30,7 +30,7 @@ jobs:
           --health-retries 5
 
     env:
-      DB_LIVE: False
+      DB_LIVE: "False"
       DATABASE_URL: postgres://postgres:password@localhost:5432/marketplace
       REACT_APP_API_URL: http://localhost:8000
 
