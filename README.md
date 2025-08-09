@@ -1,4 +1,4 @@
-# 🏠 Simple Rentals
+# ![Simple Rentals Logo](frontend/public/static/images/transp_full_icon.png)
 
 [![Cypress E2E Tests](https://github.com/armaksymov/rent/actions/workflows/cypress.yml/badge.svg?branch=main)](https://github.com/armaksymov/rent/actions/workflows/cypress.yml) [![Django CI](https://github.com/armaksymov/rent/actions/workflows/django.yml/badge.svg?branch=main)](https://github.com/armaksymov/rent/actions/workflows/django.yml) [![Vitest CI](https://github.com/armaksymov/rent/actions/workflows/vitest.yml/badge.svg?branch=main)](https://github.com/armaksymov/rent/actions/workflows/vitest.yml)
 
