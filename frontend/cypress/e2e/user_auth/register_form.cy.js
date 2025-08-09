@@ -1,7 +1,22 @@
 describe("User Registration", () => {
-  it("fills out and submits the 3-step registration form", () => {
+  beforeEach(() => {
     cy.visit("/register");
 
+    cy.window().then((win) => {
+      win.google = {
+        maps: {
+          places: {
+            Autocomplete: class {
+              addListener() {}
+            },
+          },
+          event: { clearInstanceListeners() {} },
+        },
+      };
+    });
+  });
+
+  it("fills out and submits the 3-step registration form", () => {
     // --- Step 1: Credentials ---
     cy.get('input[name="email"]').type("testuser@example.com");
     cy.get('input[name="password"]').type("testpassword123");
@@ -23,16 +38,12 @@ describe("User Registration", () => {
     cy.contains("button", "Next").click();
 
     // --- Step 3: Extras ---
-    // Optionally skip file upload in CI
     cy.get('input[name="receive_email_notifications"]').check({ force: true });
     cy.get('input[name="receive_sms_notifications"]').check({ force: true });
     cy.get('input[name="terms_accepted"]').check({ force: true });
 
     cy.contains("button", "Register").click();
 
-    cy.wait(6000);
-
-    // --- Assert we're redirected to login or wherever ---
     cy.url().should("include", "/login");
   });
 });
