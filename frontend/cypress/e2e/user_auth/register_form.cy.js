@@ -1,22 +1,20 @@
 describe("User Registration", () => {
-  beforeEach(() => {
-    cy.visit("/register");
-
-    cy.window().then((win) => {
-      win.google = {
-        maps: {
-          places: {
-            Autocomplete: class {
-              addListener() {}
-            },
-          },
-          event: { clearInstanceListeners() {} },
-        },
-      };
-    });
-  });
-
   it("fills out and submits the 3-step registration form", () => {
+    cy.visit("/register", {
+      onBeforeLoad: (win) => {
+        win.google = {
+          maps: {
+            places: {
+              Autocomplete: class {
+                addListener() {}
+              },
+            },
+            event: { clearInstanceListeners() {} },
+          },
+        };
+      },
+    });
+
     // --- Step 1: Credentials ---
     cy.get('input[name="email"]').type("testuser@example.com");
     cy.get('input[name="password"]').type("testpassword123");
