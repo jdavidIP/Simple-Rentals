@@ -13,6 +13,9 @@ describe("User Registration", () => {
     cy.get('input[name="last_name"]').type("Doe");
     cy.get('input[name="age"]').type("30");
 
+    cy.get('input[name="city"]').clear().type("New York");
+    cy.get('input[name="preferred_location"]').clear().type("New York");
+
     cy.get('input[name="phone_number"]').type("+1-226-339-4921");
     cy.get('input[name="budget_max"]').type("2000");
     cy.get('select[name="sex"]').select("Male");
