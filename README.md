@@ -55,6 +55,7 @@ Our full-stack app uses multiple technologies that all work together to give our
 
 - **Listings & Search** – Post, edit, and filter rental listings.
 - **Listing Recommendation** - Get personalized recommendations based on your activity.
+- **Roommates & Search** - Create a roommate profile and search for roommates.
 - **Save Listings** - Mark your favourite listings so they are saved in your account.
 - **Reviews** – Write and view property reviews.
 - **Groups & Chat** – Create groups, invite members, and coordinate via chat.
