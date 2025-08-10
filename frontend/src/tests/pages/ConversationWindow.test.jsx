@@ -5,7 +5,9 @@ import api from "../../api";
 
 // Mock ListingCard to avoid prop errors
 vi.mock("../../components/cards/ListingCard", () => ({
-  default: () => <div data-testid="listing-card" />
+  default: ({ listing }) => (
+    <div data-testid="listing-card">{listing?.street_address}</div>
+  ),
 }));
 
 // Mock router (useParams, useNavigate)
