@@ -4,6 +4,17 @@ import { MemoryRouter } from "react-router-dom";
 import { vi } from "vitest";
 import api from "../../api";
 
+// --- MOCKS ---
+vi.mock("../../contexts/ProfileContext.jsx", () => ({
+  useProfileContext: () => ({ profile: null, setProfile: vi.fn() }),
+  ProfileProvider: ({ children }) => children,
+}));
+
+vi.mock("../../hooks/useGoogleMaps", () => ({
+  __esModule: true,
+  default: () => ({ loading: false, error: null }),
+}));
+
 // Mock modules
 vi.mock("../../api", () => ({
   default: {
@@ -92,7 +103,6 @@ describe("ListingsHome Page", () => {
   });
 
   it("calls API and navigates on valid submit", async () => {
-    const mockNavigate = vi.fn();
     const listings = [{ id: 1, title: "Test Listing" }];
     api.get.mockResolvedValueOnce({ data: listings });
 
