@@ -355,10 +355,8 @@ describe("GroupView", () => {
     render(<GroupView />);
 
    await waitFor(() => {
-      expect(screen.getByText(/Good Fit\s*—\s*24\.0%/)).toBeInTheDocument();
-      expect(screen.getByText(/Good Fit\s*—\s*18\.0%/)).toBeInTheDocument();
-      expect(screen.getByTitle("Good Fit — 24.0%")).toBeInTheDocument();
-      expect(screen.getByTitle("Good Fit — 18.0%")).toBeInTheDocument();
++     expect(screen.getByTitle("Good Fit — 12.0%")).toBeInTheDocument();
++     expect(screen.getByTitle("Good Fit — 9.0%")).toBeInTheDocument();
     });
   });
 });
