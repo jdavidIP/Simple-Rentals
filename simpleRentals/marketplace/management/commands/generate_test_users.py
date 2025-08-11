@@ -3,6 +3,7 @@ from django.db import transaction
 from django.contrib.auth.hashers import make_password
 from marketplace.models import MarketplaceUser, RoommateUser
 from django.utils import timezone
+from django.conf import settings
 from django.core.files.base import ContentFile
 import requests, random, datetime, csv, os, sys
 from faker import Faker
