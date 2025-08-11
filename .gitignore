@@ -4,7 +4,10 @@
 *.pyc
 __pycache__
 db.sqlite3
-media
+
+# Ignore all media except profile pictures
+media/*
+!media/profile_pictures/
 
 # Backup files # 
 *.bak 

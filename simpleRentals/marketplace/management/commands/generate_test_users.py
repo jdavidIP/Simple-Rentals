@@ -12,6 +12,19 @@ DEFAULT_PASSWORD = "TestPass123!"
 SEED_DOMAIN = "example.com"  # seed users live under this domain
 
 def fetch_avatar(seed: str) -> bytes | None:
+    """
+    Try to load a local profile picture from media/profile_pictures,
+    otherwise fall back to downloading from avatar APIs.
+    """
+    local_dir = os.path.join(settings.MEDIA_ROOT, "profile_pictures")
+    if os.path.exists(local_dir):
+        choices = [f for f in os.listdir(local_dir) if f.lower().endswith((".png", ".jpg", ".jpeg"))]
+        if choices:
+            file_path = os.path.join(local_dir, random.choice(choices))
+            with open(file_path, "rb") as f:
+                return f.read()
+
+    # Fallback to online sources
     sources = [
         f"https://i.pravatar.cc/512?u={seed}",
         f"https://api.dicebear.com/7.x/adventurer/png?size=512&seed={seed}",
@@ -123,7 +136,7 @@ class Command(BaseCommand):
                     seed = f"{user.username}-{user.email}"
                     blob = fetch_avatar(seed)
                     if blob:
-                        user.profile_picture.save(f"avatars/{user.username}.png", ContentFile(blob), save=True)
+                        user.profile_picture.save(f"profile_pictures/{user.username}.png", ContentFile(blob), save=True)
 
         # Create roommate profiles for ~11 (or 55%) of them
         k = min(11, max(1, int(round(0.55 * len(created_users)))))
