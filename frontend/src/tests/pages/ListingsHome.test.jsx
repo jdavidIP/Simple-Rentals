@@ -126,7 +126,15 @@ describe("ListingsHome Page", () => {
   });
 
   it("shows error if API fails", async () => {
-    api.get.mockRejectedValueOnce(new Error("API Error"));
+    api.get.mockImplementation((url) => {
+      if (url === "/recommendations") {
+        return Promise.resolve({ data: [] });
+      }
+      if (url === "/listings/viewAll") {
+        return Promise.reject(new Error("API Error"));
+      }
+      return Promise.resolve({ data: [] });
+    });
 
     render(
       <MemoryRouter>
@@ -138,12 +146,17 @@ describe("ListingsHome Page", () => {
       target: { value: "Waterloo" },
     });
 
+    // Simulate selecting from the autocomplete dropdown
     await waitFor(() => window.__placeChangedCallback__?.());
 
+    // Click Search
     fireEvent.click(screen.getByRole("button", { name: /Search Listings/i }));
 
+    // Assert the error message from handleSubmit catch
     await waitFor(() => {
-      expect(screen.getByText(/Failed to fetch listings/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Failed to fetch listings\. Please try again\./i)
+      ).toBeInTheDocument();
     });
   });
 });
