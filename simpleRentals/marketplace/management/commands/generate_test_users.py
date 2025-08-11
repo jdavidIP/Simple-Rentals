@@ -137,7 +137,7 @@ class Command(BaseCommand):
                     seed = f"{user.username}-{user.email}"
                     blob = fetch_avatar(seed)
                     if blob:
-                        user.profile_picture.save(f"profile_pictures/{user.username}.png", ContentFile(blob), save=True)
+                        user.profile_picture.save(f"{user.username}.png", ContentFile(blob), save=True)
 
         # Create roommate profiles for ~11 (or 55%) of them
         k = min(11, max(1, int(round(0.55 * len(created_users)))))
