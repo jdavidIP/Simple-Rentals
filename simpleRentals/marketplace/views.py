@@ -833,7 +833,7 @@ class GroupListView(generics.ListAPIView):
     def get_queryset(self):
         listing = self.kwargs['pk']
 
-        return Group.objects.filter(listing_id=listing)
+        return Group.objects.filter(listing_id=listing).exclude(group_status="R")
     
 class GroupPostingView(generics.CreateAPIView):
     serializer_class = GroupSerializer

@@ -60,10 +60,9 @@ function Groups() {
         <section
           className="group-section listing-preview"
           role="button"
-          onClick={() => navigate(`/listings/${group.listing}`)}
+          onClick={() => navigate(`/listings/${id}`)}
           onKeyDown={(e) =>
-            (e.key === "Enter" || e.key === " ") &&
-            navigate(`/listings/${group.listing}`)
+            (e.key === "Enter" || e.key === " ") && navigate(`/listings/${id}`)
           }
           tabIndex={0}
           aria-label="Open listing"
