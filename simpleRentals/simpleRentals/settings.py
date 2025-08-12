@@ -108,7 +108,7 @@ WSGI_APPLICATION = "simpleRentals.wsgi.application"
 
 DB_LIVE = os.getenv("DB_LIVE")
 
-if DB_LIVE in ["False", False]:
+if DB_LIVE in ["False", False]: # Local Development Settings
 
     # Define where media files (uploads) are stored
     MEDIA_URL = '/media/'
@@ -127,8 +127,9 @@ if DB_LIVE in ["False", False]:
             "PORT": "5432",
         }
     }
-else:
-    
+
+else: # Production Settings
+
     # Cloudinary settings
     DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
     CLOUDINARY_STORAGE = {
