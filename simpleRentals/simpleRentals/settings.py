@@ -110,6 +110,10 @@ DB_LIVE = os.getenv("DB_LIVE")
 
 if DB_LIVE in ["False", False]:
 
+    # Define where media files (uploads) are stored
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
     # URL for frontend in verification links
     FRONTEND_URL = "http://localhost:5173"
 
@@ -195,11 +199,6 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Define where media files (uploads) are stored
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWS_CREDENTIALS = True
@@ -218,6 +217,3 @@ EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
-
-# STATIC ROOT FIX
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
