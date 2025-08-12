@@ -29,9 +29,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-=-t_j$)r!%3#g*uj=9+bg+2j-*j-k@mxw+=x1z38il(+#lm__2"
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
 ALLOWED_HOSTS = ["*"]
 
 REST_FRAMEWORK = {
@@ -151,6 +148,7 @@ else:
         }
     }
 
+DEBUG = DB_LIVE in ["False", False]  
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
