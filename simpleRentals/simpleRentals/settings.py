@@ -68,7 +68,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     'rest_framework_simplejwt.token_blacklist', 
-    "corsheaders"
+    "corsheaders",
+    "cloudinary",
+    "cloudinary_storage"
 ]
 
 AUTH_USER_MODEL = "marketplace.MarketplaceUser"
@@ -125,6 +127,14 @@ if DB_LIVE in ["False", False]:
         }
     }
 else:
+    
+    # Cloudinary settings
+    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+    CLOUDINARY_STORAGE = {
+        "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME"),
+        "API_KEY": os.getenv("CLOUDINARY_API_KEY"),
+        "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
+    }
 
     # URL for deployed frontend in verification links
     FRONTEND_URL = "https://transcendent-concha-495d54.netlify.app"
