@@ -111,6 +111,9 @@ DB_LIVE = os.getenv("DB_LIVE")
 
 if DB_LIVE in ["False", False]:
 
+    # URL for frontend in verification links
+    FRONTEND_URL = "http://localhost:5173"
+
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -122,6 +125,10 @@ if DB_LIVE in ["False", False]:
         }
     }
 else:
+
+    # URL for deployed frontend in verification links
+    FRONTEND_URL = "https://transcendent-concha-495d54.netlify.app"
+
     # Use environment variables for production database configuration
     DATABASES = {
         "default": {
@@ -203,7 +210,6 @@ EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
-
 
 # URL for frontend in verification links
 FRONTEND_URL = "http://localhost:5173"
