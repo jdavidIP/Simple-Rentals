@@ -138,6 +138,8 @@ else: # Production Settings
         "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
     }
 
+    MEDIA_URL = f"https://res.cloudinary.com/{os.getenv('CLOUDINARY_CLOUD_NAME')}/"
+
     # URL for deployed frontend in verification links
     FRONTEND_URL = "https://transcendent-concha-495d54.netlify.app"
 
