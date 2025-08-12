@@ -5,24 +5,6 @@ from django.conf.urls.static import static
 from django.conf import settings
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenBlacklistView
 
-# redirect legacy media paths to the active storage (Cloudinary in prod)
-from django.http import HttpResponseRedirect, Http404
-from django.core.files.storage import default_storage
-
-def media_redirect(request, subpath):
-    # Map URL to storage name used by your ImageFields
-    if request.path.startswith("/profile_pictures/"):
-        name = f"profile_pictures/{subpath}"
-    elif request.path.startswith("/listing_pictures/"):
-        name = f"listing_pictures/{subpath}"
-    else:
-        raise Http404("Unknown media path")
-    try:
-        url = default_storage.url(name)
-        return HttpResponseRedirect(url)
-    except Exception:
-        raise Http404("File not found")
-
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("register/", views.CreateUserView.as_view(), name="register"),
@@ -89,9 +71,3 @@ urlpatterns = [
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-else:
-    # redirect legacy media paths to Cloudinary in prod
-    urlpatterns += [
-        re_path(r"^profile_pictures/(?P<subpath>.+)$", media_redirect),
-        re_path(r"^listing_pictures/(?P<subpath>.+)$", media_redirect),
-    ]
