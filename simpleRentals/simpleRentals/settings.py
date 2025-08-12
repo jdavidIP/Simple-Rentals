@@ -29,6 +29,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-=-t_j$)r!%3#g*uj=9+bg+2j-*j-k@mxw+=x1z38il(+#lm__2"
 
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
 ALLOWED_HOSTS = ["*"]
 
 REST_FRAMEWORK = {
@@ -65,9 +68,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     'rest_framework_simplejwt.token_blacklist', 
-    "corsheaders",
-    "cloudinary",
-    "cloudinary_storage"
+    "corsheaders"
 ]
 
 AUTH_USER_MODEL = "marketplace.MarketplaceUser"
@@ -108,14 +109,7 @@ WSGI_APPLICATION = "simpleRentals.wsgi.application"
 
 DB_LIVE = os.getenv("DB_LIVE")
 
-if DB_LIVE in ["False", False]: # Local Development Settings
-
-    # Define where media files (uploads) are stored
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-    # URL for frontend in verification links
-    FRONTEND_URL = "http://localhost:5173"
+if DB_LIVE in ["False", False]:
 
     DATABASES = {
         "default": {
@@ -127,20 +121,7 @@ if DB_LIVE in ["False", False]: # Local Development Settings
             "PORT": "5432",
         }
     }
-
-else: # Production Settings
-
-    # Cloudinary settings
-    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
-    CLOUDINARY_STORAGE = {
-        "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME"),
-        "API_KEY": os.getenv("CLOUDINARY_API_KEY"),
-        "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
-    }
-
-    # URL for deployed frontend in verification links
-    FRONTEND_URL = "https://transcendent-concha-495d54.netlify.app"
-
+else:
     # Use environment variables for production database configuration
     DATABASES = {
         "default": {
@@ -153,7 +134,6 @@ else: # Production Settings
         }
     }
 
-DEBUG = DB_LIVE in ["False", False]  
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -200,6 +180,11 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Define where media files (uploads) are stored
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWS_CREDENTIALS = True
@@ -218,3 +203,10 @@ EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+
+
+# URL for frontend in verification links
+FRONTEND_URL = "http://localhost:5173"
+
+# STATIC ROOT FIX
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
